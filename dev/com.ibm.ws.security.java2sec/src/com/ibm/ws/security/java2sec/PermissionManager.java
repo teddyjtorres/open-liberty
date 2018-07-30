@@ -42,20 +42,14 @@ import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.kernel.boot.security.PermissionsCombiner;
 import com.ibm.ws.kernel.boot.security.WLPDynamicPolicy;
-import com.ibm.wsspi.classloading.ClassLoadingService;
 import com.ibm.wsspi.kernel.service.utils.ConcurrentServiceReferenceSet;
 
 public class PermissionManager implements PermissionsCombiner {
-	
+
 	/**
 	 * The trace component
 	 */
 	private static final TraceComponent tc = Tr.register(PermissionManager.class);
-	
-	/**
-	 * Class Loader
-	 */
-	private ClassLoadingService classLoadingService;
 
 	/**
 	 * These are the default filtered or restrictable permissions. These can be overridden by
@@ -69,7 +63,7 @@ public class PermissionManager implements PermissionsCombiner {
 		DEFAULT_SERVER_RESTRICTABLE_PERMISSIONS[2] = new SecurityPermission("setPolicy");
 		DEFAULT_SERVER_RESTRICTABLE_PERMISSIONS[3] = new AuthPermission("setLoginConfiguration");
 	}
-	
+
 	private static Permission[] DEFAULT_CLIENT_RESTRICTABLE_PERMISSIONS = null;
 	static {
 		DEFAULT_CLIENT_RESTRICTABLE_PERMISSIONS = new Permission[3];
@@ -78,35 +72,34 @@ public class PermissionManager implements PermissionsCombiner {
 		DEFAULT_CLIENT_RESTRICTABLE_PERMISSIONS[2] = new AuthPermission("setLoginConfiguration");
 	}
 
-	
     private boolean isServer = true;
     private boolean wsjarUrlStreamHandlerAvailable = false;
-	
+
 	/**
 	 * The list of effective restrictable permissions. The effective permissions are merged from the
 	 * default restrictable permissions, the granted permissions in server.xml and restrictable permissions
 	 * in the server.xml
 	 */
 	private ArrayList<Permission> restrictablePermissions = new ArrayList<Permission>();
-	
+
 	/**
 	 * The list of permissions granted in the server.xml
 	 */
 	private ArrayList<Permission> grantedPermissions = new ArrayList<Permission>();
-	
+
 	/**
 	 * The binding key for permissions configurations.
 	 */
 	private static final String KEY_PERMISSION = "permission";
 
 	private static final String INCORRECT_PERMISSION_CONFIGURATION = "INCORRECT_PERMISSION_CONFIGURATION";
-	
+
 	private static final String PERMISSION_CLASSNOTFOUND = "PERMISSION_CLASSNOTFOUND";
 
 	private static final String SERVER_XML = "server.xml";
-	
+
 	private static final String CLIENT_XML = "client.xml";
-	
+
 	private String originationFile = null;
 
 	/**
@@ -127,6 +120,11 @@ public class PermissionManager implements PermissionsCombiner {
     	initializePermissions();
     	setAsDynamicPolicyPermissionCombiner(this);
     }
+
+	public void initialize(ConcurrentServiceReferenceSet<JavaPermissionsConfiguration> permissions) {
+		// TODO Auto-generated method stub
+		
+	}
 
 	private void setAsDynamicPolicyPermissionCombiner(PermissionsCombiner effectivePolicy) {
 		Policy policy = AccessController.doPrivileged(new PrivilegedAction<Policy>() {
@@ -185,14 +183,6 @@ public class PermissionManager implements PermissionsCombiner {
     	grantedPermissions.clear();
     	codeBasePermissionMap.clear();
 	}
-
-    protected void setClassLoadingService(ClassLoadingService service) {
-        classLoadingService = service;
-    }
-
-    protected void unsetClassLoadingService(ClassLoadingService service) {
-        classLoadingService = null;
-    }
 
 	/**
 	 * Initialize the permissions using the configuration and determine the effective permission
@@ -274,8 +264,6 @@ public class PermissionManager implements PermissionsCombiner {
     			}
     		}
     	}
-    	
-    	setSharedLibraryPermission();
     }
 
     private String normalize(String codebase) {
@@ -300,7 +288,7 @@ public class PermissionManager implements PermissionsCombiner {
     	}
 	}
 
-	private void setSharedLibraryPermission() {
+	public Map<String, ProtectionDomain> getProtectionDomains() {
 		Map<String, ProtectionDomain> protectionDomainMap = new HashMap<String, ProtectionDomain>();
 		
 		for(String codeBase : codeBasePermissionMap.keySet()) {
@@ -323,8 +311,7 @@ public class PermissionManager implements PermissionsCombiner {
 			Tr.debug(tc, "protectionDomainMap.size = " + protectionDomainMap.size());
 		}
 		
-		if(classLoadingService != null)
-    	    classLoadingService.setSharedLibraryProtectionDomains(protectionDomainMap);
+		return protectionDomainMap;
 	}
 
 	private ProtectionDomain createProtectionDomain(String codeBase, ArrayList<Permission> permissions) {

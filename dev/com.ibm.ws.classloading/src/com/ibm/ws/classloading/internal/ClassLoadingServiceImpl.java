@@ -54,10 +54,13 @@ import org.osgi.service.component.annotations.Reference;
 import org.osgi.service.component.annotations.ReferenceCardinality;
 import org.osgi.service.component.annotations.ReferencePolicy;
 import org.osgi.service.component.annotations.ReferencePolicyOption;
+import org.osgi.service.metatype.annotations.AttributeDefinition;
+import org.osgi.service.metatype.annotations.ObjectClassDefinition;
 import org.osgi.service.url.URLStreamHandlerService;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
+import com.ibm.ws.bnd.metatype.annotation.Ext;
 import com.ibm.ws.classloading.ClassGenerator;
 import com.ibm.ws.classloading.ClassLoaderIdentifierService;
 import com.ibm.ws.classloading.LibertyClassLoadingService;
@@ -73,6 +76,8 @@ import com.ibm.ws.container.service.metadata.extended.MetaDataIdentifierService;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.runtime.metadata.ComponentMetaData;
 import com.ibm.ws.runtime.metadata.MetaData;
+import com.ibm.ws.security.java2sec.JavaPermissionsConfiguration;
+import com.ibm.ws.security.java2sec.PermissionManager;
 import com.ibm.wsspi.adaptable.module.Container;
 import com.ibm.wsspi.classloading.ApiType;
 import com.ibm.wsspi.classloading.ClassLoaderConfiguration;
@@ -82,15 +87,30 @@ import com.ibm.wsspi.classloading.ClassTransformer;
 import com.ibm.wsspi.classloading.GatewayConfiguration;
 import com.ibm.wsspi.classloading.ResourceProvider;
 import com.ibm.wsspi.config.Fileset;
+import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
 import com.ibm.wsspi.kernel.service.utils.ConcurrentServiceReferenceMap;
 import com.ibm.wsspi.kernel.service.utils.ConcurrentServiceReferenceSet;
 import com.ibm.wsspi.library.ApplicationExtensionLibrary;
 import com.ibm.wsspi.library.Library;
 import com.ibm.wsspi.logging.Introspector;
 
+@ObjectClassDefinition(pid = "com.ibm.ws.classloading.internal.PermissionManagerRefConfig", name = Ext.INTERNAL, description = Ext.INTERNAL_DESC,
+                       localization = Ext.LOCALIZATION)
+interface PermissionManagerRefConfig {
+
+    @AttributeDefinition(name = Ext.INTERNAL, description = Ext.INTERNAL_DESC, required = false)
+    @Ext.ServiceClass(PermissionManager.class)
+    String permissionManager();
+
+    @AttributeDefinition(name = Ext.INTERNAL, description = Ext.INTERNAL_DESC, defaultValue = "${count(permissionManager)}")
+    String PermissionManager_cardinality_minimum();
+
+}
+
 @Component(service = { ClassLoadingService.class, LibertyClassLoadingService.class, ClassLoaderIdentifierService.class, Introspector.class },
            immediate = true,
-           configurationPolicy = ConfigurationPolicy.IGNORE,
+           configurationPolicy = ConfigurationPolicy.OPTIONAL,
+           configurationPid = "com.ibm.ws.classloading.internal.PermissionManagerRefConfig",
            property = "service.vendor=IBM")
 public class ClassLoadingServiceImpl implements LibertyClassLoadingService, ClassLoaderIdentifierService, Introspector {
     static final TraceComponent tc = Tr.register(ClassLoadingServiceImpl.class);
@@ -151,8 +171,22 @@ public class ClassLoadingServiceImpl implements LibertyClassLoadingService, Clas
      */
     protected MetaDataIdentifierService metadataIdentifierService;
 
+    private static final String KEY_PERMISSION_MANAGER = "PermissionManager";
+    private final AtomicServiceReference<PermissionManager> permissionManagerServiceRef = new AtomicServiceReference<PermissionManager>(KEY_PERMISSION_MANAGER);
+    private PermissionManager permissionManager;
+
+    /**
+     * The set of configured permissions.
+     */
+    private final ConcurrentServiceReferenceSet<JavaPermissionsConfiguration> permissions = new ConcurrentServiceReferenceSet<JavaPermissionsConfiguration>("permission");
+
     @Activate
     protected void activate(ComponentContext cCtx, Map<String, Object> properties) {
+        permissionManagerServiceRef.activate(cCtx);
+        PermissionManager permissionManager = permissionManagerServiceRef.getService();
+        if (permissionManager != null) {
+            protectionDomainMap = permissionManager.getProtectionDomains();
+        }
         generatorRefs.activate(cCtx);
         metaInfServicesRefs.activate(cCtx);
         this.bundleContext = cCtx.getBundleContext();
@@ -168,6 +202,7 @@ public class ClassLoadingServiceImpl implements LibertyClassLoadingService, Clas
     protected void deactivate(ComponentContext cCtx) {
         generatorRefs.deactivate(cCtx);
         metaInfServicesRefs.deactivate(cCtx);
+        permissionManagerServiceRef.deactivate(cCtx);
         Bundle systemBundle = this.bundleContext.getBundle(Constants.SYSTEM_BUNDLE_LOCATION);
         BundleContext systemContext = systemBundle.getBundleContext();
         systemContext.removeBundleListener(listener);
@@ -263,15 +298,27 @@ public class ClassLoadingServiceImpl implements LibertyClassLoadingService, Clas
 
     protected void unsetURLStreamHandlerService(URLStreamHandlerService svc) {}
 
+//    @Reference(name = "JavaPermissionsConfiguration", cardinality = ReferenceCardinality.MULTIPLE, policy = ReferencePolicy.DYNAMIC)
+//    protected void setPermission(ServiceReference<JavaPermissionsConfiguration> permission) {
+//        permissions.addReference(permission);
+//    }
+//
+//    protected void unsetPermission(ServiceReference<JavaPermissionsConfiguration> ref) {}
+
+    @Reference(name = KEY_PERMISSION_MANAGER, cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC)
+    protected void setPermissionManager(ServiceReference<PermissionManager> permissionManagerRef) {
+        permissionManagerServiceRef.setReference(permissionManagerRef);
+    }
+
+    protected void unsetPermissionManager(ServiceReference<PermissionManager> permissionManagerRef) {
+        permissionManagerServiceRef.unsetReference(permissionManagerRef);
+    }
+
     @Override
     public AppClassLoader createTopLevelClassLoader(List<Container> classPath, GatewayConfiguration gwConfig, ClassLoaderConfiguration clConfig) {
         if (clConfig.getIncludeAppExtensions())
             addAppExtensionLibs(clConfig);
-        AppClassLoader result = new ClassLoaderFactory(bundleContext, digraph, classloaders, aclStore, resourceProviders, redefiner, generatorManager)
-                        .setClassPath(classPath)
-                        .configure(gwConfig)
-                        .configure(clConfig)
-                        .create();
+        AppClassLoader result = new ClassLoaderFactory(bundleContext, digraph, classloaders, aclStore, resourceProviders, redefiner, generatorManager).setClassPath(classPath).configure(gwConfig).configure(clConfig).create();
 
         this.rememberBundle(result.getBundle());
         return result;
@@ -279,22 +326,14 @@ public class ClassLoadingServiceImpl implements LibertyClassLoadingService, Clas
 
     @Override
     public AppClassLoader createBundleAddOnClassLoader(List<File> classPath, ClassLoader gwClassLoader, ClassLoaderConfiguration clConfig) {
-        return new ClassLoaderFactory(bundleContext, digraph, classloaders, aclStore, resourceProviders, redefiner, generatorManager)
-                        .setSharedLibPath(classPath)
-                        .configure(createGatewayConfiguration())
-                        .useBundleAddOnLoader(gwClassLoader)
-                        .configure(clConfig)
-                        .create();
+        return new ClassLoaderFactory(bundleContext, digraph, classloaders, aclStore, resourceProviders, redefiner, generatorManager).setSharedLibPath(classPath).configure(createGatewayConfiguration()).useBundleAddOnLoader(gwClassLoader).configure(clConfig).create();
     }
 
     @Override
     public AppClassLoader createChildClassLoader(List<Container> classPath, ClassLoaderConfiguration config) {
         if (config.getIncludeAppExtensions())
             addAppExtensionLibs(config);
-        return new ClassLoaderFactory(bundleContext, digraph, classloaders, aclStore, resourceProviders, redefiner, generatorManager)
-                        .setClassPath(classPath)
-                        .configure(config)
-                        .create();
+        return new ClassLoaderFactory(bundleContext, digraph, classloaders, aclStore, resourceProviders, redefiner, generatorManager).setClassPath(classPath).configure(config).create();
     }
 
     @Override
@@ -392,13 +431,9 @@ public class ClassLoadingServiceImpl implements LibertyClassLoadingService, Clas
             }
         }
 
-        AppClassLoader result = new ClassLoaderFactory(bundleContext, digraph, classloaders, aclStore, resourceProviders, redefiner, generatorManager)
-                        .configure(createGatewayConfiguration().setApplicationName(SHARED_LIBRARY_DOMAIN + ": " + lib.id())
-                                        .setDynamicImportPackage("*")
-                                        .setApiTypeVisibility(apiTypeVisibility))
-                        .configure(clsCfg)
-                        .onCreate(listenForLibraryChanges(lib.id()))
-                        .getCanonical();
+        AppClassLoader result = new ClassLoaderFactory(bundleContext, digraph, classloaders, aclStore, resourceProviders, redefiner, generatorManager).configure(createGatewayConfiguration().setApplicationName(SHARED_LIBRARY_DOMAIN
+                                                                                                                                                                                                                 + ": "
+                                                                                                                                                                                                                 + lib.id()).setDynamicImportPackage("*").setApiTypeVisibility(apiTypeVisibility)).configure(clsCfg).onCreate(listenForLibraryChanges(lib.id())).getCanonical();
 
         this.rememberBundle(result.getBundle());
         return result;
@@ -560,10 +595,7 @@ public class ClassLoadingServiceImpl implements LibertyClassLoadingService, Clas
          * Always create a new TCCL to handle features being added/removed
          */
 
-        GatewayConfiguration gwConfig = this.createGatewayConfiguration()
-                        .setApplicationName("ThreadContextClassLoader")
-                        .setDynamicImportPackage("*;thread-context=\"true\"")
-                        .setDelegateToSystem(false);
+        GatewayConfiguration gwConfig = this.createGatewayConfiguration().setApplicationName("ThreadContextClassLoader").setDynamicImportPackage("*;thread-context=\"true\"").setDelegateToSystem(false);
         ClassLoaderConfiguration clConfig = this.createClassLoaderConfiguration().setId(createIdentity("Thread Context", key));
         GatewayBundleFactory gatewayBundleFactory = new GatewayBundleFactory(bundleContext, digraph, classloaders);
         GatewayClassLoader aug = gatewayBundleFactory.createGatewayBundleClassLoader(gwConfig, clConfig, resourceProviders);

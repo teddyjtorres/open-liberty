@@ -59,9 +59,13 @@ instrument.classesExcludes: com/ibm/ws/classloading/internal/resources/*.class
 	com.ibm.ws.logging,\
 	com.ibm.ws.dynamic.bundle;version=latest,\
 	com.ibm.ws.kernel.equinox.module,\
+	com.ibm.ws.kernel.boot.core;version=latest,\
+	com.ibm.ws.security.java2sec;version=latest,\
 	com.ibm.websphere.appserver.spi.kernel.service,\
 	com.ibm.websphere.org.osgi.core,\
 	com.ibm.websphere.org.osgi.service.cm,\
 	com.ibm.websphere.org.osgi.service.component,\
 	com.ibm.wsspi.org.osgi.service.component.annotations, \
+	com.ibm.wsspi.org.osgi.service.metatype.annotations;version=latest,\
+	com.ibm.ws.bnd.annotations;version=latest,\
 	com.ibm.ws.org.osgi.annotation.versioning;version=latest

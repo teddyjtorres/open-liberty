@@ -31,18 +31,12 @@ Include-Resource: \
   
 
 Service-Component: \
-  com.ibm.ws.security.java2sec.policyConfig; \
-    configuration-policy:=require; \
-    implementation:=com.ibm.ws.security.java2sec.JavaPermissionsConfiguration; \
-    provide:=com.ibm.ws.security.java2sec.JavaPermissionsConfiguration; \
-    properties:="service.vendor=IBM", \
   com.ibm.ws.security.java2sec.PermissionManager; \
     configuration-policy:=ignore; \
     immediate:=true;\
     implementation:=com.ibm.ws.security.java2sec.PermissionManager; \
     provide:=com.ibm.ws.security.java2sec.PermissionManager; \
     permission=com.ibm.ws.security.java2sec.JavaPermissionsConfiguration; \
-    classLoadingService=com.ibm.wsspi.classloading.ClassLoadingService; \
     wsjarURLStreamHandler='org.osgi.service.url.URLStreamHandlerService(url.handler.protocol=wsjar)'; \
     dynamic:='permission,wsjarURLStreamHandler'; \
     multiple:='permission'; \
@@ -52,9 +46,12 @@ Service-Component: \
 
 instrument.classesExcludes: com/ibm/ws/security/java2sec/resources/*.class
 
+-dsannotations: \
+    com.ibm.ws.security.java2sec.JavaPermissionsConfiguration
+
 -buildpath: \
-	com.ibm.ws.classloading;version=latest,\
 	com.ibm.ws.kernel.boot;version=latest,\
+	com.ibm.ws.kernel.boot.core;version=latest,\
 	com.ibm.ws.logging;version=latest,\
 	com.ibm.websphere.org.osgi.core;version=latest,\
 	com.ibm.websphere.org.osgi.service.component;version=latest,\

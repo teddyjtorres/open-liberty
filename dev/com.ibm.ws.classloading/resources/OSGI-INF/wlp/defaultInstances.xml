@@ -9,11 +9,14 @@
         IBM Corporation - initial API and implementation
  -->
 <server>
- 
-   <library id="global" apiTypeVisibility="spec, ibm-api, api, stable">
+
+  <library id="global" apiTypeVisibility="spec, ibm-api, api, stable">
     <fileset dir="${shared.config.dir}/lib/global/" includes="*" />
     <fileset dir="${server.config.dir}/lib/global/" includes="*" />
     <folder dir="${server.config.dir}/lib/global/"  />
     <folder dir="${shared.config.dir}/lib/global/" />
   </library>
+
+  <com.ibm.ws.classloading.internal.PermissionManagerRefConfig/>
+
 </server>
