@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017 IBM Corporation and others.
+ * Copyright (c) 2017, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -23,15 +23,13 @@ import javax.ws.rs.container.ContainerRequestFilter;
 import javax.ws.rs.core.Response;
 
 import org.apache.cxf.interceptor.security.AccessDeniedException;
-import org.apache.cxf.interceptor.security.AuthenticationException;
 import org.apache.cxf.jaxrs.utils.JAXRSUtils;
 import org.apache.cxf.message.Message;
 import org.apache.cxf.message.MessageUtils;
-import org.apache.cxf.security.SecurityContext;
 import org.apache.cxf.transport.http.AbstractHTTPDestination;
 
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
-import com.ibm.ws.security.authorization.util.RoleMethodAuthUtil;
+import com.ibm.ws.security.authorization.util.AccessDecision;
 import com.ibm.ws.security.authorization.util.UnauthenticatedException;
 
 @Priority(Priorities.AUTHORIZATION)
@@ -74,11 +72,11 @@ public class LibertyAuthFilter implements ContainerRequestFilter {
         return false;
     }
 
-    private void handleMessage(Message message) throws UnauthenticatedException{
+    private void handleMessage(Message message) throws UnauthenticatedException {
         HttpServletRequest req = (HttpServletRequest) message.get(AbstractHTTPDestination.HTTP_REQUEST);
         Method method = MessageUtils.getTargetMethod(message, () -> 
             new AccessDeniedException("Method is not available : Unauthorized"));
-        if (RoleMethodAuthUtil.parseMethodSecurity(method, req.getUserPrincipal(), s -> req.isUserInRole(s))) {
+        if (AccessDecision.isGranted(method, req.getUserPrincipal(), s -> req.isUserInRole(s))) {
             return;
         }
 

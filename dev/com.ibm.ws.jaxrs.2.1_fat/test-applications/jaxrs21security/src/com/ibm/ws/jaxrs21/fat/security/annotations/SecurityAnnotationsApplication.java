@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2019 IBM Corporation and others.
+ * Copyright (c) 2019, 2020 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,7 +17,7 @@ import javax.annotation.security.DeclareRoles;
 import javax.ws.rs.ApplicationPath;
 import javax.ws.rs.core.Application;
 
-@DeclareRoles({ "Role1", "Role2", "Role1appbnd", "Role2appbnd", "AuthenticationRole" })
+@DeclareRoles({ "Role1", "Role2", "Role1appbnd", "Role2appbnd", "AuthenticationRole", "EveryoneRole" })
 @ApplicationPath("/nomapper")
 public class SecurityAnnotationsApplication extends Application {
 
@@ -30,7 +30,9 @@ public class SecurityAnnotationsApplication extends Application {
         classes.add(MethodLevelPermitAll.class);
         classes.add(NoSecurityAnnotations.class);
         classes.add(ClassLevelRolesAllowed.class);
+        classes.add(ClassRolesAllowedEveryone.class);
         classes.add(MethodLevelRolesAllowed.class);
+        classes.add(MethodRolesAllowedEveryone.class);
         classes.add(ClassLevelAllAnnotations.class);
         classes.add(MethodLevelAllAnnotations.class);
         return classes;

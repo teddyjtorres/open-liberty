@@ -25,6 +25,9 @@
             <user name="user1" />
             <user name="user2" />
         </security-role>
+        <security-role name="EveryoneRole">
+            <special-subject type="EVERYONE"/>
+        </security-role>
       </application-bnd>
       </application>
     

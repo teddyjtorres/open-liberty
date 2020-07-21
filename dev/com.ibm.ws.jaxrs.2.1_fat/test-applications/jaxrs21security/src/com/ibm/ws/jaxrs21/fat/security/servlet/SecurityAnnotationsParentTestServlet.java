@@ -73,6 +73,35 @@ public class SecurityAnnotationsParentTestServlet extends FATServlet {
         LOG.exiting(clz, "exiting testClassLevelRolesAllowedUserInRole exiting");
     }
 
+    protected void testClassRolesAllowedEveryone(final String baseUri) throws Exception {
+        LOG.entering(clz, "entered testClassRolesAllowedEveryone");
+        String url = baseUri + "/ClassRolesAllowedEveryone";
+
+        // create the resource instance to interact with
+        LOG.info("testClassRolesAllowedEveryone about to invoke the resource: " + url);
+
+        ClientBuilder cb = ClientBuilder.newBuilder();
+        cb.connectTimeout(120000, TimeUnit.MILLISECONDS);
+        cb.readTimeout(120000, TimeUnit.MILLISECONDS);
+
+        Client c = cb.build();
+        WebTarget t = c.target(url);
+        CompletableFuture<Response> completableFuture = t.request().accept("text/plain").rx().get().toCompletableFuture();
+        try {
+            Response response = completableFuture.get();
+            assertEquals(200, response.getStatus());
+            assertEquals("remotely accessible only to users in EveryoneRole", response.readEntity(String.class));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        c.close();
+
+        LOG.info("testClassRolesAllowedEveryone SUCCEEDED");
+        LOG.exiting(clz, "exiting testClassRolesAllowedEveryone exiting");
+    }
+
     protected void testMethodLevelRolesAllowedUserInRole(final String baseUri, boolean userRoleFromAppBnd) throws Exception {
         LOG.entering(clz, "entered testMethodLevelRolesAllowedUserInRole");
         String url = baseUri + "/MethodRolesAllowed";

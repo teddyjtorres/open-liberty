@@ -90,6 +90,39 @@
             <transport-guarantee>CONFIDENTIAL</transport-guarantee>
         </user-data-constraint>
     </security-constraint>
+    <security-constraint id="SecurityConstraint_6">
+        <web-resource-collection id="WebResourceCollection_6">
+            <web-resource-name>com.ibm.ws.jaxrs21.fat.security.annotations.SecurityAnnotationsApplication
+            </web-resource-name>
+            <description>Protection area for Rest Servlet</description>
+            <url-pattern>/nomapper/ClassRolesAllowedEveryone</url-pattern>
+            <http-method>GET</http-method>
+            <http-method>POST</http-method>
+        </web-resource-collection>
+        <user-data-constraint id="UserDataConstraint_6">
+            <transport-guarantee>NONE</transport-guarantee>
+        </user-data-constraint>
+        <auth-constraint id="AuthConstraint_6">
+            <description>blabla</description>
+            <role-name>EveryoneRole</role-name>
+        </auth-constraint>
+    </security-constraint>
+    <security-constraint id="SecurityConstraint_7">
+        <web-resource-collection id="WebResourceCollection_7">
+            <web-resource-name>com.ibm.ws.jaxrs21.security.annotations.SecurityAnnotationsApplication
+            </web-resource-name>
+            <description>Protection area for Rest Servlet</description>
+            <url-pattern>/nomapper/MethodRolesAllowedEveryone</url-pattern>
+            <http-method>GET</http-method>
+            <http-method>POST</http-method>
+        </web-resource-collection>
+        <user-data-constraint id="UserDataConstraint_7">
+            <transport-guarantee>NONE</transport-guarantee>
+        </user-data-constraint>
+        <auth-constraint id="AuthConstraint_7">
+            <role-name>EveryoneRole</role-name>
+        </auth-constraint>
+    </security-constraint>
 	
     <login-config>
         <auth-method>BASIC</auth-method>
@@ -110,5 +143,8 @@
     </security-role>
     <security-role id="SecurityRole_5">
         <role-name>Role2appbnd</role-name>
+    </security-role>
+    <security-role id="SecurityRole_6">
+        <role-name>EveryoneRole</role-name>
     </security-role>
 </web-app>

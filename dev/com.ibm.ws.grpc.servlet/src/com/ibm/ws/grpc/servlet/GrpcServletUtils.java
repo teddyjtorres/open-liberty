@@ -25,7 +25,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.http2.GrpcServletServices;
 import com.ibm.ws.http2.GrpcServletServices.ServiceInformation;
-import com.ibm.ws.security.authorization.util.RoleMethodAuthUtil;
+import com.ibm.ws.security.authorization.util.AccessDecision;
 import com.ibm.ws.security.authorization.util.UnauthenticatedException;
 
 import io.grpc.Metadata;
@@ -129,7 +129,6 @@ public class GrpcServletUtils {
 			} catch (UnauthenticatedException | AccessDeniedException ex2) {
 				// TODO: catch other exceptions
 			}
-
 		} catch (AccessDeniedException e) {
 			// TODO: catch other exceptions
 		}
@@ -152,7 +151,7 @@ public class GrpcServletUtils {
 			// the requested service doesn't exist - we'll handle this further up
 			return;
 		}
-		if (RoleMethodAuthUtil.parseMethodSecurity(method, req.getUserPrincipal(), s -> req.isUserInRole(s))) {
+		if (AccessDecision.isGranted(method, req.getUserPrincipal(), s -> req.isUserInRole(s))) {
 			return;
 		}
 		throw new AccessDeniedException("Unauthorized");
