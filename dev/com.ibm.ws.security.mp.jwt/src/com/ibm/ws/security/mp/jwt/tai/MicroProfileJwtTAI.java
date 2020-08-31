@@ -48,6 +48,7 @@ import com.ibm.ws.security.mp.jwt.TraceConstants;
 import com.ibm.ws.security.mp.jwt.config.MpConfigUtil;
 import com.ibm.ws.security.mp.jwt.error.ErrorHandlerImpl;
 import com.ibm.ws.security.mp.jwt.error.MpJwtProcessingException;
+import com.ibm.ws.security.mp.jwt.impl.ActiveMicroProfileJwtConfigImpl;
 import com.ibm.ws.security.mp.jwt.impl.utils.MicroProfileJwtTaiRequest;
 import com.ibm.ws.webcontainer.security.ReferrerURLCookieHandler;
 import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
@@ -390,9 +391,11 @@ public class MicroProfileJwtTAI implements TrustAssociationInterceptor {
         if (token != null) {
             // Create JWT from access token / id token
             try {
-                Map mpCfg = mpConfigUtil.getMpConfig(req);
+                Map<String, String> mpCfg = mpConfigUtil.getMpConfig(req);
                 if (!mpCfg.isEmpty()) {
-                    jwtToken = clientConfig.getConsumerUtils().parseJwt(token, clientConfig, mpCfg);
+                    ActiveMicroProfileJwtConfigImpl activeConfig = new ActiveMicroProfileJwtConfigImpl(clientConfig, mpCfg);
+                    jwtToken = activeConfig.createJwt(token);
+                    // jwtToken = clientConfig.getConsumerUtils().parseJwt(token, clientConfig, mpCfg);
                 } else {
                     jwtToken = taiJwtUtils.createJwt(token, clientConfig.getUniqueId());
                 }
