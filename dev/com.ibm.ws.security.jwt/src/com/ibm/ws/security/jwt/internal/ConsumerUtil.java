@@ -456,29 +456,28 @@ public class ConsumerUtil {
     }
 
     private void validateHeaders(JwtConsumerConfig config, MpConfigProperties mpConfigProps, JwtClaims jweHeaderParameters) throws InvalidTokenException {
+        String keyManagementKeyAlgorithm = null;
+        // Get keyManagementKeyAlgorithm from server.xml
+        keyManagementKeyAlgorithm = config.getKeyManagementKeyAlgorithm();
 
-        if (isRunningBetaMode()) {
-            String keyManagementKeyAlgorithm = null;
-            // Get keyManagementKeyAlgorithm from server.xml
-            keyManagementKeyAlgorithm = config.getKeyManagementKeyAlgorithm();
-            /**
-             * If keyManagementKeyAlgorithm from server.xml is null, then take the value of
-             * keyManagementKeyAlgorithm from mpConfigProps
-             */
-            if (keyManagementKeyAlgorithm == null) {
-                String value = mpConfigProps.get(MpConfigProperties.DECRYPT_KEY_ALGORITHM);
-                if (value != null) {
-                    keyManagementKeyAlgorithm = value;
-                }
+        /**
+         * If keyManagementKeyAlgorithm from server.xml is null, then take the value of
+         * keyManagementKeyAlgorithm from mpConfigProps
+         */
+        if (keyManagementKeyAlgorithm == null) {
+            String value = mpConfigProps.get(MpConfigProperties.DECRYPT_KEY_ALGORITHM);
+            if (value != null) {
+                keyManagementKeyAlgorithm = value;
             }
-            /**
-             * If keyManagementKeyAlgorithm is not null, do the following check.
-             * If keyManagementKeyAlgorithm is null (i.e. MP JWT < 2.1) skip the check.
-             */
-            if (keyManagementKeyAlgorithm != null) {
-                String tokenAlg = (String) jweHeaderParameters.getClaimValue("alg");
-                validateKeyManagementKeyAlgorithm(keyManagementKeyAlgorithm, tokenAlg);
-            }
+        }
+
+        /**
+         * If keyManagementKeyAlgorithm is not null, do the following check.
+         * If keyManagementKeyAlgorithm is null (i.e. MP JWT < 2.1) skip the check.
+         */
+        if (keyManagementKeyAlgorithm != null) {
+            String tokenAlg = (String) jweHeaderParameters.getClaimValue("alg");
+            validateKeyManagementKeyAlgorithm(keyManagementKeyAlgorithm, tokenAlg);
         }
     }
 
@@ -727,9 +726,6 @@ public class ConsumerUtil {
 
     void checkTokenAge(NumericDate issueAtClaim, long clockSkewInMilliseconds, long tokenAgeInMilliSeconds,
             NumericDate currentTimePlusSkew) throws InvalidClaimException {
-        if (!isRunningBetaMode()) {
-            return;
-        }
 
         if (tokenAgeInMilliSeconds <= 0) {
             if (tc.isDebugEnabled()) {
