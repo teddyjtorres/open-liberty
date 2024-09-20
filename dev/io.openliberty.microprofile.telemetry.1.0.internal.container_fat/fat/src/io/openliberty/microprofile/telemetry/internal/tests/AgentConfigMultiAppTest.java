@@ -55,6 +55,7 @@ import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.HttpRequest;
 import io.jaegertracing.api_v2.Model.Span;
 import io.openliberty.microprofile.telemetry.internal.apps.agentconfig.AgentConfigTestResource;
+import io.openliberty.microprofile.telemetry.internal.utils.KeyPairs;
 import io.openliberty.microprofile.telemetry.internal.utils.TestConstants;
 import io.openliberty.microprofile.telemetry.internal.utils.jaeger.JaegerContainer;
 import io.openliberty.microprofile.telemetry.internal.utils.jaeger.JaegerQueryClient;
@@ -77,7 +78,10 @@ public class AgentConfigMultiAppTest {
     @Server(SERVER_NAME)
     public static LibertyServer server;
 
-    public static JaegerContainer jaegerContainer = new JaegerContainer().withLogConsumer(new SimpleLogConsumer(JaegerBaseTest.class, "jaeger"));
+    private static KeyPairs keyPairs = new KeyPairs(server);
+
+    public static JaegerContainer jaegerContainer = new JaegerContainer(keyPairs.getCertificate(),
+                                                                        keyPairs.getKey()).withLogConsumer(new SimpleLogConsumer(AgentConfigMultiAppTest.class, "jaeger"));
     public static RepeatTests repeat = TelemetryActions.latestTelemetryRepeats(SERVER_NAME);
 
     @ClassRule
@@ -87,7 +91,8 @@ public class AgentConfigMultiAppTest {
 
     @BeforeClass
     public static void setup() throws Exception {
-        client = new JaegerQueryClient(jaegerContainer);
+
+        client = new JaegerQueryClient(jaegerContainer, keyPairs.getCertificate());
 
         if (RepeatTestFilter.isRepeatActionActive(MicroProfileActions.MP60_ID)) {
             server.copyFileToLibertyServerRoot("agent-119/opentelemetry-javaagent.jar");
