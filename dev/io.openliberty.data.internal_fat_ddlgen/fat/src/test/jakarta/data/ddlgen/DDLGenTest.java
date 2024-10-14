@@ -15,9 +15,7 @@ package test.jakarta.data.ddlgen;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.junit.ClassRule;
 import org.junit.runner.RunWith;
-import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import com.ibm.websphere.simplicity.ShrinkHelper;
 
@@ -25,7 +23,6 @@ import componenttest.annotation.MinimumJavaLevel;
 import componenttest.annotation.Server;
 import componenttest.annotation.TestServlet;
 import componenttest.custom.junit.runner.FATRunner;
-import componenttest.topology.database.container.DatabaseContainerFactory;
 import componenttest.topology.database.container.DatabaseContainerType;
 import componenttest.topology.database.container.DatabaseContainerUtil;
 import componenttest.topology.impl.LibertyServer;
@@ -35,9 +32,6 @@ import test.jakarta.data.ddlgen.web.DDLGenTestServlet;
 @RunWith(FATRunner.class)
 @MinimumJavaLevel(javaLevel = 17)
 public class DDLGenTest extends FATServletClient {
-    // TODO enable testcontainers code once ddlgen is used
-    //@ClassRule
-    //public static final JdbcDatabaseContainer<?> testContainer = DatabaseContainerFactory.create();
 
     @Server("io.openliberty.data.internal.fat.ddlgen")
     @TestServlet(servlet = DDLGenTestServlet.class, contextRoot = "DDLGenTestApp")
@@ -46,11 +40,11 @@ public class DDLGenTest extends FATServletClient {
     @BeforeClass
     public static void setUp() throws Exception {
         // Get driver type
-        //DatabaseContainerType type = DatabaseContainerType.valueOf(testContainer);
-        //server.addEnvVar("DB_DRIVER", type.getDriverName());
+        DatabaseContainerType type = DatabaseContainerType.valueOf(FATSuite.testContainer);
+        server.addEnvVar("DB_DRIVER", type.getDriverName());
 
         // Set up server DataSource properties
-        //DatabaseContainerUtil.setupDataSourceDatabaseProperties(server, testContainer);
+        DatabaseContainerUtil.setupDataSourceDatabaseProperties(server, FATSuite.testContainer);
 
         WebArchive war = ShrinkHelper.buildDefaultApp("DDLGenTestApp", "test.jakarta.data.ddlgen.web");
         ShrinkHelper.exportAppToServer(server, war);
