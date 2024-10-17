@@ -26,6 +26,8 @@ import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.database.container.DatabaseContainerType;
 import componenttest.topology.database.container.DatabaseContainerUtil;
 import componenttest.topology.impl.LibertyServer;
+import componenttest.topology.utils.DDLGenScript;
+import componenttest.topology.utils.DDLGenScript.DDLGenScriptResult;
 import componenttest.topology.utils.FATServletClient;
 import test.jakarta.data.ddlgen.web.DDLGenTestServlet;
 
@@ -49,11 +51,17 @@ public class DDLGenTest extends FATServletClient {
         WebArchive war = ShrinkHelper.buildDefaultApp("DDLGenTestApp", "test.jakarta.data.ddlgen.web");
         ShrinkHelper.exportAppToServer(server, war);
 
-        // TODO run ddlgen and save its output to a file
-
         server.startServer();
 
-        runTest(server, "DDLGenTestApp/DDLGenTestServlet", "executeDDL");
+        DDLGenScriptResult result = DDLGenScript.build(server)
+                        .execute()
+                        .assertSuccessful()
+                        .assertDDLFile("databaseStore[TestDataStore]_JakartaData.ddl");
+
+        runTest(server, "DDLGenTestApp/DDLGenTestServlet", "executeDDL" +
+                                                           "&scripts=" + String.join(",", result.getFileLocations()) +
+                                                           "&withDataStore=TestDataStore" +
+                                                           "&forDataSource=java:app/env/adminDataSourceRef");
     }
 
     @AfterClass

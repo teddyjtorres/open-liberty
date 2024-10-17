@@ -13,9 +13,15 @@
 <server>
 
   <featureManager>
-    <feature>componenttest-2.0</feature>
+    <!-- Tested features -->
     <feature>data-1.0</feature>
     <feature>persistence-3.2</feature>
+    
+    <!-- Necessary for ddlGen script -->
+    <feature>localConnector-1.0</feature>
+    
+    <!-- Necessary for test infrastructure -->
+    <feature>componenttest-2.0</feature>
     <feature>servlet-6.1</feature>
   </featureManager>
 
