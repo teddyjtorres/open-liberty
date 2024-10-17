@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2021 IBM Corporation and others.
+ * Copyright (c) 2014, 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -174,7 +174,7 @@ public class DeliveryDelayServlet extends HttpServlet {
      * @param producer
      * @param dest
      * @param send_msg
-     * @return the value of SYstem.currentTimeMillis() from before the send call was made. This can be used as a basis for later checks for delay times.
+     * @return the value of System.currentTimeMillis() from after the send call completed. This can be used as a basis for later checks for delay times.
      * @throws JMSException
      */
     private long sendAndCheckDeliveryTime(
@@ -198,12 +198,12 @@ public class DeliveryDelayServlet extends HttpServlet {
 
         if ( sendDuration >= deliveryDelay ) {
             System.out.println(
-                "WARNING : The time taken to send is : " + sendDuration +
+                "WARNING : The time taken to send the message was : " + sendDuration +
                 ", which more than delivery delay " + deliveryDelay + "."+
-                " Please analyse the send time.");
+                " This is too slow to meaningfully test the delivery delay. Please analyse the send time.");
         }
         
-        return beforeSend;
+        return afterSend;
     }
 
     //
@@ -385,12 +385,7 @@ public class DeliveryDelayServlet extends HttpServlet {
 
             TextMessage sentMessage = jmsContext.createTextMessage(methodName() + " at " + timeStamp());
 
-            long beforeSend = System.currentTimeMillis();
-            jmsProducer.send(destination, sentMessage);
-            long afterSend = System.currentTimeMillis();
-
-            if (afterSend - beforeSend > deliveryDelay)
-                throw new TestException("Test Infrastructure running too slowly to meangfully test delivery delay beforeSend:"+beforeSend+" afterSend:"+afterSend+" deliveryDelay:"+deliveryDelay);
+            long afterSend = this.sendAndCheckDeliveryTime(jmsProducer, destination, sentMessage);
 
             TextMessage receivedMessage = (TextMessage) jmsConsumer.receive(deliveryDelay * 2 );
             long afterReceive = System.currentTimeMillis();
@@ -399,7 +394,7 @@ public class DeliveryDelayServlet extends HttpServlet {
                 throw new TestException("No message received, sentMessage:" + sentMessage);
             if (!receivedMessage.getText().equals(sentMessage.getBody(String.class)))
                 throw new TestException("Wrong message received:" + receivedMessage + " sent:" + sentMessage);
-            if(afterReceive - beforeSend < deliveryDelay )
+            if(afterReceive - afterSend < deliveryDelay )
                 throw new TestException("Message received to soon, afterSend:" + afterSend + " afterReceive" + afterReceive + " deliveryDelay:" + deliveryDelay
                         + "\nreceivedMessage:" + receivedMessage);            
 
@@ -457,7 +452,7 @@ public class DeliveryDelayServlet extends HttpServlet {
 
         TextMessage sendMsg = session.createTextMessage("testSetDeliveryDelayClassicApi");
     	
-        long beforeSend = sendAndCheckDeliveryTime(sender, queue, sendMsg);
+        long afterSend = sendAndCheckDeliveryTime(sender, queue, sendMsg);
         
         TextMessage receivedMessage = (TextMessage) receiver.receive(deliveryDelay * 2);
         long afterReceive = System.currentTimeMillis();
@@ -519,7 +514,7 @@ public class DeliveryDelayServlet extends HttpServlet {
      * @param useDurableSubscriber whether to create a durable or nondurable subscriber
      * @throws Exception
      */
-    public void testSetDeliveryDelayTopicClassicApi( TopicConnectionFactory connnectionFactory, Topic topic, boolean useDurableSubscriber) throws Exception {
+    private void testSetDeliveryDelayTopicClassicApi( TopicConnectionFactory connnectionFactory, Topic topic, boolean useDurableSubscriber) throws Exception {
 
         boolean testFailed = false;
     	String durableSubscriberName = "dursub";
