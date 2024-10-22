@@ -55,19 +55,22 @@ public class DDLGenTestServlet extends FATServlet {
     // TODO consider moving this to a shared location
     public void executeDDL(HttpServletRequest request, HttpServletResponse response) throws Exception {
         List<String> files = Arrays.asList(Objects.requireNonNull(request.getParameter("scripts")).split(","));
-        String withDataStore = Objects.requireNonNull(request.getParameter("withDataStore"));
-        String forDataSource = Objects.requireNonNull(request.getParameter("forDataSource"));
+        String withDatabaseStore = Objects.requireNonNull(request.getParameter("withDatabaseStore"));
+        String usingDataSource = Objects.requireNonNull(request.getParameter("usingDataSource"));
 
-        DataSource ds = InitialContext.doLookup(forDataSource);
+        DataSource ds = InitialContext.doLookup(usingDataSource);
 
         for (String file : files) {
-            if (!file.contains(withDataStore)) {
+            if (!file.contains(withDatabaseStore))
                 continue;
-            }
+
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 System.out.println("Execute DDL file: " + file);
                 String line;
                 while ((line = reader.readLine()) != null) {
+                    if (line.isBlank() || line.equals("EXIT;"))
+                        continue;
+
                     System.out.println("  Execute SQL Statement: " + line);
                     try (Connection con = ds.getConnection(); Statement stmt = con.createStatement()) {
                         stmt.execute(line);

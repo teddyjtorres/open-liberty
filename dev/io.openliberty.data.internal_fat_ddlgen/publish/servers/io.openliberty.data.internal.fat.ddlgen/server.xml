@@ -31,9 +31,8 @@
     <logValues>test.jakarta.data.ddlgen.web</logValues>
   </data>
 
-  <!-- TODO when using a production database only one user is created -->
   <authData id="dbadmin" user="dbadmin" password="adminpwd" fat.modify="true"/>
-  <authData id="dbuser" user="dbuser" password="dbpwd" fat.modify="true"/>
+  <authData id="dbuser" user="dbuser" password="DBuserPassw0rd"/>
 
   <application location="DDLGenTestApp.war"/>
 

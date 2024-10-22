@@ -28,7 +28,6 @@ import componenttest.topology.database.container.DatabaseContainerFactory;
                 DDLGenTest.class
 })
 public class FATSuite extends TestContainerSuite {
-
     @ClassRule
     public static final JdbcDatabaseContainer<?> testContainer = DatabaseContainerFactory.create();
 }
