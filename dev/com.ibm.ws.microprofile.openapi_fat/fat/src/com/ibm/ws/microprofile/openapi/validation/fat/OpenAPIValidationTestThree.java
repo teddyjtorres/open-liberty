@@ -61,6 +61,10 @@ public class OpenAPIValidationTestThree {
     }
 
     @Test
+    @SkipForRepeat({
+        MicroProfileActions.MP70_EE10_ID, // paths field added automatically since SmallRye 4
+        MicroProfileActions.MP70_EE11_ID,
+    })
     public void testPaths() throws Exception {
         assertNotNull("The OpenAPI Validator should have been triggered by the missing 'paths' field",
             server.waitForStringInLog(
