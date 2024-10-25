@@ -19,6 +19,11 @@
     <feature>mpOpenAPI-2.0</feature>
     <feature>mpConfig-2.0</feature>
     <feature>servlet-4.0</feature> <!-- EE feature to ensure we get the expected EE version -->
-  </featureManager>​
+  </featureManager>
+  
+  <mpOpenAPI>
+    <!-- Include nothing in the default configuration, each test will update the config to test a scenario -->
+    <includeApplication>none</includeApplication>
+  </mpOpenAPI>​
 
 </server>

@@ -74,14 +74,19 @@ public class MergeConfigServerXMLTest {
 
     @AfterClass
     public static void shutdown() throws Exception {
-        server.stopServer("CWWKO1683W" // Invalid info element
+        server.stopServer("CWWKO1683W", // Invalid info element
+                          "CWWKO1678W", // Invalid application name
+                          "CWWKO1679W" // Invalid module name
         );
     }
 
     @After
     public void cleanup() throws Exception {
+        server.setMarkToEndOfLog();
+        server.restoreServerConfiguration(); // Will stop all apps deployed via server.xml and clear openapi config
+        server.waitForConfigUpdateInLogUsingMark(null);
+
         server.deleteAllDropinApplications(); // Will stop all dropin apps
-        server.restoreServerConfiguration(); // Will stop all apps deployed via server.xml
         server.removeAllInstalledAppsForValidation(); // Validates that all apps stop
 
         // Delete everything from the apps directory
