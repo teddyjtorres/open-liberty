@@ -143,11 +143,11 @@ class ConfigFileMonitor implements com.ibm.ws.kernel.filemonitor.FileMonitor {
 
     @Override
     public void onChange(Collection<File> createdFiles, Collection<File> modifiedFiles, Collection<File> deletedFiles) {
-        configRefresher.refreshConfigurationIfServerXMLExists();
+        configRefresher.refreshConfiguration();
     }
 
     @Override
     public void onChange(Collection<File> createdFiles, Collection<File> modifiedFiles, Collection<File> deletedFiles, String filter) {
-        configRefresher.refreshConfigurationIfServerXMLExists();
+        configRefresher.refreshConfiguration();
     }
 }
