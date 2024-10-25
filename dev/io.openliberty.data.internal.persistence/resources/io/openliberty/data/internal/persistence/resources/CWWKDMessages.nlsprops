@@ -847,8 +847,7 @@ CWWKD1083.dup.method.param=CWWKD1083E: Multiple parameters of the {0} method \
 CWWKD1083.dup.method.param.explanation=Each method parameter must correspond \
  to exactly one query parameter.
 CWWKD1083.dup.method.param.useraction=Check if each of the method parameters \
- specifies the correct named parameter. Remove method parameters that are \
- duplicates.
+ specifies the correct named parameter. Remove duplicate method parameters. \
 
 CWWKD1084.missing.named.params=CWWKD1084E: The parameters of the {0} method \
  of the {1} repository interface do not define the named parameters ({2}) \
@@ -868,7 +867,7 @@ CWWKD1085.extra.method.params=CWWKD1085E: The parameters of the {0} method \
  of the {1} repository interface define query parameters ({2}) that do not \
  match any of the named parameters ({3}) that are used by the Query annotation \
  value: {4}.
-CWWKD1085.extra.method.params.explanation=All of the method parameters must be \
+CWWKD1085.extra.method.params.explanation=All the method parameters must be \
  used by the query or be Jakarta Data defined parameter types.
 CWWKD1085.extra.method.params.useraction=Remove the extra method parameters.
 
