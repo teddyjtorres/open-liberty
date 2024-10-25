@@ -217,15 +217,16 @@ CWWKD1018.confl.special.param.useraction=Update the repository to not use \
  both of the Jakarta Data special parameter types in the same method signature.
 
 CWWKD1019.mixed.positional.named=CWWKD1019E: The {0} method of the {1} repository \
- interface defines a mixture of {2} positional parameters and \
- {3} named parameters ({4}) for the Query annotation value: {5}. A query with \
+ interface cannot have a query that mixes positional and named parameters. \
+ The interface defines a mix of {2} positional parameters and
+ {3} named parameters {4} for the Query annotation value: {5}. A query with \
  positional parameters must reference each parameter by its ordinal value, \
  starting with ?1, and the method parameters must not have the Param annotation. \
- A query with named parameters must reference each parameter by its name, \
+ In a query with named parameters, each parameter must be referenced by its name, \
  such as {6}, and the method parameters must have the Param annotation, \
- such as {7}. Alternatively, if you enable the -parameters compile option, \
- the method parameters can indicate the named parameter by having the same name \
- as the named parameter. For example, {8}.
+ such as {7}. Alternatively, enabling the -parameters compile option allows \
+ method parameters to indicate the named parameter by matching its name, \
+ for example, {8}.
 CWWKD1019.mixed.positional.named.explanation=Queries with parameters must use all \
  named parameters or all positional parameters, not a combination.
 CWWKD1019.mixed.positional.named.useraction=Update the repository method to use \
@@ -838,11 +839,11 @@ CWWKD1082.entity.classes.missing.explanation=Repositories use entity classes \
 CWWKD1082.entity.classes.missing.useraction=Include all entity classes \
  in the persistence unit.
 
-CWWKD1083.dup.method.param=CWWKD1083E: Multiple parameters of the {0} method \
+CWWKD1083.dup.method.param=CWWKD1083E: Multiple parameters in the {0} method \
  of the {1} repository interface correspond to the named parameter: {2}. \
  You can annotate one method parameter with {3} to specify the query language \
  named parameter. Alternatively, you can enable the -parameters compile option \
- and define one method parameter of the form, {4}, which does not require the \
+ and define one method parameter in the form, {4}, which does not require the \
  Param annotation.
 CWWKD1083.dup.method.param.explanation=Each method parameter must correspond \
  to exactly one query parameter.
@@ -864,7 +865,7 @@ CWWKD1084.missing.named.params.useraction=Add parameters to the repository metho
  to specify the missing named parameters.
 
 CWWKD1085.extra.method.params=CWWKD1085E: The parameters of the {0} method \
- of the {1} repository interface define query parameters ({2}) that do not \
+ of the {1} repository interface define query parameters ({2}), which do not \
  match any of the named parameters ({3}) that are used by the Query annotation \
  value: {4}.
 CWWKD1085.extra.method.params.explanation=All the method parameters must be \
@@ -872,12 +873,12 @@ CWWKD1085.extra.method.params.explanation=All the method parameters must be \
 CWWKD1085.extra.method.params.useraction=Remove the extra method parameters.
 
 CWWKD1086.named.params.unused=CWWKD1086E: The parameters of the {0} method \
- of the {1} repository interface define named parameters ({2}) that are not \
+ of the {1} repository interface define named parameters ({2}), which are not \
  used in the Query annotation value: {3}. You can refer to named parameters \
  in a query by using the : character followed by the parameter name. \
- For example, {4}. You can refer to positional parameters in a query by using \
- the ? character followed by the ordinal value, starting with ?1. Do not \
- annotated method parameters to have the Param annotation when the query \
+ For example, {4}. Positional parameters in a query can be referenced by using \
+ the ? character followed by an ordinal value, starting with ?1. Avoid \
+ annotating method parameters with the Param annotation when the query \
  uses positional parameters or has no parameters.
 CWWKD1086.named.params.unused.explanation=The Param annotation can only be used \
  when the query has named parameters.

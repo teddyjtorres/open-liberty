@@ -1014,7 +1014,7 @@ public class QueryInfo {
     @Trivial
     private UnsupportedOperationException excMixedQLParamTypes(int methodNPCount) {
         String firstNamedParam = null;
-        StringBuilder allNamedParams = new StringBuilder();
+        StringBuilder allNamedParams = new StringBuilder().append('(');
         for (String name : paramNames) {
             if (firstNamedParam == null)
                 firstNamedParam = name;
@@ -1022,6 +1022,7 @@ public class QueryInfo {
                 allNamedParams.append(", ");
             allNamedParams.append(':').append(name);
         }
+        allNamedParams.append(')');
 
         Class<?> firstNamedParamType = String.class;
         for (Parameter p : method.getParameters()) {
