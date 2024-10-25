@@ -43,6 +43,8 @@ import com.ibm.websphere.simplicity.config.ServerConfiguration;
 
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.custom.junit.runner.Mode;
+import componenttest.custom.junit.runner.Mode.TestMode;
 import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyFileManager;
 import componenttest.topology.impl.LibertyServer;
@@ -625,6 +627,35 @@ public class MergeConfigServerXMLTest {
         OpenAPITestUtil.checkPaths(openapiNode, 2, "/test1/test", "/test2/test");
         OpenAPITestUtil.checkInfo(openapiNode, "Generated API", "1.0");
         OpenAPITestUtil.checkServersForContextRoot(openapiNode, "");
+    }
+
+    @Test
+    @Mode(TestMode.FULL)
+    public void testInvalidServerXMLEmptyNames() throws Exception {
+        server.setMarkToEndOfLog();
+        MpOpenAPIElement.MpOpenAPIElementBuilder.cloneBuilderFromServerResetAppsAndModules(server)
+                                                .addIncludedApplicaiton("") //Empty app names
+                                                .addExcludedModule("testEar/") //And apps with empty module names are both invalid
+                                                .buildAndPushToServer();
+
+        List<String> list = new ArrayList<>(Arrays.asList("CWWKO1678W", "CWWKO1679W")); //Expect both an invalid app and invalid module warning.
+        server.waitForStringsInLogUsingMark(list);
+
+    }
+
+    @Test
+    @Mode(TestMode.FULL)
+    public void testInvalidServerXMLJustSlash() throws Exception {
+        server.setMarkToEndOfLog();
+
+        MpOpenAPIElement.MpOpenAPIElementBuilder.cloneBuilderFromServerResetAppsAndModules(server)
+                                                .addIncludedApplicaiton("/") //An app 
+                                                .addExcludedModule("/") //or module name that's just a slash is invalid
+                                                .buildAndPushToServer();
+
+        List<String> list = new ArrayList<>(Arrays.asList("CWWKO1678W", "CWWKO1679W")); //Expect both an invalid app and invalid module warning.
+        server.waitForStringsInLogUsingMark(list);
+
     }
 
     private void setMergeConfig(List<String> included, List<String> excluded, MpOpenAPIInfoElement info) throws Exception {
