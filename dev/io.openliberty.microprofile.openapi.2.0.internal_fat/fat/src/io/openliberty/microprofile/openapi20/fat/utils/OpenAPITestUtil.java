@@ -9,6 +9,8 @@
  *******************************************************************************/
 package io.openliberty.microprofile.openapi20.fat.utils;
 
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.greaterThan;
 import static org.hamcrest.Matchers.hasItems;
 import static org.hamcrest.Matchers.hasSize;
 import static org.junit.Assert.assertEquals;
@@ -275,6 +277,29 @@ public class OpenAPITestUtil {
         List<String> pathNames = asList(paths.fieldNames());
         assertThat("Path names", pathNames, hasItems(containedPaths));
         assertThat("Path names", pathNames, hasSize(expectedCount));
+    }
+
+    /**
+     * Test that the path of each server URL matches the expected context root.
+     * <p>
+     * {@code root} can be @{code ""} to test that no context root was appended,
+     * in the case where we're merging applications and the context root should be
+     * prepended to paths instead.
+     * 
+     * @param root the root JSON node for the OpenAPI document
+     * @param expectedContextRoot the context root we expect to find in the path of every server in the document
+     */
+    public static void checkServersForContextRoot(JsonNode root, String expectedContextRoot) {
+        JsonNode serversNode = root.get("servers");
+        assertNotNull(serversNode);
+        assertTrue(serversNode.isArray());
+        ArrayNode servers = (ArrayNode) serversNode;
+        assertThat("Server count", servers.size(), greaterThan(0));
+        servers.findValues("url")
+               .forEach(url -> {
+                   URI uri = URI.create(url.asText());
+                   assertThat("Path of " + url, uri.getPath(), equalTo(expectedContextRoot));
+               });
     }
 
     /**
