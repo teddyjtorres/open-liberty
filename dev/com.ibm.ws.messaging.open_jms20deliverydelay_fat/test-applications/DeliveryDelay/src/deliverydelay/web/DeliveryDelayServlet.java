@@ -315,7 +315,7 @@ public class DeliveryDelayServlet extends HttpServlet {
     }
 
     
-    // Simple deliveryDelay tests using the JMS2.0 SImplified API
+    // Simple deliveryDelay tests using the JMS2.0 Simplified API
 
     public void testSetDeliveryDelay(HttpServletRequest request, HttpServletResponse response) throws JMSException, TestException {
         emptyQueue(jmsQCFBindings, jmsQueue);
@@ -367,7 +367,7 @@ public class DeliveryDelayServlet extends HttpServlet {
     		throw new TestException("Incompatible parameters. useDurablSubscriber specified, but destination was not a Topic: " + destination);
     	}
     	
-    	String durableSubscriberName = "subs";
+    	String durableSubscriberName = methodName() + "_dursub";
     	
         try (JMSContext jmsContext = connectionFactory.createContext()) {
         	
@@ -389,6 +389,20 @@ public class DeliveryDelayServlet extends HttpServlet {
 
             TextMessage receivedMessage = (TextMessage) jmsConsumer.receive(deliveryDelay * 2 );
             long afterReceive = System.currentTimeMillis();
+
+            // If necessary, unsubscribe the durable subscriber before we check the results. Just print a warning if this fails.
+            try {
+                if (useDurableSubscriber) {
+                    jmsConsumer.close();
+                    jmsContext.unsubscribe(durableSubscriberName);
+                }
+            }
+            catch (JMSRuntimeException je ){
+            	System.out.println("WARNING: failed to unsubscribe durable subscription - " + durableSubscriberName);
+            	System.out.println(je.toString());
+            	je.printStackTrace(System.out);
+            }
+            
             
             if (receivedMessage == null)
                 throw new TestException("No message received, sentMessage:" + sentMessage);
@@ -398,11 +412,7 @@ public class DeliveryDelayServlet extends HttpServlet {
                 throw new TestException("Message received to soon, afterSend:" + afterSend + " afterReceive" + afterReceive + " deliveryDelay:" + deliveryDelay
                         + "\nreceivedMessage:" + receivedMessage);            
 
-            jmsConsumer.close();
             
-            if (useDurableSubscriber) {
-                jmsContext.unsubscribe(durableSubscriberName);
-            }
             
         }
         return;
@@ -438,40 +448,35 @@ public class DeliveryDelayServlet extends HttpServlet {
      */
     private void testSetDeliveryDelayQueueClassicApi(QueueConnectionFactory connectionFactory, Queue queue) throws Exception {
     	
-    	boolean testFailed = false;
     	
-    	QueueConnection connection = connectionFactory.createQueueConnection();
-    	connection.start();
+    	try ( QueueConnection connection = connectionFactory.createQueueConnection();
+    		  QueueSession session = connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);) {
+    		
+        	connection.start();
 
-        QueueSession session = connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE);
+            QueueReceiver receiver = session.createReceiver(queue);
 
-        QueueReceiver receiver = session.createReceiver(queue);
+            QueueSender sender = session.createSender(queue);
+            sender.setDeliveryDelay(deliveryDelay);
 
-        QueueSender sender = session.createSender(queue);
-        sender.setDeliveryDelay(deliveryDelay);
+            TextMessage sentMessage = session.createTextMessage(methodName() + " at " + timeStamp());
+        	
+            long afterSend = sendAndCheckDeliveryTime(sender, queue, sentMessage);
+            
+            TextMessage receivedMessage = (TextMessage) receiver.receive(deliveryDelay * 2);
+            long afterReceive = System.currentTimeMillis();
 
-        TextMessage sendMsg = session.createTextMessage("testSetDeliveryDelayClassicApi");
+            if (receivedMessage == null)
+                throw new TestException("No message received, sentMessage:" + sentMessage);
+            if (!receivedMessage.getText().equals(sentMessage.getBody(String.class)))
+                throw new TestException("Wrong message received:" + receivedMessage + " sent:" + sentMessage);
+            if(afterReceive - afterSend < deliveryDelay )
+                throw new TestException("Message received to soon, afterSend:" + afterSend + " afterReceive" + afterReceive + " deliveryDelay:" + deliveryDelay
+                        + "\nreceivedMessage:" + receivedMessage);            
+    		
+    	}
     	
-        long afterSend = sendAndCheckDeliveryTime(sender, queue, sendMsg);
-        
-        TextMessage receivedMessage = (TextMessage) receiver.receive(deliveryDelay * 2);
-        long afterReceive = System.currentTimeMillis();
-    	
-        if ( (receivedMessage == null) ||
-              (receivedMessage.getText() == null) ||
-              !receivedMessage.getText().equals(sendMsg.getText()) ) {
-        	testFailed = true;
-           }
-        
-        sender.close();
-        connection.close();
-        
-        if ( testFailed ) {
-            throw new Exception("testSetDeliveryDelayQueueClassicApi failed");
-        }
-
-        return;
-        
+    	return;
     }
     
 
@@ -514,52 +519,64 @@ public class DeliveryDelayServlet extends HttpServlet {
      * @param useDurableSubscriber whether to create a durable or nondurable subscriber
      * @throws Exception
      */
-    private void testSetDeliveryDelayTopicClassicApi( TopicConnectionFactory connnectionFactory, Topic topic, boolean useDurableSubscriber) throws Exception {
+    private void testSetDeliveryDelayTopicClassicApi( TopicConnectionFactory connectionFactory, Topic topic, boolean useDurableSubscriber) throws Exception {
 
-        boolean testFailed = false;
-    	String durableSubscriberName = "dursub";
+    	String durableSubscriberName = methodName() + "_dursub";
 
-        TopicConnection connection = connnectionFactory.createTopicConnection();
-        connection.start();
+    	try (TopicConnection connection = connectionFactory.createTopicConnection();
+    		 TopicSession session = connection.createTopicSession(false, Session.AUTO_ACKNOWLEDGE)) {
+    		
+            connection.start();
 
-        TopicSession session = connection.createTopicSession(false,Session.AUTO_ACKNOWLEDGE);
+            
+        	TopicSubscriber subscriber = null;
+        	if (useDurableSubscriber) {
+            	subscriber = session.createDurableSubscriber(topic, durableSubscriberName);
+            }
+            else {
+                subscriber = session.createSubscriber(topic);
+            }
 
-        TopicSubscriber subscriber = null;
-        if (useDurableSubscriber) {
-        	subscriber = session.createDurableSubscriber(topic, durableSubscriberName);
-        }
-        else {
-            subscriber = session.createSubscriber(topic);
-        }
+            TopicPublisher publisher = session.createPublisher(topic);
+            publisher.setDeliveryDelay(deliveryDelay);
 
-        TopicPublisher publisher = session.createPublisher(topic);
-        publisher.setDeliveryDelay(deliveryDelay);
+            TextMessage sentMessage = session.createTextMessage(methodName() + " at " + timeStamp());
+            long afterSend = sendAndCheckDeliveryTime(publisher, topic, sentMessage);
+            
+            
+            TextMessage receivedMessage = (TextMessage) subscriber.receive(deliveryDelay * 2);
+            long afterReceive = System.currentTimeMillis();
 
-        TextMessage sendMsg = session.createTextMessage("testSetDeliveryDelayTopicClassicApi");
-        long beforeSend = sendAndCheckDeliveryTime(publisher, topic, sendMsg);
-        
-        
-        TextMessage receivedMessage = (TextMessage) subscriber.receive(deliveryDelay * 2);
-        long afterReceive = System.currentTimeMillis();
+            // If necessary, unsubscribe the durable subscriber before we check the results. Just print a warning if this fails.
+            if (useDurableSubscriber) {
+
+                try {
+                    subscriber.close();
+                    if (useDurableSubscriber) {
+                        session.unsubscribe(durableSubscriberName);
+                    }
+                }
+                catch (JMSException je) {
+                	System.out.println("WARNING: failed to unsubscribe durable subscription - " + durableSubscriberName);
+                	System.out.println(je.toString());
+                	je.printStackTrace(System.out);
+                }
+            }
+
+            
+            if (receivedMessage == null)
+            	throw new TestException("No message received, sentMessage:" + sentMessage);
+            if (!receivedMessage.getText().equals(sentMessage.getBody(String.class)))
+            	throw new TestException("Wrong message received:" + receivedMessage + " sent:" + sentMessage);
+            if(afterReceive - afterSend < deliveryDelay )
+            	throw new TestException("Message received to soon, afterSend:" + afterSend + " afterReceive" + afterReceive + " deliveryDelay:" + deliveryDelay
+                        + "\nreceivedMessage:" + receivedMessage);            
+
+    	}
     	
-        if ( (receivedMessage == null) ||
-              (receivedMessage.getText() == null) ||
-              !receivedMessage.getText().equals(sendMsg.getText()) ) {
-        	testFailed = true;
-           }
-        
-        subscriber.close();
-        if (useDurableSubscriber) {
-            session.unsubscribe(durableSubscriberName);
-        }
-        connection.close();
-        
-        if ( testFailed ) {
-            throw new Exception("testSetDeliveryDelayTopicClassicApi failed");
-        }
-        
+    	return;
     	
-    }
+     }
     
 
     public void testDeliveryDelayForDifferentDelays(
