@@ -52,7 +52,6 @@ public class DDLGenTestServlet extends FATServlet {
      * The test bucket must arrange for it to run before other test
      * as part of setup.
      */
-    // TODO consider moving this to a shared location
     public void executeDDL(HttpServletRequest request, HttpServletResponse response) throws Exception {
         List<String> files = Arrays.asList(Objects.requireNonNull(request.getParameter("scripts")).split(","));
         String withDatabaseStore = Objects.requireNonNull(request.getParameter("withDatabaseStore"));
