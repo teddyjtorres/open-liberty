@@ -76,7 +76,6 @@ public class FATTest {
     private static final String serverShutdownMessages = "CWWKS4106E";
     private static final LibertyServer server;
     private static final Class<?> thisClass = FATTest.class;
-    private static RemoteFile messagesLogFile = null;
 
     private static final String EXPECTED_EXCEPTION_BAD_PADDING = "javax.crypto.BadPaddingException";
     private static final String EXPECTED_EXCEPTION_AEAD_BAD_TAG = "javax.crypto.AEADBadTagException";
@@ -136,8 +135,10 @@ public class FATTest {
         deleteExistingLTPAKeysFiles();
     }
 
-    @AfterClass
-    public void tearDown() throws Exception {
+    @After
+    public void after() throws Exception {
+        Log.info(thisClass, "resetServer", "entering");
+
         try {
             server.stopServer(serverShutdownMessages);
         } finally {
@@ -145,21 +146,7 @@ public class FATTest {
         }
     }
 
-    @After
-    public void after() throws Exception {
-        Log.info(thisClass, "resetServer", "entering");
-
-        // Make sure the mark is at the end of the log, so we don't use earlier messages.
-        server.setMarkToEndOfLog(messagesLogFile);
-
-        deleteExistingLTPAKeysFiles();
-
-        // Wait for the LTPA configuration to be ready after the change
-        assertNotNull("Expected LTPA configuration ready message not found in the log.",
-                      server.waitForStringInLog("CWWKS4105I", 5000));
-    }
-
-    private void deleteExistingLTPAKeysFiles() throws Exception {
+    private static void deleteExistingLTPAKeysFiles() throws Exception {
         deleteFileIfExists(DEFAULT_KEY_PATH);
         deleteFileIfExists(ALTERNATE_KEY_PATH);
     }
@@ -419,8 +406,6 @@ public class FATTest {
     private void startServerWithConfigFileAndLog(String configFile, String logFileName) throws Exception {
         server.setServerConfigurationFile(configFile);
 
-        server.setupForRestConnectorAccess();
-
         server.startServer(logFileName);
 
         assertNotNull("Featurevalid did not report update was complete",
@@ -432,8 +417,6 @@ public class FATTest {
         // Wait for the LTPA configuration to be ready
         assertNotNull("Expected LTPA configuration ready message not found in the log.",
                       server.waitForStringInLog("CWWKS4105I"));
-
-        messagesLogFile = server.getDefaultLogFile();
     }
 
     /**
@@ -560,7 +543,7 @@ public class FATTest {
      *
      * @throws Exception
      */
-    private void deleteFileIfExists(String filePath) throws Exception {
+    private static void deleteFileIfExists(String filePath) throws Exception {
         if (fileExists(filePath)) {
             if (!server.getFileFromLibertyServerRoot(filePath).delete()) {
                 throw new Exception("Delete action failed for file: " + filePath);
@@ -581,7 +564,7 @@ public class FATTest {
      *
      * @return
      */
-    private boolean fileExists(String filePath) {
+    private static boolean fileExists(String filePath) {
         try {
             RemoteFile remote = server.getFileFromLibertyServerRoot(filePath);
             boolean exists = false;
