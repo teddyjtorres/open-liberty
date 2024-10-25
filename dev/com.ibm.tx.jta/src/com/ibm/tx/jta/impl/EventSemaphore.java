@@ -1,6 +1,5 @@
-package com.ibm.tx.jta.impl;
-/*******************************************************************************
- * Copyright (c) 2002, 2009 IBM Corporation and others.
+/*
+ * Copyright (c) 2002, 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -10,7 +9,10 @@ package com.ibm.tx.jta.impl;
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
+package com.ibm.tx.jta.impl;
+
+import java.util.concurrent.Phaser;
 
 /**
  * The EventSemaphore interface provides operations that wait for and post an
@@ -21,18 +23,18 @@ package com.ibm.tx.jta.impl;
  * the existing wait and notify methods.
  */
 public final class EventSemaphore {
-    boolean _posted;
+    private final Phaser phaser = new Phaser(1);
+    private volatile int phase = phaser.getPhase();
 
-    public synchronized void waitEvent() throws InterruptedException {
-        while (!_posted) wait();
+    public void waitEvent() {
+        phaser.awaitAdvance(phase);
     }
 
-    public synchronized void post() {
-        _posted = true;
-        notifyAll();
+    public void post() {
+        phaser.arrive();
     }
 
-    public synchronized void clear() {
-        _posted = false;
+    public void clear() {
+        phase = phaser.getPhase();
     }
 }
