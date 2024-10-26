@@ -11,7 +11,7 @@
 
 bVersion=1.0
 
-Bundle-SymbolicName: io.openliberty.io.smallrye.openapi4.core; singleton:=true
+Bundle-SymbolicName: io.openliberty.io.smallrye.openapi4.model; singleton:=true
 
 WS-TraceGroup: MPOPENAPI
 
@@ -20,26 +20,14 @@ javac.target: 11
 
 Require-Capability: osgi.ee; filter:="(&(osgi.ee=JavaSE)(version=11))"
 
-Include-Resource: \
-    resources
-
 Import-Package: \
-    !io.xlate.yamljson.*,\
-    !jakarta.json.*,\
     *
 
 Export-Package: \
-    io.smallrye.openapi.api.*;version=4.0,\
-    io.smallrye.openapi.internal.models.*;version=4.0,\
-    io.smallrye.openapi.runtime.*;version=4.0,\
-    io.smallrye.openapi.spi.*;version=4.0,\
+    io.smallrye.openapi.model.*;version=4.0
 
 -buildpath: \
-    io.smallrye:smallrye-open-api-core;version=4.0.0,\
-    io.openliberty.io.smallrye.openapi4.model;version=latest,\
-    io.openliberty.jakarta.validation.3.0;version=latest,\
+    io.smallrye:smallrye-open-api-model;version=4.0.0,\
     io.openliberty.org.eclipse.microprofile.openapi.4.0;version=latest,\
-    io.openliberty.org.eclipse.microprofile.config.3.1;version=latest,\
-    io.openliberty.com.fasterxml.jackson;version=latest,\
     io.openliberty.io.smallrye.jandex3;version=latest,\
     com.ibm.ws.org.jboss.logging;version=latest
