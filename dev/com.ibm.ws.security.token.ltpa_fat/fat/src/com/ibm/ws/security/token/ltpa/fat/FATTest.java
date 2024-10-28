@@ -206,15 +206,20 @@ public class FATTest {
     @CheckForLeakedPasswords({ PWD_DEFAULT, PWD_ANOTHER, PWD_ANY_ENCODED })
     @Test
     public void validateKeysReloadedAfterModification() throws Exception {
-        startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "validateKeysReloadedAfterModification.log");
-        assertFeatureCompleteWithLTPAConfigAndTestApp();
-        assertTokenCanBeCreated();
-        replaceLTPAKeysFile(ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR, REPLACEMENT_LTPA_KEYS_PATH);
-        assertLTPAConfigurationReady();
-        assertAppDoesNotRestart();
+        try {
+            startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "validateKeysReloadedAfterModification.log");
+            assertFeatureCompleteWithLTPAConfigAndTestApp();
+            assertTokenCanBeCreated();
+            replaceLTPAKeysFile(ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR, REPLACEMENT_LTPA_KEYS_PATH);
+            assertLTPAConfigurationReady();
+            assertAppDoesNotRestart();
 
-        // Assert token can be created with new keys
-        assertTokenCanBeCreated();
+            // Assert token can be created with new keys
+            assertTokenCanBeCreated();
+        } finally {
+            // Clean up
+            replaceLTPAKeysFile(DEFAULT_SERVER_XML, REPLACEMENT_LTPA_KEYS_PATH);
+        }
     }
 
     /**
@@ -227,27 +232,32 @@ public class FATTest {
     @AllowedFFDC({ EXPECTED_EXCEPTION_AEAD_BAD_TAG, EXPECTED_EXCEPTION_BAD_PADDING })
     @Test
     public void validateKeysNotReloadedAfterModificationWithWrongPassword() throws Exception {
-        startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "validateKeysNotReloadedAfterModificationWithWrongPassword.log");
-        assertFeatureCompleteWithLTPAConfigAndTestApp();
-        assertTokenCanBeCreated();
+        try {
+            startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "validateKeysNotReloadedAfterModificationWithWrongPassword.log");
+            assertFeatureCompleteWithLTPAConfigAndTestApp();
+            assertTokenCanBeCreated();
 
-        replaceLTPAKeysFile(ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR_AND_WRONG_PASSWORD, REPLACEMENT_LTPA_KEYS_PATH);
+            replaceLTPAKeysFile(ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR_AND_WRONG_PASSWORD, REPLACEMENT_LTPA_KEYS_PATH);
 
-        assertNotNull("The LTPA configuration must not be reloaded.",
-                      server.waitForStringInLog("CWWKS4106E:.*"));
+            assertNotNull("The LTPA configuration must not be reloaded.",
+                        server.waitForStringInLog("CWWKS4106E:.*"));
 
-        if (!fipsEnabled){
-            // Verify EXPECTED_EXCEPTION_BAD_PADDING is thrown
-            assertNotNull("The expected exception " + EXPECTED_EXCEPTION_BAD_PADDING + " was not thrown.",
-                          server.waitForStringInTrace(EXPECTED_EXCEPTION_BAD_PADDING));
-        } else {
-            // Verify EXPECTED_EXCEPTION_AEAD_BAD_TAG is thrown
-            assertNotNull("The expected exception " + EXPECTED_EXCEPTION_AEAD_BAD_TAG + " was not thrown.",
-                          server.waitForStringInTrace(EXPECTED_EXCEPTION_AEAD_BAD_TAG));
+            if (!fipsEnabled){
+                // Verify EXPECTED_EXCEPTION_BAD_PADDING is thrown
+                assertNotNull("The expected exception " + EXPECTED_EXCEPTION_BAD_PADDING + " was not thrown.",
+                            server.waitForStringInTrace(EXPECTED_EXCEPTION_BAD_PADDING));
+            } else {
+                // Verify EXPECTED_EXCEPTION_AEAD_BAD_TAG is thrown
+                assertNotNull("The expected exception " + EXPECTED_EXCEPTION_AEAD_BAD_TAG + " was not thrown.",
+                            server.waitForStringInTrace(EXPECTED_EXCEPTION_AEAD_BAD_TAG));
+            }
+
+            // Assert token can be created with old keys
+            assertTokenCanBeCreated();
+        } finally {
+            // Clean up
+            replaceLTPAKeysFile(DEFAULT_SERVER_XML, REPLACEMENT_LTPA_KEYS_PATH);
         }
-
-        // Assert token can be created with old keys
-        assertTokenCanBeCreated();
     }
 
     /**
@@ -260,17 +270,22 @@ public class FATTest {
     @ExpectedFFDC("java.lang.IllegalArgumentException")
     @Test
     public void validateKeysNotReloadedAfterModificationWithCorruptedKeysFile() throws Exception {
-        startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "validateKeysNotReloadedAfterModificationWithCorruptedKeysFile.log");
-        assertFeatureCompleteWithLTPAConfigAndTestApp();
-        assertTokenCanBeCreated();
+        try {
+            startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "validateKeysNotReloadedAfterModificationWithCorruptedKeysFile.log");
+            assertFeatureCompleteWithLTPAConfigAndTestApp();
+            assertTokenCanBeCreated();
 
-        replaceLTPAKeysFile(ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR, CORRUPTED_LTPA_KEYS_PATH);
+            replaceLTPAKeysFile(ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR, CORRUPTED_LTPA_KEYS_PATH);
 
-        assertNotNull("The LTPA configuration must not be reloaded.",
-                      server.waitForStringInLog("CWWKS4106E:.*"));
+            assertNotNull("The LTPA configuration must not be reloaded.",
+                        server.waitForStringInLog("CWWKS4106E:.*"));
 
-        // Assert token can be created with old keys
-        assertTokenCanBeCreated();
+            // Assert token can be created with old keys
+            assertTokenCanBeCreated();
+        } finally {
+            // Clean up
+            replaceLTPAKeysFile(DEFAULT_SERVER_XML, REPLACEMENT_LTPA_KEYS_PATH);
+        }
     }
 
     /**
