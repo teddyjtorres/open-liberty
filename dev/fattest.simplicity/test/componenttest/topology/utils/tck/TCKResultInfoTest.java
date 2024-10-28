@@ -108,7 +108,7 @@ public class TCKResultInfoTest {
     }
 
     @Test
-    public void getReadableRepeatNameTest() {
+    public void getDirectoryNameTest() {
         // Ensure no repeat actions are active (left over from other unit tests)
         while (RepeatTestFilter.isAnyRepeatActionActive()) {
             RepeatTestFilter.deactivateRepeatAction();
@@ -119,20 +119,20 @@ public class TCKResultInfoTest {
         // No replacement action
         RepeatTestFilter.activateRepeatAction(FeatureReplacementAction.NO_REPLACEMENT());
         testResult = new TCKResultsInfo(Type.MICROPROFILE, "Fault Tolerance", null, VERSION_1_0_0);
-        assertEquals("", testResult.getReadableRepeatName());
+        assertEquals("TCK_Results_Certifications", testResult.getDirectoryName());
         RepeatTestFilter.deactivateRepeatAction();
 
         // Single replacement action
         RepeatTestFilter.activateRepeatAction(FeatureReplacementAction.EE11_FEATURES());
         testResult = new TCKResultsInfo(Type.MICROPROFILE, "Fault Tolerance", null, VERSION_1_0_0);
-        assertEquals("_EE11_FEATURES", testResult.getReadableRepeatName());
+        assertEquals("TCK_Results_Certifications_EE11_FEATURES", testResult.getDirectoryName());
         RepeatTestFilter.deactivateRepeatAction();
 
         // Multiple replacement actions
         RepeatTestFilter.activateRepeatAction(FeatureReplacementAction.EE10_FEATURES());
         RepeatTestFilter.activateRepeatAction(FeatureReplacementAction.BETA_OPTION());
         testResult = new TCKResultsInfo(Type.MICROPROFILE, "Fault Tolerance", null, VERSION_1_0_0);
-        assertEquals("_EE10_FEATURES_BETA_JVM_OPTIONS", testResult.getReadableRepeatName());
+        assertEquals("TCK_Results_Certifications_EE10_FEATURES_BETA_JVM_OPTIONS", testResult.getDirectoryName());
         RepeatTestFilter.deactivateRepeatAction();
         RepeatTestFilter.deactivateRepeatAction();
 
@@ -142,7 +142,7 @@ public class TCKResultInfoTest {
         action.addFeature("persistence-3.2");
         RepeatTestFilter.activateRepeatAction(action);
         testResult = new TCKResultsInfo(Type.MICROPROFILE, "Fault Tolerance", null, VERSION_1_0_0);
-        assertEquals("_remove_persistence-3.1-jpa-2.2-jpa-2.1-persistence-3.0_add_persistence-3.2", testResult.getReadableRepeatName());
+        assertEquals("TCK_Results_Certifications_remove_persistence-3.1-jpa-2.2-jpa-2.1-persistence-3.0_add_persistence-3.2", testResult.getDirectoryName());
         RepeatTestFilter.deactivateRepeatAction();
 
         // Ensure we cleaned up after ourselves
