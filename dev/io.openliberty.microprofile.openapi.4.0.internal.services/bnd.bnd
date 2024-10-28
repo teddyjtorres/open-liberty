@@ -38,6 +38,7 @@ WS-TraceGroup: MPOPENAPI
 
 -buildpath: \
     io.openliberty.io.smallrye.openapi4.core;version=latest,\
+    io.openliberty.io.smallrye.openapi4.model;version=latest,\
     io.openliberty.io.smallrye.openapi4.jaxrs;version=latest,\
     io.openliberty.io.smallrye.jandex3;version=latest,\
     io.openliberty.microprofile.openapi.2.0.internal;version=latest,\
