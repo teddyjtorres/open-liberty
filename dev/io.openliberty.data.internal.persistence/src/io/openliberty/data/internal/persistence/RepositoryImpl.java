@@ -1065,26 +1065,14 @@ public class RepositoryImpl<R> implements InvocationHandler {
                                       "Limit",
                                       "PageRequest");
 
-                        if (sortList == null && queryInfo.hasDynamicSortCriteria())
+                        if (sortList == null && queryInfo.sortPositions.length > 0)
                             sortList = queryInfo.sorts;
 
-                        if (sortList == null || sortList.isEmpty()) {
-                            if (pagination != null) {
-                                // BasicRepository.findAll(PageRequest, Order) requires NullPointerException when Order is null.
-                                if (queryInfo.paramCount == 0 && queryInfo.method.getParameterCount() == 2
-                                    && Order.class.equals(queryInfo.method.getParameterTypes()[1]))
-                                    throw new NullPointerException("Order: null");
-                                // TODO raise a helpful error to prevent some cases of attempted unordered pagination?
-                                //else if (!queryInfo.hasOrderBy)
-                                //    throw new UnsupportedOperationException("The " + method.getName() + " method of the " +
-                                //                                            repositoryInterface.getName() +
-                                //                                            " repository has a PageRequest parameter without a way to " +
-                                //                                            " specify a deterministic ordering of results, which is required " +
-                                //                                            " when requesting pages. Use the OrderBy annotation or add a " +
-                                //                                            " parameter of type Order, Sort, or Sort... to specify an order" +
-                                //                                            " for results."); // TODO NLS
-                            }
-                        } else {
+                        if (pagination != null &&
+                            (sortList == null || sortList.isEmpty()))
+                            sortList = queryInfo.requireOrderForPages(args);
+
+                        if (sortList != null && !sortList.isEmpty()) {
                             boolean forward = pagination == null || pagination.mode() != PageRequest.Mode.CURSOR_PREVIOUS;
                             StringBuilder q = new StringBuilder(queryInfo.jpql);
                             StringBuilder order = null; // ORDER BY clause based on Sorts
