@@ -47,7 +47,6 @@ import org.osgi.service.component.annotations.Component;
 import io.openliberty.microprofile.openapi20.internal.utils.OpenAPIModelVisitor;
 import io.openliberty.microprofile.openapi20.internal.utils.OpenAPIModelWalker;
 import io.openliberty.microprofile.openapi20.internal.utils.OpenAPIModelWalkerImpl;
-import io.smallrye.openapi.api.models.media.SchemaImpl;
 
 @Component(service = OpenAPIModelWalker.class)
 public class OpenAPI31ModelWalkerImpl extends OpenAPIModelWalkerImpl {
@@ -105,12 +104,7 @@ public class OpenAPI31ModelWalkerImpl extends OpenAPIModelWalkerImpl {
 
         @Override
         protected void traverseSchemaChildren(Schema schema) {
-            if (!(schema instanceof SchemaImpl)) {
-                return;
-            }
-
-            SchemaImpl impl = (SchemaImpl) schema;
-            impl.getDataMap().forEach((k, v) -> {
+            schema.getAll().forEach((k, v) -> {
                 pathSegments.push(k);
                 traverseObject(v, k);
                 pathSegments.pop();
