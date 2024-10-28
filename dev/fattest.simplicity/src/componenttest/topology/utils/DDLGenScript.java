@@ -265,7 +265,10 @@ public class DDLGenScript {
          * @return                   this
          */
         public DDLGenScriptResult assertDDLFiles(List<String> expectedFileNames) {
-            assertEquals("Expected number of ddl files did not match actual number of files", expectedFileNames.size(), getFileNames());
+            List<String> observedFileNames = getFileNames();
+            assertEquals("Expected number of ddl files did not match actual number of files " + observedFileNames,
+                         expectedFileNames.size(),
+                         observedFileNames.size());
 
             for (String expectedFile : expectedFileNames) {
                 assertTrue("The expected file " + expectedFile + " was not in " + ddlDir.getAbsolutePath(), getFileNames().contains(expectedFile));
