@@ -194,7 +194,7 @@ public class LTPAKeyRotationTests {
         server.setupForRestConnectorAccess();
 
         if (fipsEnabled){
-            server.copyFileToLibertyServerRoot(ALT_FIPS_SERVER_XML_PATH, "server.xml");
+            renameFileIfExists(ALT_FIPS_SERVER_XML_PATH, "server.xml", true);
         }
 
         server.startServer(true);
@@ -2243,7 +2243,9 @@ public class LTPAKeyRotationTests {
      */
     private static void renameFileIfExists(String filePath, String newFilePath, boolean checkFileIsGone) throws Exception {
         Log.info(thisClass, "renameFileIfExists", "\nfilepath: " + filePath + "\nnewFilePath: " + newFilePath);
-        server.setMarkToEndOfLog(server.getDefaultLogFile());
+        if (!fipsEnabled) {
+            server.setMarkToEndOfLog(server.getDefaultLogFile());
+        }
         if (fileExists(newFilePath, 1)) {
             LibertyFileManager.moveLibertyFile(server.getFileFromLibertyServerRoot(filePath), server.getFileFromLibertyServerRoot(newFilePath));
         } else {
