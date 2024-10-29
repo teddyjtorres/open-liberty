@@ -44,7 +44,7 @@ public class HttpStatAttributes {
 	 * Conditionally required as per HTTP Semantics Convention
 	 */ 
 	private final String httpRoute;
-	private final Integer responseStatus;
+	private final int responseStatus;
 	
 	
 	/**
@@ -54,7 +54,7 @@ public class HttpStatAttributes {
 	 * @param builder see {@link Builder}
 	 * @throws IllegalStateException if the builder's validation fails
 	 */
-	public HttpStatAttributes(Builder builder) throws IllegalStateException {
+	HttpStatAttributes(Builder builder) throws IllegalStateException {
 		
 		if (!builder.validate()) {
 			if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
@@ -74,7 +74,7 @@ public class HttpStatAttributes {
 		this.exception =  (builder.exception.isPresent() ? builder.exception.get() : null);
 		this.errorType = (builder.errorType.isPresent() ? builder.errorType.get() : null);
 		this.httpRoute = (builder.httpRoute.isPresent() ? builder.httpRoute.get() : null);
-		this.responseStatus = (builder.responseStatus.isPresent() ? builder.responseStatus.get() : null);
+		this.responseStatus = (builder.responseStatus.isPresent() ? builder.responseStatus.get() : -1);
 		
 		httpStat_ID = resolveKeyID();
 	}
@@ -170,7 +170,7 @@ public class HttpStatAttributes {
 	 * The response status if it exists, null otherwise
 	 * @return An Integer representing the  response status or null if it does not exist
 	 */
-	public Integer getResponseStatus() {
+	public int getResponseStatus() {
 		return responseStatus;
 	}
 	
@@ -221,6 +221,13 @@ public class HttpStatAttributes {
 		private Optional<String> httpRoute = Optional.ofNullable(null);
 		private Optional<Integer> responseStatus = Optional.ofNullable(null);
 
+		/*
+		 * Define a constructor with default protection so others do not call it directly and instead
+		 * call the builder() method above.
+		 */
+		Builder() {
+		}
+
 		/**
 		 * Builds an instance of {@link HttpStatAttributes} with values from this
 		 * builder. Will validate and throw an {@link IllegalStateException} if the
@@ -231,21 +238,13 @@ public class HttpStatAttributes {
 		 */
 		@FFDCIgnore(value = { IllegalStateException.class })
 		public HttpStatAttributes build() {
-			if (!validate()) {
+			try {
+				return new HttpStatAttributes(this);
+			} catch (IllegalStateException ise) {
+				//do nothing
 				if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
 					Tr.debug(tc, String.format("Invalid HTTP Stats attributes : \n %s", toString()));
 				}
-			}
-			
-			/*
-			 * Because of above check, we should never really actually come into this. 
-			 * The constructor does the same check again (for any calls made by others who somehow got their hands
-			 * on to an instance of a Builder.
-			 */
-			try {
-				return new HttpStatAttributes(this);
-			} catch(IllegalStateException ise) {
-				//do nothing
 			}
 			return null;
 		}
@@ -298,7 +297,7 @@ public class HttpStatAttributes {
 		public Builder withResponseStatus(int responseStatus) {
 			this.responseStatus = Optional.ofNullable(responseStatus);
 			if (responseStatus >= 500) {
-				this.withErrorType(String.valueOf(responseStatus));
+				this.withErrorType(Integer.toString(responseStatus));
 			}
 			return this;
 		}

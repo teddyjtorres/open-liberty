@@ -50,13 +50,7 @@ public class HttpServerStats extends Meter implements HttpServerStatsMXBean {
 			httpRoute = "";
 		}
 		
-		Integer status = httpStatAttributes.getResponseStatus();
-		
-		if (status == null) {
-			responseStatus = -1;
-		} else {
-			responseStatus = status;
-		}
+		responseStatus = httpStatAttributes.getResponseStatus();
 
 		scheme = httpStatAttributes.getScheme();
 

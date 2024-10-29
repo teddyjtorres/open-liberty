@@ -39,7 +39,7 @@ import io.openliberty.microprofile.metrics50.helper.Constants;
 /**
  *
  */
-@Component(service = { HTTPMetricAdapter.class }, configurationPolicy = ConfigurationPolicy.IGNORE)
+@Component(service = { HTTPMetricAdapter.class, ApplicationStateListener.class }, configurationPolicy = ConfigurationPolicy.IGNORE)
 public class MPMetricsHTTPMetricsAdapterImpl implements HTTPMetricAdapter, ApplicationStateListener {
 
     static SharedMetricRegistries sharedMetricRegistries;
@@ -95,10 +95,10 @@ public class MPMetricsHTTPMetricsAdapterImpl implements HTTPMetricAdapter, Appli
         Tag requestMethodTag = new Tag(Constants.HTTP_REQUEST_METHOD, httpStatAttributes.getRequestMethod());
         Tag urlSchemeTag = new Tag(Constants.URL_SCHEME, httpStatAttributes.getScheme());
 
-        Integer status = httpStatAttributes.getResponseStatus();
+        int status = httpStatAttributes.getResponseStatus();
 
         Tag responseStatusTag = new Tag(Constants.HTTP_RESPONSE_STATUS_CODE,
-                (status == null ? "" : status.toString().trim()));
+                (status == -1 ? "" : Integer.toString(status)));
 
         String httpRoute = httpStatAttributes.getHttpRoute();
         Tag httpRouteTag = new Tag(Constants.HTTP_ROUTE, (httpRoute == null ? "" : httpRoute));
