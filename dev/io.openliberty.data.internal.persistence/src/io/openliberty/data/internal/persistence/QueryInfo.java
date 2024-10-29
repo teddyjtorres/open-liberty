@@ -3495,17 +3495,32 @@ public class QueryInfo {
                     if (args[p] == null)
                         // BasicRepository.findAll(PageRequest, Order) requires
                         // NullPointerException when Order is null.
-                        throw new NullPointerException(paramTypes[p].getSimpleName() + ": null");
+                        throw exc(NullPointerException.class,
+                                  "CWWKD1087.null.param",
+                                  paramTypes[p].getName(),
+                                  method.getName(),
+                                  repositoryInterface.getName());
                     else
-                        throw new IllegalArgumentException(paramTypes[p].getSimpleName() + ": {}");
+                        throw exc(IllegalArgumentException.class,
+                                  "CWWKD1088.empty.sorts",
+                                  paramTypes[p].getName(),
+                                  method.getName(),
+                                  repositoryInterface.getName());
                 else if (Sort[].class.equals(paramTypes[p]))
-                    throw new IllegalArgumentException("Sort[]: {}");
-                // TODO NLS messages for any of the above?
+                    throw exc(IllegalArgumentException.class,
+                              "CWWKD1088.empty.sorts",
+                              Sort.class.getName() + "[]",
+                              method.getName(),
+                              repositoryInterface.getName());
             }
         }
 
         if (sortPositions == NONE)
-            throw new UnsupportedOperationException("unordered pagination"); // TODO NLS
+            throw exc(IllegalArgumentException.class,
+                      "CWWKD1089.unordered.pagination",
+                      method.getName(),
+                      repositoryInterface.getName(),
+                      method.getGenericReturnType().getTypeName());
     }
 
     /**

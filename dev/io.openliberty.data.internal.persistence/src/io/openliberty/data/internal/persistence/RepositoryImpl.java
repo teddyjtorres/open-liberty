@@ -1051,8 +1051,11 @@ public class RepositoryImpl<R> implements InvocationHandler {
                                     isSort |= queryInfo.sortPositions[s] == i;
                                 if (!isSort)
                                     // BasicRepository.findAll requires NullPointerException
-                                    throw new NullPointerException(method.getParameterTypes()[i].getSimpleName() +
-                                                                   ": null"); // TODO NLS
+                                    throw exc(NullPointerException.class,
+                                              "CWWKD1087.null.param",
+                                              method.getParameterTypes()[i].getName(),
+                                              method.getName(),
+                                              repositoryInterface.getName());
                             } else {
                                 throw exc(DataException.class,
                                           "CWWKD1023.extra.param",

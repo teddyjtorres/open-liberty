@@ -884,3 +884,20 @@ CWWKD1086.named.params.unused.explanation=The Param annotation can only be used 
  when the query has named parameters.
 CWWKD1086.named.params.unused.useraction=Remove the Param annotation or switch \
  the query to use named parameters.
+
+CWWKD1087.null.param=CWWKD1087E: The {0} parameter of the {1} method of the \
+ {2} repository interface cannot be a null value.
+CWWKD1087.null.param.explanation=The value must not be null.
+CWWKD1087.null.param.useraction=Supply a non-null value.
+
+CWWKD1088.empty.sorts=CWWKD1088E: The sort criteria that is supplied via the \
+ {0} parameter of the {1} method of the {2} repository interface cannot be empty.
+CWWKD1088.empty.sorts.explanation=The sort criteria must not be empty.
+CWWKD1088.empty.sorts.useraction=Supply a value with non-empty sort criteria.
+
+CWWKD1089.unordered.pagination=CWWKD1089E: The {0} method of the {1} repository \
+ interface must specify sort criteria because the method returns a {2} value. \
+ Unordered data cannot be split into pages.
+CWWKD1089.unordered.pagination.explanation=Pagination requires ordered data.
+CWWKD1089.unordered.pagination.useraction=Use the OrderBy annotation to define \
+ sort criteria for the repository method.
