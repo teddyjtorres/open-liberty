@@ -8,7 +8,7 @@
 		<feature>servlet-3.1</feature>
     </featureManager>
     
-	<ltpa keysPassword="anotherPwd" monitorInterval="1s" />	
+	<ltpa keysPassword="WebAS" monitorInterval="1s" />	
 
     <!-- Automatically expand WAR files and EAR files -->
     <applicationManager autoExpand="true"/>

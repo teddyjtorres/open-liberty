@@ -87,6 +87,9 @@ public class LTPAToken2 implements Token, Serializable {
             if (TraceComponent.isAnyTracingEnabled() && tc.isEventEnabled()) {
                 Tr.event(tc, "Error creating digest; " + e);
             }
+            // Handle the case where MessageDigest instances are not initialized
+            m1 = null;
+            m2 = null;
         }
         md1JCE = m1;
         md2JCE = m2;
