@@ -2485,7 +2485,13 @@ public class QueryInfo {
                 for (int i = 0; i < orderBy.length; i++)
                     addSort(orderBy[i].ignoreCase(), orderBy[i].value(), orderBy[i].descending());
 
-                if (sortPositions.length == 0) {
+                if (sortPositions == NONE_STATIC_SORT_ONLY ||
+                    sortPositions.length > 0 && !sorts.isEmpty()) {
+                    throw exc(UnsupportedOperationException.class,
+                              "CWWKD1090.orderby.conflict",
+                              method.getName(),
+                              repositoryInterface.getName());
+                } else if (sortPositions.length == 0) {
                     sortPositions = NONE_STATIC_SORT_ONLY;
                     generateOrderBy(q);
                 }

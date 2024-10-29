@@ -271,6 +271,87 @@ public class DataErrPathsTestServlet extends FATServlet {
     }
 
     /**
+     * BasicRepository.findAll(PageRequest, null) must raise NullPointerException.
+     */
+    @Test
+    public void testNullOrder() {
+        try {
+            Page<Voter> page = voters.findAll(PageRequest.ofSize(15), null);
+            fail("BasicRepository.findAll(PageRequest, null) must raise" +
+                 " NullPointerException. Instead: " + page);
+        } catch (NullPointerException x) {
+            if (x.getMessage() != null &&
+                x.getMessage().startsWith("CWWKD1087E") &&
+                x.getMessage().contains(Order.class.getName()))
+                ; // expected
+            else
+                throw x;
+        }
+    }
+
+    /**
+     * BasicRepository.findAll(null, Order) must raise NullPointerException.
+     */
+    @Test
+    public void testNullPageRequest() {
+        try {
+            Page<Voter> page = voters.findAll(null, Order.by(Sort.asc("id")));
+            fail("BasicRepository.findAll(null, Order) must raise" +
+                 " NullPointerException. Instead: " + page);
+        } catch (NullPointerException x) {
+            if (x.getMessage() != null &&
+                x.getMessage().startsWith("CWWKD1087E") &&
+                x.getMessage().contains(PageRequest.class.getName()))
+                ; // expected
+            else
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised when a repository method specifies both an
+     * OrderBy annotation and the method's name includes the OrderBy keyword.
+     */
+    @Test
+    public void testOrderByConflict() {
+        String address = "701 Silver Creek Rd NE, Rochester, MN 55906";
+        try {
+            List<Voter> found = voters.findByAddressOrderByName(address);
+            fail("Conflicting OrderBy annotation and method name keyword mut" +
+                 " raise UnsupportedOperationException. Instead: " + found);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() != null &&
+                x.getMessage().startsWith("CWWKD1090E") &&
+                x.getMessage().contains("findByAddressOrderByName"))
+                ; // expected
+            else
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised when a repository method specifies both an
+     * OrderBy annotation and the method's name includes the OrderBy keyword.
+     * The method also has a Sort parameter.
+     */
+    @Test
+    public void testOrderByConflictPlusSortParam() {
+        Sort<Voter> sort = Sort.asc("birthday");
+        try {
+            List<Voter> found = voters.findByAddressOrderBySSN(123456789, sort);
+            fail("Conflicting OrderBy annotation and method name keyword mut" +
+                 " raise UnsupportedOperationException. Instead: " + found);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() != null &&
+                x.getMessage().startsWith("CWWKD1090E") &&
+                x.getMessage().contains("findByAddressOrderBySSN"))
+                ; // expected
+            else
+                throw x;
+        }
+    }
+
+    /**
      * Verify an error is raised for a repository method that attempts to use
      * the Param annotation (which is for named parameters only) to supply its
      * single positional parameter.
@@ -367,6 +448,25 @@ public class DataErrPathsTestServlet extends FATServlet {
             if (x.getMessage() == null ||
                 !x.getMessage().startsWith("CWWKD1077E:") ||
                 !x.getMessage().contains("<dataSource id=\"DefaultDataSource\""))
+                throw x;
+        }
+    }
+
+    /**
+     * Request a page of unordered results, which should raise an error because
+     * pagination only works with deterministically ordered results.
+     */
+    @Test
+    public void testUnorderedPage() {
+        try {
+            Page<Voter> page = voters.findAll(PageRequest.ofSize(5), Order.by());
+            fail("Retrieved a page without any ordering: " + page);
+        } catch (IllegalArgumentException x) {
+            if (x.getMessage() != null &&
+                x.getMessage().startsWith("CWWKD1088E") &&
+                x.getMessage().contains(Order.class.getName()))
+                ; // expected
+            else
                 throw x;
         }
     }

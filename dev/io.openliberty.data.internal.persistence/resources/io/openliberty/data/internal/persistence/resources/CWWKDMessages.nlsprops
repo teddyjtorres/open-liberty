@@ -901,3 +901,11 @@ CWWKD1089.unordered.pagination=CWWKD1089E: The {0} method of the {1} repository 
 CWWKD1089.unordered.pagination.explanation=Pagination requires ordered data.
 CWWKD1089.unordered.pagination.useraction=Use the OrderBy annotation to define \
  sort criteria for the repository method.
+
+CWWKD1090.orderby.conflict=CWWKD1090E: The {0} method of the {1} repository \
+ interface cannot combine the OrderBy annotation and the OrderBy
+ Query by Method Name keyword.
+CWWKD1090.orderby.conflict.explanation=The OrderBy keyword is not compatible \
+ with the OrderBy annotation.
+CWWKD1090.orderby.conflict.useraction=Use only the OrderBy annotation or the \
+ OrderBy keyword.
