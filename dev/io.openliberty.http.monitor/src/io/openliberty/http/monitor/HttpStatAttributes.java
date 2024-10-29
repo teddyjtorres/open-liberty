@@ -57,9 +57,6 @@ public class HttpStatAttributes {
 	HttpStatAttributes(Builder builder) throws IllegalStateException {
 		
 		if (!builder.validate()) {
-			if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-				Tr.debug(tc, String.format("Invalid HTTP Stats attributes : \n %s", builder.toString()));
-			}
 			throw new IllegalStateException("Invalid HTTP Stats attributes");
 		}
 		
@@ -95,10 +92,10 @@ public class HttpStatAttributes {
 		sb.append("method:").append(requestMethod);
 		
 		/*
-		 * Status, Route  and errorType may be null.
+		 * Status, Route and errorType may be null.
 		 * In which cas we will not append it to the name property
 		 */
-		if (responseStatus != null) {
+		if (responseStatus != -1) {
 			sb.append(";status:").append(responseStatus);
 		}
 
@@ -305,6 +302,23 @@ public class HttpStatAttributes {
 		public boolean validate() {
 			return (requestMethod != null) && (scheme != null) && (networkProtocolName != null)
 					&& (networkProtocolVersion != null) && (serverName != null) && (serverPort != 0);
+		}
+		
+		@Override
+		public String toString() {
+			return String.format(
+					" ------- \n" 
+			+ "Request Method (mandatory): [%s] \n" 
+			+ "Scheme (mandatory): [%s] \n"
+			+ "Network Protocol Name (optional): [%s] \n" 
+			+ "Network Protocol Version (mandatory): [%s] \n" 
+			+ "Server Name (mandatory): [%s] \n" 
+			+ "Server Port (mandatory): [%d] \n"
+			+ "HTTP Route (Optional: can be empty): [%s] \n" 
+			+ "Response Status (Optional: can be -1): [%d] \n" 
+			+ "Error Type(Optional - can be empty): [%s]",
+					requestMethod, scheme, networkProtocolName, networkProtocolVersion, serverName, serverPort,
+					httpRoute.orElse(null), responseStatus.orElse(null), errorType.orElse(null));
 		}
 
 	}
