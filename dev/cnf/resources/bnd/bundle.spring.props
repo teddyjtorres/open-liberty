@@ -29,9 +29,9 @@ springBootVersion15=strategy=exact;version=1.5.9.RELEASE
 springVersion15=strategy=exact;version=4.3.13.RELEASE
 springSecurityVersion15=strategy=exact;version=4.2.3.RELEASE
 
-springBootVersion20=strategy=exact;version=2.7.9.RELEASE
+springBootVersion20=strategy=exact;version=2.7.18
 springVersion20=strategy=exact;version=5.3.39.RELEASE
-springSecurityVersion20=strategy=exact;version=5.7.13.RELEASE
+springSecurityVersion20=strategy=exact;version=5.7.13
 
 springAOPVersion20=strategy=exact;version=5.3.21
 springExpressionVersion20=strategy=exact;version=5.3.21
