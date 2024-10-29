@@ -2491,6 +2491,23 @@ public class QueryInfo {
                 }
             }
 
+            // Default to ascending by ID when the repository method that uses
+            // pagination does not provide a way to indicate sort criteria.
+            if (type == Type.FIND &&
+                query == null && // do not change the user's Query value
+                sortPositions.length == 0 &&
+                (sorts == null || sorts.isEmpty()) &&
+                (Page.class.equals(multiType) ||
+                 CursoredPage.class.equals(multiType))) {
+
+                sortPositions = NONE_STATIC_SORT_ONLY;
+                String idAttr = entityInfo.attributeNames.get(ID);
+                sorts = List.of(Sort.asc(idAttr));
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                    Tr.debug(this, tc, "default sorting of " + sorts);
+                generateOrderBy(q);
+            }
+
             jpql = q == null ? jpql : q.toString();
 
             if (type == null)
@@ -3451,7 +3468,7 @@ public class QueryInfo {
                 iNext += (iNext == desc ? 4 : 3);
         }
 
-        if (sortPositions.length == 0) {
+        if (sortPositions == NONE && !sorts.isEmpty()) {
             sortPositions = NONE_STATIC_SORT_ONLY;
             generateOrderBy(q);
         }
@@ -3463,17 +3480,12 @@ public class QueryInfo {
      * If the repository method has parameters to supply an order and these are
      * empty or null, assume the user made a mistake and raise an error.
      *
-     * If the repository method does not define an order or provide parameters
-     * for the user to supply an order, assume the intention is to default to
-     * the unique identifier in ascending order.
-     *
      * @param args parameters to the repository method.
-     * @return sort criteria for the unique identifier in ascending order.
      * @throws IllegalArgumentException if a Sort[] or Order parameter is empty.
      * @throws NullPointerException     if a Sort or Order parameter is null.
      */
     @Trivial
-    List<Sort<Object>> requireOrderForPages(Object[] args) {
+    void requireOrderedPagination(Object[] args) {
         if (sortPositions.length > 0) {
             Class<?>[] paramTypes = method.getParameterTypes();
             for (int s = 0; s < sortPositions.length; s++) {
@@ -3492,8 +3504,8 @@ public class QueryInfo {
             }
         }
 
-        // TODO can we default to Sorting on the ID?
-        return null;
+        if (sortPositions == NONE)
+            throw new UnsupportedOperationException("unordered pagination"); // TODO NLS
     }
 
     /**

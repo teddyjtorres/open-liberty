@@ -1046,6 +1046,13 @@ public class RepositoryImpl<R> implements InvocationHandler {
                                 sortList = newList;
                             } else if (param == null) {
                                 // ignore null for empty Sort...
+                                boolean isSort = false;
+                                for (int s = 0; s < queryInfo.sortPositions.length; s++)
+                                    isSort |= queryInfo.sortPositions[s] == i;
+                                if (!isSort)
+                                    // BasicRepository.findAll requires NullPointerException
+                                    throw new NullPointerException(method.getParameterTypes()[i].getSimpleName() +
+                                                                   ": null"); // TODO NLS
                             } else {
                                 throw exc(DataException.class,
                                           "CWWKD1023.extra.param",
@@ -1068,11 +1075,10 @@ public class RepositoryImpl<R> implements InvocationHandler {
                         if (sortList == null && queryInfo.sortPositions.length > 0)
                             sortList = queryInfo.sorts;
 
-                        if (pagination != null &&
-                            (sortList == null || sortList.isEmpty()))
-                            sortList = queryInfo.requireOrderForPages(args);
-
-                        if (sortList != null && !sortList.isEmpty()) {
+                        if (sortList == null || sortList.isEmpty()) {
+                            if (pagination != null)
+                                queryInfo.requireOrderedPagination(args);
+                        } else {
                             boolean forward = pagination == null || pagination.mode() != PageRequest.Mode.CURSOR_PREVIOUS;
                             StringBuilder q = new StringBuilder(queryInfo.jpql);
                             StringBuilder order = null; // ORDER BY clause based on Sorts
