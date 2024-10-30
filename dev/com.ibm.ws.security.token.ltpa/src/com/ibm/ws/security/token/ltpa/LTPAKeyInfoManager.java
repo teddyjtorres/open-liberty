@@ -215,7 +215,8 @@ public class LTPAKeyInfoManager {
         WsResource ltpaKeyFileResource = null;
 
         if (fipsEnabled){
-            ltpaKeyFileResource = getLTPAKeyFileResource(locService, keyImportFile.substring(0, keyImportFile.length() - 5) + "FIPS" + keyImportFile.substring(keyImportFile.length() - 5));
+            ltpaKeyFileResource = getLTPAKeyFileResource(locService, keyImportFile.substring(0, keyImportFile.length() - 4) + "FIPS" + keyImportFile.substring(keyImportFile.length() - 4));
+            System.out.println("FIPS Keys found: " + keyImportFile.substring(0, keyImportFile.length() - 4) + "FIPS" + keyImportFile.substring(keyImportFile.length() - 4));
         }
 
         if (ltpaKeyFileResource == null){
