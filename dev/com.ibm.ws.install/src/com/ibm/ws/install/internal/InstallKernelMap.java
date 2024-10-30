@@ -315,6 +315,8 @@ public class InstallKernelMap implements Map {
                 return envMap;
             }
             envMap = getEnvMap();
+            //set proxy system properties
+            setProxy();
             return envMap;
         } else if (InstallConstants.USER_PUBLIC_KEYS.equals(key)) {
             return data.get(InstallConstants.USER_PUBLIC_KEYS);
@@ -551,7 +553,7 @@ public class InstallKernelMap implements Map {
         } else if (InstallConstants.OVERRIDE_ENVIRONMENT_VARIABLES.equals(key)) {
             if (value instanceof Map<?, ?>) {
                 overrideEnvMap((Map<String, Object>) value);
-                //set proxy system properties
+                //override proxy system properties
                 setProxy();
             } else {
                 throw new IllegalArgumentException();
