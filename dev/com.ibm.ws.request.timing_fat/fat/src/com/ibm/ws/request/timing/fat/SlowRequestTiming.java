@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -582,6 +582,7 @@ public class SlowRequestTiming {
 
         for (String line : lines) {
             if (!line.contains("TRAS0112W") && !line.contains("TRAS0113I") && !line.contains("CWWKG0028A")) {
+                CommonTasks.writeLogMsg(Level.INFO, "Checking the following line : " + line);
                 assertTrue("Pattern NOT found when it is enabled..", (line.contains("|")));
             }
         }
