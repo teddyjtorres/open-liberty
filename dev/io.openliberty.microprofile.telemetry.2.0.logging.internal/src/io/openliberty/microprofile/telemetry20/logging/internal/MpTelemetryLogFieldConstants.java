@@ -45,4 +45,8 @@ public class MpTelemetryLogFieldConstants {
     public static final String AUDIT_EVENT_SEQUENCE_NUMBER = "eventSequenceNumber";
     public static final String AUDIT_EVENT_TIME = "eventTime";
 
+    // Mapped OTel Attribute Liberty Audit Event
+    public static final String LIBERTY_AUDIT_EVENT_SEQUENCE_NUMBER = "io.openliberty.event.sequence_number";
+    public static final String LIBERTY_AUDIT_EVENT_TIME = "io.openliberty.event_time";
+
 }

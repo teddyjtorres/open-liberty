@@ -257,6 +257,12 @@ public class MpTelemetryLogMappingUtils {
                         // Explicitly parse the eventName to map it to the body in the LogRecordBuilder and as well as in the AttributeBuilder.
                         builder.setBody(kvp.getStringValue());
                         attributes.put(SemanticAttributes.EVENT_NAME, kvp.getStringValue());
+                    } else if (key.equals(MpTelemetryLogFieldConstants.AUDIT_EVENT_SEQUENCE_NUMBER)) {
+                        // Explicitly get the eventSequenceNumber and set it in the AttributeBuilder.
+                        attributes.put(MpTelemetryLogFieldConstants.LIBERTY_AUDIT_EVENT_SEQUENCE_NUMBER, kvp.getStringValue());
+                    } else if (key.equals(MpTelemetryLogFieldConstants.AUDIT_EVENT_TIME)) {
+                        // Explicitly get the eventTime and set it in the AttributeBuilder.
+                        attributes.put(MpTelemetryLogFieldConstants.LIBERTY_AUDIT_EVENT_TIME, kvp.getStringValue());
                     } else if (key.equals(LogFieldConstants.IBM_DATETIME) || key.equals("loggingEventTime") || AuditData.getDatetimeKey(0).equals(key)) {
                         // Get Timestamp as a Long value and set it in the LogRecordBuilder
                         builder.setTimestamp(kvp.getLongValue(), TimeUnit.MILLISECONDS);
