@@ -977,7 +977,12 @@ public class FeatureResolverImpl implements FeatureResolver {
             ProvisioningFeatureDefinition featureDef = selectionContext.getRepository().getFeature(feature);
             if (featureDef.isCompatibility()) {
                 if (existingPlatforms.contains(featureDef.getPlatformName())) {
-                    result.addResolvedPlatform(featureDef.getPlatformName());
+                    String platforms = featureDef.getPlatformName();
+                    //account for javaee-8.0/jakartaee-8.0
+                    for(int i = 1; i < featureDef.getPlatformNames().size(); i++){
+                        platforms += "/" + featureDef.getPlatformNames().get(i);
+                    }
+                    result.addResolvedPlatform(platforms);
                 }
             }
         }
@@ -1037,7 +1042,9 @@ public class FeatureResolverImpl implements FeatureResolver {
         allCompatibilityFeatures = new HashMap<>();
         for (ProvisioningFeatureDefinition feature : features) {
             if (feature.isCompatibility()) {
-                allCompatibilityFeatures.put(feature.getPlatformName().toLowerCase(), feature);
+                for(String platformName : feature.getPlatformNames()){
+                    allCompatibilityFeatures.put(platformName.toLowerCase(), feature);
+                }
             }
         }
     }

@@ -2064,14 +2064,23 @@ public class FeatureManager implements FixManager, FeatureProvisioner, Framework
 
             String compatibilityBaseName = featureRepository.getFeatureBaseName(compatibility.getFeatureName());
             for(String resolvedPlat : result.getResolvedPlatforms()){
-                ProvisioningFeatureDefinition compatibilityFeature = featureRepository.getCompatibilityFeature(resolvedPlat);
+                String filteredResolvedPlat = "";
+
+                if (resolvedPlat.contains("/")) {
+                    filteredResolvedPlat = resolvedPlat.substring(0, resolvedPlat.indexOf("/"));
+                }
+                else {
+                    filteredResolvedPlat = resolvedPlat;
+                }
+
+                ProvisioningFeatureDefinition compatibilityFeature = featureRepository.getCompatibilityFeature(filteredResolvedPlat);
                 if(compatibilityFeature == null){
                     continue; 
                 }
                 String resolvedBaseName = featureRepository.getFeatureBaseName(compatibilityFeature.getFeatureName());
 
                 if(compatibilityBaseName.equals(resolvedBaseName)){
-                    if(!platforms.contains(resolvedPlat)){
+                    if(!platforms.contains(filteredResolvedPlat)){
                         Tr.error(tc, "INCOMPATIBLE_VERSIONLESS_FEATURE_WITH_PLATFORM", getFeatureName(versionlessResolved), resolvedPlat);
                         break;
                     }
