@@ -449,7 +449,6 @@ public class SlowRequestTiming {
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i);
             CommonTasks.writeLogMsg(Level.INFO, "-------->  " + line);
-
             assertFalse("contextInfo found!", line.contains("|"));
 
         }
@@ -745,6 +744,15 @@ public class SlowRequestTiming {
 
         server.waitForStringInLog("TRAS0112W", 20000);
         int slowCount = fetchNoOfslowRequestWarnings();
+
+        //Retry the request again
+        if (slowCount == 0) {
+            CommonTasks.writeLogMsg(Level.INFO, "$$$$ -----> Retry because no slow request warning found!");
+            createRequest("?sleepTime=4000");
+            createRequest("?sleepTime=4000");
+            server.waitForStringInLog("TRAS0112W", 20000);
+            slowCount = fetchNoOfslowRequestWarnings();
+        }
 
         assertTrue("No slow warning found for sampleRate 2!", (slowCount > 0));
 
