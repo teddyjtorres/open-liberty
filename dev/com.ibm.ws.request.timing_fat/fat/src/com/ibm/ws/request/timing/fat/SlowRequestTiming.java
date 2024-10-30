@@ -477,6 +477,7 @@ public class SlowRequestTiming {
 
         List<String> lines = server.findStringsInFileInLibertyServerRoot("ms", MESSAGE_LOG);
         for (String line : lines) {
+            CommonTasks.writeLogMsg(Level.INFO, "Checking the following line : " + line);
             assertFalse("contextInfo found when it was disabled..", line.contains("|"));
         }
 
@@ -496,6 +497,7 @@ public class SlowRequestTiming {
 
         for (String line : lines) {
             if (!line.contains("TRAS0112W") && !line.contains("TRAS0113I") && !line.contains("CWWKG0028A")) {
+                CommonTasks.writeLogMsg(Level.INFO, "Checking the following line : " + line);
                 assertTrue("contextInfo is missing...", line.contains("|"));
             }
         }
@@ -564,6 +566,7 @@ public class SlowRequestTiming {
         List<String> lines = server.findStringsInFileInLibertyServerRoot("ms", MESSAGE_LOG);
 
         for (String line : lines) {
+            CommonTasks.writeLogMsg(Level.INFO, "Checking the following line : " + line);
             assertFalse("Pattern found when it is disabled..", (line.contains("|")));
         }
         CommonTasks.writeLogMsg(Level.INFO, "******** As Expected : Pattern disabled ******* ");
