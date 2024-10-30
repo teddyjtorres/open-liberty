@@ -2470,8 +2470,13 @@ public class QueryInfo {
 
             // The @OrderBy annotation from Jakarta Data provides sort criteria statically
             if (orderBy.length > 0) {
-                //type = type == null ? Type.FIND : type;
-                sorts = sorts == null ? new ArrayList<>(orderBy.length + 2) : sorts;
+                if (sorts != null) // also has an OrderBy keyword
+                    throw exc(UnsupportedOperationException.class,
+                              "CWWKD1090.orderby.conflict",
+                              method.getName(),
+                              repositoryInterface.getName());
+
+                sorts = new ArrayList<>(orderBy.length);
                 if (q == null)
                     if (jpql == null) {
                         q = generateSelectClause();
@@ -2485,13 +2490,7 @@ public class QueryInfo {
                 for (int i = 0; i < orderBy.length; i++)
                     addSort(orderBy[i].ignoreCase(), orderBy[i].value(), orderBy[i].descending());
 
-                if (sortPositions == NONE_STATIC_SORT_ONLY ||
-                    sortPositions.length > 0 && !sorts.isEmpty()) {
-                    throw exc(UnsupportedOperationException.class,
-                              "CWWKD1090.orderby.conflict",
-                              method.getName(),
-                              repositoryInterface.getName());
-                } else if (sortPositions.length == 0) {
+                if (sortPositions.length == 0) {
                     sortPositions = NONE_STATIC_SORT_ONLY;
                     generateOrderBy(q);
                 }
