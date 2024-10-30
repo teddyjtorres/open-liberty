@@ -1156,6 +1156,9 @@ public class InstallKernelMap implements Map {
                 noProxyHosts = noProxyHosts.replace(",", "|");
                 System.setProperty("http.nonProxyHosts", noProxyHosts);
             }
+            logger.fine("http.proxyHost " + System.getProperty("http.proxyHost"));
+            logger.fine("https.proxyHost " + System.getProperty("https.proxyHost"));
+            logger.fine("proxy exclusion list: " + System.getProperty("http.nonProxyHosts"));
         } catch (InstallException e) {
             data.put(InstallConstants.ACTION_ERROR_MESSAGE, e.getMessage());
             data.put(InstallConstants.ACTION_EXCEPTION_STACKTRACE, ExceptionUtils.stacktraceToString(e));
