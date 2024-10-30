@@ -1094,7 +1094,7 @@ public class LibertyServer implements LogMonitorClient {
     /**
      * Swaps in a different server.xml file from the server directory.
      *
-     * @param  fileName
+     * @param  fileName  the name of a server.xml file found in the wlp/usr/[server]/ directory
      * @throws Exception
      */
     public void swapInServerXMLFromPublish(String fileName) throws Exception {
@@ -1670,6 +1670,7 @@ public class LibertyServer implements LogMonitorClient {
             JVM_ARGS += " -Xdump:system+java+snap:events=throw+systhrow,filter=\"java/lang/ClassCastException#ServiceFactoryUse.<init>*\"";
             JVM_ARGS += " -Xdump:system+java+snap:events=throw+systhrow,filter=\"java/lang/ClassCastException#org/eclipse/osgi/internal/serviceregistry/ServiceFactoryUse.<init>*\"";
             JVM_ARGS += " -Xdump:system+java+snap:events=throw+systhrow,filter=\"java/lang/NoClassDefFoundError\",msg_filter=\"com.ibm.ws.classloading.internal.providers.Providers\",request=exclusive+prepwalk+serial+preempt";
+            JVM_ARGS += " -Xdump:system+java+snap:events=systhrow,filter=\"java/lang/NoSuchMethodError#com/ibm/ws/classloading/internal/AppClassLoader.<init>*\",msg_filter=\"*getPrivateLibraries*\",request=exclusive+prepwalk";
         }
 
         // Add JaCoCo java agent to generate code coverage for FAT test run
@@ -3600,9 +3601,6 @@ public class LibertyServer implements LogMonitorClient {
                                                      "com.ibm.ws.jaxrs.fat.exceptionMappingWithOT", //com.ibm.ws.jaxrs.2.0_fat
 
                                                      "RequestTimingServer", //com.ibm.ws.request.timing_fat
-
-                                                     "io.openliberty.jcache.internal.fat.jwt.auth.cache.1", //io.openliberty.checkpoint_fat_jcache_hazelcast
-                                                     "io.openliberty.jcache.internal.fat.jwt.auth.cache.2", //io.openliberty.checkpoint_fat_jcache_hazelcast
 
                                                      "ContainerJSPServer", //io.openliberty.http.monitor_fat
 
@@ -5663,6 +5661,11 @@ public class LibertyServer implements LogMonitorClient {
             serverConfig.setDescription(serverConfig.getDescription() + " (this is some random text to make the file size bigger)");
             os = newServerFile.openForWriting(false);
             ServerConfigurationFactory.getInstance().marshal(serverConfig, os);
+        }
+
+        if (LOG.isLoggable(Level.INFO) && logOnUpdate) {
+            LOG.info("Server configuration before update:");
+            logServerConfiguration(Level.INFO, false);
         }
 
         // replace the file

@@ -25,14 +25,18 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 import org.junit.After;
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
+import org.junit.rules.TestWatcher;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 
 import com.ibm.websphere.simplicity.RemoteFile;
+import com.ibm.websphere.simplicity.log.Log;
 
 import componenttest.annotation.AllowedFFDC;
 import componenttest.annotation.CheckForLeakedPasswords;
@@ -52,14 +56,18 @@ public class FATTest {
 
     private static final String APP_NAME = "ltpaTest";
     private static final String DEFAULT_KEY_PATH = "resources/security/ltpa.keys";
-    private static final String ALTERNATE_KEY_PATH = "resources/security/alternate/testLtpa.keys";
-    private static final String REPLACEMENT_LTPA_KEYS_PATH = "alternate/ltpa.keys";
-    private static final String REPLACEMENT_FIPS_LTPA_KEYS_PATH = "alternateFIPS/ltpa.keys";
+    private static String ALTERNATE_KEY_PATH = "resources/security/alternate/testLtpa.keys";
+    private static String ALTERNATE_KEY_PATH_FIPS = "resources/security/alternateFIPS/testLtpa.keys";
+    private static String REPLACEMENT_LTPA_KEYS_PATH = "alternate/ltpa.keys";
+    private static String REPLACEMENT_FIPS_LTPA_KEYS_PATH = "alternateFIPS/ltpa.keys";
     private static final String CORRUPTED_LTPA_KEYS_PATH = "corrupted/ltpa.keys";
     private static final String DEFAULT_SERVER_XML = "server.xml";
-    private static final String ALTERNATE_SERVER_XML = "alternate/server.xml";
-    private static final String ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR = "alternate/serverWithLTPAFileMonitor.xml";
-    private static final String ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR_AND_WRONG_PASSWORD = "alternate/serverWithLTPAFileMonitorAndWrongPassword.xml";
+    private static String ALTERNATE_SERVER_XML = "alternate/server.xml";
+    private static String ALTERNATE_SERVER_XML_FIPS = "alternateFIPS/server.xml";
+    private static String ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR = "alternate/serverWithLTPAFileMonitor.xml";
+    private static String ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR_FIPS = "alternateFIPS/serverWithLTPAFileMonitor.xml";
+    private static String ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR_AND_WRONG_PASSWORD = "alternate/serverWithLTPAFileMonitorAndWrongPassword.xml";
+    private static String ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR_AND_WRONG_PASSWORD_FIPS = "alternateFIPS/serverWithLTPAFileMonitorAndWrongPassword.xml";
     private static final String PWD_DEFAULT = "WebAS";
     private static final String PWD_DEFAULT_ENCODED = "\\{xor\\}CDo9Hgw=";
     private static final String PWD_ANY_ENCODED = "\\{xor\\}";
@@ -67,6 +75,7 @@ public class FATTest {
     private static final String PWD_WRONG = "wrongPassword";
     private static final String serverShutdownMessages = "CWWKS4106E";
     private static final LibertyServer server;
+    private static final Class<?> thisClass = FATTest.class;
 
     private static final String EXPECTED_EXCEPTION_BAD_PADDING = "javax.crypto.BadPaddingException";
     private static final String EXPECTED_EXCEPTION_AEAD_BAD_TAG = "javax.crypto.AEADBadTagException";
@@ -89,10 +98,32 @@ public class FATTest {
             e.printStackTrace();
         }
         fipsEnabled = isFipsEnabled;
+
+        if (fipsEnabled) {
+            ALTERNATE_KEY_PATH = ALTERNATE_KEY_PATH_FIPS;
+            REPLACEMENT_LTPA_KEYS_PATH = REPLACEMENT_FIPS_LTPA_KEYS_PATH;
+            ALTERNATE_SERVER_XML = ALTERNATE_SERVER_XML_FIPS;
+            ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR = ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR_FIPS;
+            ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR_AND_WRONG_PASSWORD = ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR_AND_WRONG_PASSWORD_FIPS;
+        }
     }
 
     @Rule
     public TestRule passwordChecker = new LeakedPasswordChecker(server);
+
+    @Rule
+    public final TestWatcher logger = new TestWatcher() {
+        @Override
+        // Function to make it easier to see when each test starts and ends
+        public void starting(Description description) {
+            Log.info(thisClass, description.getMethodName(), "\n@@@@@@@@@@@@@@@@@\nEntering test " + description.getMethodName() + "\n@@@@@@@@@@@@@@@@@");
+        }
+
+        @Override
+        public void finished(Description description) {
+            Log.info(thisClass, description.getMethodName(), "\n@@@@@@@@@@@@@@@@@\nExiting test " + description.getMethodName() + "\n@@@@@@@@@@@@@@@@@");
+        }
+    };
 
     @BeforeClass
     public static void setUpBeforeClass() throws Exception {
@@ -105,7 +136,9 @@ public class FATTest {
     }
 
     @After
-    public void tearDown() throws Exception {
+    public void after() throws Exception {
+        Log.info(thisClass, "resetServer", "entering");
+
         try {
             server.stopServer(serverShutdownMessages);
         } finally {
@@ -113,7 +146,7 @@ public class FATTest {
         }
     }
 
-    private void deleteExistingLTPAKeysFiles() throws Exception {
+    private static void deleteExistingLTPAKeysFiles() throws Exception {
         deleteFileIfExists(DEFAULT_KEY_PATH);
         deleteFileIfExists(ALTERNATE_KEY_PATH);
     }
@@ -173,19 +206,20 @@ public class FATTest {
     @CheckForLeakedPasswords({ PWD_DEFAULT, PWD_ANOTHER, PWD_ANY_ENCODED })
     @Test
     public void validateKeysReloadedAfterModification() throws Exception {
-        startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "validateKeysReloadedAfterModification.log");
-        assertFeatureCompleteWithLTPAConfigAndTestApp();
-        assertTokenCanBeCreated();
-        if (!fipsEnabled){
+        try {
+            startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "validateKeysReloadedAfterModification.log");
+            assertFeatureCompleteWithLTPAConfigAndTestApp();
+            assertTokenCanBeCreated();
             replaceLTPAKeysFile(ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR, REPLACEMENT_LTPA_KEYS_PATH);
-        } else {
-            replaceLTPAKeysFile(ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR, REPLACEMENT_FIPS_LTPA_KEYS_PATH);
-        }
-        assertLTPAConfigurationReady();
-        assertAppDoesNotRestart();
+            assertLTPAConfigurationReady();
+            assertAppDoesNotRestart();
 
-        // Assert token can be created with new keys
-        assertTokenCanBeCreated();
+            // Assert token can be created with new keys
+            assertTokenCanBeCreated();
+        } finally {
+            // Clean up
+            replaceLTPAKeysFile(DEFAULT_SERVER_XML, REPLACEMENT_LTPA_KEYS_PATH);
+        }
     }
 
     /**
@@ -198,27 +232,32 @@ public class FATTest {
     @AllowedFFDC({ EXPECTED_EXCEPTION_AEAD_BAD_TAG, EXPECTED_EXCEPTION_BAD_PADDING })
     @Test
     public void validateKeysNotReloadedAfterModificationWithWrongPassword() throws Exception {
-        startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "validateKeysNotReloadedAfterModificationWithWrongPassword.log");
-        assertFeatureCompleteWithLTPAConfigAndTestApp();
-        assertTokenCanBeCreated();
+        try {
+            startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "validateKeysNotReloadedAfterModificationWithWrongPassword.log");
+            assertFeatureCompleteWithLTPAConfigAndTestApp();
+            assertTokenCanBeCreated();
 
-        replaceLTPAKeysFile(ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR_AND_WRONG_PASSWORD, REPLACEMENT_LTPA_KEYS_PATH);
+            replaceLTPAKeysFile(ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR_AND_WRONG_PASSWORD, REPLACEMENT_LTPA_KEYS_PATH);
 
-        assertNotNull("The LTPA configuration must not be reloaded.",
-                      server.waitForStringInLog("CWWKS4106E:.*"));
+            assertNotNull("The LTPA configuration must not be reloaded.",
+                        server.waitForStringInLog("CWWKS4106E:.*"));
 
-        if (!fipsEnabled){
-            // Verify EXPECTED_EXCEPTION_BAD_PADDING is thrown
-            assertNotNull("The expected exception " + EXPECTED_EXCEPTION_BAD_PADDING + " was not thrown.",
-                          server.waitForStringInTrace(EXPECTED_EXCEPTION_BAD_PADDING));
-        } else {
-            // Verify EXPECTED_EXCEPTION_AEAD_BAD_TAG is thrown
-            assertNotNull("The expected exception " + EXPECTED_EXCEPTION_AEAD_BAD_TAG + " was not thrown.",
-                          server.waitForStringInTrace(EXPECTED_EXCEPTION_AEAD_BAD_TAG));
+            if (!fipsEnabled){
+                // Verify EXPECTED_EXCEPTION_BAD_PADDING is thrown
+                assertNotNull("The expected exception " + EXPECTED_EXCEPTION_BAD_PADDING + " was not thrown.",
+                            server.waitForStringInTrace(EXPECTED_EXCEPTION_BAD_PADDING));
+            } else {
+                // Verify EXPECTED_EXCEPTION_AEAD_BAD_TAG is thrown
+                assertNotNull("The expected exception " + EXPECTED_EXCEPTION_AEAD_BAD_TAG + " was not thrown.",
+                            server.waitForStringInTrace(EXPECTED_EXCEPTION_AEAD_BAD_TAG));
+            }
+
+            // Assert token can be created with old keys
+            assertTokenCanBeCreated();
+        } finally {
+            // Clean up
+            replaceLTPAKeysFile(DEFAULT_SERVER_XML, REPLACEMENT_LTPA_KEYS_PATH);
         }
-
-        // Assert token can be created with old keys
-        assertTokenCanBeCreated();
     }
 
     /**
@@ -231,17 +270,22 @@ public class FATTest {
     @ExpectedFFDC("java.lang.IllegalArgumentException")
     @Test
     public void validateKeysNotReloadedAfterModificationWithCorruptedKeysFile() throws Exception {
-        startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "validateKeysNotReloadedAfterModificationWithCorruptedKeysFile.log");
-        assertFeatureCompleteWithLTPAConfigAndTestApp();
-        assertTokenCanBeCreated();
+        try {
+            startServerWithConfigFileAndLog(DEFAULT_SERVER_XML, "validateKeysNotReloadedAfterModificationWithCorruptedKeysFile.log");
+            assertFeatureCompleteWithLTPAConfigAndTestApp();
+            assertTokenCanBeCreated();
 
-        replaceLTPAKeysFile(ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR, CORRUPTED_LTPA_KEYS_PATH);
+            replaceLTPAKeysFile(ALTERNATE_SERVER_XML_WITH_LTPA_FILE_MONITOR, CORRUPTED_LTPA_KEYS_PATH);
 
-        assertNotNull("The LTPA configuration must not be reloaded.",
-                      server.waitForStringInLog("CWWKS4106E:.*"));
+            assertNotNull("The LTPA configuration must not be reloaded.",
+                        server.waitForStringInLog("CWWKS4106E:.*"));
 
-        // Assert token can be created with old keys
-        assertTokenCanBeCreated();
+            // Assert token can be created with old keys
+            assertTokenCanBeCreated();
+        } finally {
+            // Clean up
+            replaceLTPAKeysFile(DEFAULT_SERVER_XML, REPLACEMENT_LTPA_KEYS_PATH);
+        }
     }
 
     /**
@@ -376,7 +420,18 @@ public class FATTest {
 
     private void startServerWithConfigFileAndLog(String configFile, String logFileName) throws Exception {
         server.setServerConfigurationFile(configFile);
+
         server.startServer(logFileName);
+
+        assertNotNull("Featurevalid did not report update was complete",
+                      server.waitForStringInLog("CWWKF0008I"));
+        assertNotNull("Security service did not report it was ready",
+                      server.waitForStringInLog("CWWKS0008I"));
+        assertNotNull("The application did not report is was started",
+                      server.waitForStringInLog("CWWKZ0001I"));
+        // Wait for the LTPA configuration to be ready
+        assertNotNull("Expected LTPA configuration ready message not found in the log.",
+                      server.waitForStringInLog("CWWKS4105I"));
     }
 
     /**
@@ -503,7 +558,7 @@ public class FATTest {
      *
      * @throws Exception
      */
-    private void deleteFileIfExists(String filePath) throws Exception {
+    private static void deleteFileIfExists(String filePath) throws Exception {
         if (fileExists(filePath)) {
             if (!server.getFileFromLibertyServerRoot(filePath).delete()) {
                 throw new Exception("Delete action failed for file: " + filePath);
@@ -524,7 +579,7 @@ public class FATTest {
      *
      * @return
      */
-    private boolean fileExists(String filePath) {
+    private static boolean fileExists(String filePath) {
         try {
             RemoteFile remote = server.getFileFromLibertyServerRoot(filePath);
             boolean exists = false;

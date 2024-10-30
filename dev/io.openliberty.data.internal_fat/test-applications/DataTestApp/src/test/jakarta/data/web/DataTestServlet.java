@@ -480,6 +480,41 @@ public class DataTestServlet extends FATServlet {
     }
 
     /**
+     * Asynchronous repository method that returns a CompletableFuture of Page.
+     */
+    @Test
+    public void testCompletableFutureOfPage() throws ExecutionException, //
+                    InterruptedException, TimeoutException {
+        PageRequest page1req = PageRequest.ofPage(1).size(4);
+        PageRequest page3req = PageRequest.ofPage(3).size(4);
+
+        Order<Prime> asc = Order.by(Sort.asc(ID));
+
+        CompletableFuture<Page<Long>> cf1 = //
+                        primes.divisibleByTwo(false, page1req, asc);
+
+        CompletableFuture<Page<Long>> cf3 = //
+                        primes.divisibleByTwo(false, page3req, asc);
+
+        Page<Long> page1 = cf1.get(TIMEOUT_MINUTES, TimeUnit.MINUTES);
+        Page<Long> page3 = cf3.get(TIMEOUT_MINUTES, TimeUnit.MINUTES);
+
+        assertEquals(List.of(3L, 5L, 7L, 11L),
+                     page1.content());
+
+        assertEquals(List.of(29L, 31L, 37L, 41L),
+                     page3.content());
+
+        PageRequest page2req = page3.previousPageRequest();
+        assertEquals(page2req, page1.nextPageRequest());
+
+        assertEquals(List.of(13L, 17L, 19L, 23L),
+                     primes.divisibleByTwo(false, page2req, asc)
+                                     .thenApply(Page::content)
+                                     .get(TIMEOUT_MINUTES, TimeUnit.MINUTES));
+    }
+
+    /**
      * Asynchronous repository method that returns a CompletionStage of CursoredPage.
      */
     @Test
@@ -2066,6 +2101,32 @@ public class DataTestServlet extends FATServlet {
     }
 
     /**
+     * Verify a repository method can use JPQL query language that supplies
+     * id(this) as an argument to another function.
+     */
+    @Test
+    public void testFunctionWithIdThisArg() {
+        vehicles.delete();
+
+        Vehicle v1 = new Vehicle();
+        v1.make = "Chevrolet";
+        v1.model = "Silverado";
+        v1.numSeats = 3;
+        v1.price = 38000f;
+        v1.vinId = "CS102030405060708";
+        vehicles.save(List.of(v1));
+
+        v1 = vehicles.withVINLowerCase("cs102030405060708").orElseThrow();
+        assertEquals("Chevrolet", v1.make);
+        assertEquals("Silverado", v1.model);
+        assertEquals(3, v1.numSeats);
+        assertEquals(38000f, v1.price, 0.001f);
+        assertEquals("CS102030405060708", v1.vinId);
+
+        assertEquals(1L, vehicles.delete());
+    }
+
+    /**
      * Verify that ORDER BY can be generated, taking into account the entity variable name of a custom query.
      * The custom query in this case has no WHERE clause.
      * Other tests cover similar scenarios in which a WHERE clause is present.
@@ -3613,19 +3674,6 @@ public class DataTestServlet extends FATServlet {
     }
 
     /**
-     * Use a repository query with both named parameters and positional parameters. Expect this to be rejected.
-     */
-    @Test
-    public void testNamedParametersMixedWithPositionalParameters() {
-        try {
-            Collection<Long> found = primes.matchAnyWithMixedUsageOfPositionalAndNamed("three", 23);
-            fail("Should not be able to mix positional and named parameters. Found: " + found);
-        } catch (MappingException x) {
-            // expected
-        }
-    }
-
-    /**
      * Use a repository query with named parameters, where the parameters are
      * sometimes obtained from the Param annotation and other times obtained from
      * the corresponding method parameters based on the method's parameter names.
@@ -3680,6 +3728,17 @@ public class DataTestServlet extends FATServlet {
                                              .stream()
                                              .map(p -> p.numberId)
                                              .collect(Collectors.toList()));
+    }
+
+    /**
+     * Verify a repository method that supplies id(this) as the sort criteria
+     * hard coded within a JDQL query.
+     */
+    // TODO enable once #28925 is fixed
+    //@Test
+    public void testOrderByIdFunction() {
+        assertIterableEquals(List.of(19L, 17L, 13L, 11L, 7L, 5L, 3L, 2L),
+                             primes.below(20L));
     }
 
     /**
