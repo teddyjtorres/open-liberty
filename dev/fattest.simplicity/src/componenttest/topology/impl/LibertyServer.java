@@ -1669,7 +1669,6 @@ public class LibertyServer implements LogMonitorClient {
         if (info.VENDOR == Vendor.IBM) {
             JVM_ARGS += " -Xdump:system+java+snap:events=throw+systhrow,filter=\"java/lang/ClassCastException#ServiceFactoryUse.<init>*\"";
             JVM_ARGS += " -Xdump:system+java+snap:events=throw+systhrow,filter=\"java/lang/ClassCastException#org/eclipse/osgi/internal/serviceregistry/ServiceFactoryUse.<init>*\"";
-            JVM_ARGS += " -Xdump:system+java+snap:events=throw+systhrow,filter=\"java/lang/NoClassDefFoundError\",msg_filter=\"com.ibm.ws.classloading.internal.providers.Providers\",request=exclusive+prepwalk+serial+preempt";
             JVM_ARGS += " -Xdump:system+java+snap:events=systhrow,filter=\"java/lang/NoSuchMethodError#com/ibm/ws/classloading/internal/AppClassLoader.<init>*\",msg_filter=\"*getPrivateLibraries*\",request=exclusive+prepwalk";
         }
 
