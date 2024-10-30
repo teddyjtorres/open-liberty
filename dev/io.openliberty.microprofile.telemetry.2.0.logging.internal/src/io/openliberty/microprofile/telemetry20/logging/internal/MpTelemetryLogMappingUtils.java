@@ -19,7 +19,9 @@ import com.ibm.websphere.ras.annotation.Trivial;
 import com.ibm.ws.logging.collector.CollectorConstants;
 import com.ibm.ws.logging.collector.CollectorJsonHelpers;
 import com.ibm.ws.logging.collector.LogFieldConstants;
+import com.ibm.ws.logging.data.AuditData;
 import com.ibm.ws.logging.data.FFDCData;
+import com.ibm.ws.logging.data.GenericData;
 import com.ibm.ws.logging.data.KeyValuePair;
 import com.ibm.ws.logging.data.KeyValuePairList;
 import com.ibm.ws.logging.data.LogTraceData;
@@ -52,6 +54,8 @@ public class MpTelemetryLogMappingUtils {
             return CollectorConstants.TRACE_LOG_EVENT_TYPE;
         } else if (source.endsWith(CollectorConstants.FFDC_SOURCE)) {
             return CollectorConstants.FFDC_EVENT_TYPE;
+        } else if (source.endsWith(CollectorConstants.AUDIT_LOG_SOURCE)) {
+            return CollectorConstants.AUDIT_LOG_EVENT_TYPE;
         } else
             return "";
     }
@@ -69,6 +73,8 @@ public class MpTelemetryLogMappingUtils {
             mapMessageAndTraceToOpenTelemetry(builder, eventType, event);
         } else if (eventType.equals(CollectorConstants.FFDC_EVENT_TYPE)) {
             mapFFDCToOpenTelemetry(builder, eventType, event);
+        } else if (eventType.equals(CollectorConstants.AUDIT_LOG_EVENT_TYPE)) {
+            mapAuditLogsToOpenTelemetry(builder, eventType, event);
         }
     }
 
@@ -76,7 +82,7 @@ public class MpTelemetryLogMappingUtils {
      * Maps the Message and Trace log events to the OpenTelemetry Logs Data Model.
      *
      * @param builder   The OpenTelemetry LogRecordBuilder, which is used to construct the LogRecord.
-     * @param eventType The object originating from logging source which contains necessary fields
+     * @param eventType The object originating from logging source which contains necessary fields.
      * @param event     The type of event
      */
     private static void mapMessageAndTraceToOpenTelemetry(LogRecordBuilder builder, String eventType, Object event) {
@@ -214,6 +220,59 @@ public class MpTelemetryLogMappingUtils {
                         .put(MpTelemetryLogFieldConstants.LIBERTY_OBJECTDETAILS, ffdcData.getObjectDetails())
                         .put(MpTelemetryLogFieldConstants.LIBERTY_CLASSNAME, ffdcData.getClassName())
                         .put(MpTelemetryLogFieldConstants.LIBERTY_SEQUENCE, ffdcData.getSequence());
+
+        // Set the Attributes to the builder.
+        builder.setAllAttributes(attributes.build());
+
+        // Set the Span and Trace IDs from the current context.
+        builder.setContext(Context.current());
+    }
+
+    /**
+     * Maps the Audit log events to the OpenTelemetry Logs Data Model.
+     *
+     * @param builder   The OpenTelemetry LogRecordBuilder, which is used to construct the LogRecord.
+     * @param eventType The object originating from logging source which contains necessary fields.
+     * @param event     The type of event
+     */
+    private static void mapAuditLogsToOpenTelemetry(LogRecordBuilder builder, String eventType, Object event) {
+        GenericData genData = (GenericData) event;
+        KeyValuePair[] pairs = genData.getPairs();
+        String key = null;
+
+        // Set AUDIT log level to INFO2 in the LogRecordBuilder
+        builder.setSeverity(Severity.INFO2);
+
+        // Get Attributes builder to add additional Log fields
+        AttributesBuilder attributes = Attributes.builder();
+
+        // Map the event type.
+        attributes.put(MpTelemetryLogFieldConstants.LIBERTY_TYPE, eventType);
+
+        for (KeyValuePair kvp : pairs) {
+            if (kvp != null) {
+                if (!kvp.isList()) {
+                    key = kvp.getKey();
+                    if (key.equals("eventName")) {
+                        // Explicitly parse the eventName to map it to the body in the LogRecordBuilder and as well as in the AttributeBuilder.
+                        builder.setBody(kvp.getStringValue());
+                        attributes.put(SemanticAttributes.EVENT_NAME, kvp.getStringValue());
+                    } else if (key.equals(LogFieldConstants.IBM_DATETIME) || key.equals("loggingEventTime") || AuditData.getDatetimeKey(0).equals(key)) {
+                        // Get Timestamp as a Long value and set it in the LogRecordBuilder
+                        builder.setTimestamp(kvp.getLongValue(), TimeUnit.MILLISECONDS);
+                    } else if (key.equals(LogFieldConstants.IBM_SEQUENCE) || key.equals("loggingSequenceNumber") || AuditData.getSequenceKey(0).equals(key)) {
+                        // Explicitly get the ibm_sequence and set it in the AttributeBuilder.
+                        attributes.put(MpTelemetryLogFieldConstants.LIBERTY_SEQUENCE, kvp.getStringValue());
+                    } else if (key.equals(LogFieldConstants.IBM_THREADID) || AuditData.getThreadIDKey(0).equals(key)) {
+                        // Add Thread information to Attributes Builder
+                        attributes.put(SemanticAttributes.THREAD_ID, kvp.getIntValue());
+                    } else {
+                        // Format and map the audit event fields accordingly
+                        attributes.put(MpTelemetryLogFieldConstants.IO_OPENLIBERTY_TAG + key, kvp.getStringValue());
+                    }
+                }
+            }
+        }
 
         // Set the Attributes to the builder.
         builder.setAllAttributes(attributes.build());
