@@ -48,14 +48,14 @@ import com.ibm.ws.common.crypto.CryptoUtils;
  * com.ibm.websphere.ltpa.Realm=SecureRealm
  *
  *
- * com.ibm.websphere.ltpa.SharedKey=YJ8ARFn0k2S5S5LONNdZG/mLvfYxa4gH3/cGjIn+mR4\=
+ * com.ibm.websphere.ltpa.3DESKey=YJ8ARFn0k2S5S5LONNdZG/mLvfYxa4gH3/cGjIn+mR4\=
  * com.ibm.websphere.ltpa.PrivateKey=vzJcMLGvZqZqbrCGF7zTHAmXAhaZpuZ1XGT0iRq+9Y7VY29/UoIeJkunVyWUSmGrlfqD8kLc5jWUKBMynpg3tQqYKEls5iaO8DtI5FiGWE79gDUYzIkMjGei6S23KqE62Rq+
  * BcrjJv9XYcoGJhLvnE9wftBRrNeI6WPO44KywBSH0sgilyqOvxF87YumiCazbFsbCuBBlDh0daVvosM6zCfQGEsP
  * /e2AQRg4N6kkLbswaeE+i8AoNs2eIGpuicAx5avCgeBT8WwYUhkl3qDaYlR8/kHXOIOPt7/6oW//8yPpvWcHaxEdW4rZrdjH3TEh7CyVN6u6fS7CiOwgodJXrXPpLajqr6nFZxMSwMSyEcQ\=
  * com.ibm.websphere.ltpa.PublicKey=ANKHjHZGY0Ry2jG6kWAOOdGFr8IDhP3igXAAtKNRjhz1SuHcgLq0ZF+mA50pfRBFuFWGxa8WEPthfMyx/xEncHMcoakGXJH1woLL3Bp+LYd/
  * HlYYOHnLtmcWYQOPseqn638nkRWVpVsayIWx9jonjFJx+vbsi5ah3volxurVWZe/AQAB
  * <p>
- * com.ibm.websphere.ltpa.SharedKey_1=YJ8ARFn0k2S5S5LONNdZG/mLvfYxa4gH3/cGjIn+mR4\=
+ * com.ibm.websphere.ltpa.3DESKey_1=YJ8ARFn0k2S5S5LONNdZG/mLvfYxa4gH3/cGjIn+mR4\=
  * com.ibm.websphere.ltpa.PrivateKey_1=vzJcMLGvZqZqbrCGF7zTHAmXAhaZpuZ1XGT0iRq+9Y7VY29/UoIeJkunVyWUSmGrlfqD8kLc5jWUKBMynpg3tQqYKEls5iaO8DtI5FiGWE79gDUYzIkMjGei6S23KqE62Rq+
  * BcrjJv9XYcoGJhLvnE9wftBRrNeI6WPO44KywBSH0sgilyqOvxF87YumiCazbFsbCuBBlDh0daVvosM6zCfQGEsP
  * /e2AQRg4N6kkLbswaeE+i8AoNs2eIGpuicAx5avCgeBT8WwYUhkl3qDaYlR8/kHXOIOPt7/6oW//8yPpvWcHaxEdW4rZrdjH3TEh7CyVN6u6fS7CiOwgodJXrXPpLajqr6nFZxMSwMSyEcQ\=
@@ -215,8 +215,8 @@ public class LTPAKeyInfoManager {
         WsResource ltpaKeyFileResource = null;
 
         if (fipsEnabled){
-            ltpaKeyFileResource = getLTPAKeyFileResource(locService, keyImportFile.substring(0, keyImportFile.length() - 4) + "FIPS" + keyImportFile.substring(keyImportFile.length() - 4));
-            System.out.println("FIPS Keys found: " + keyImportFile.substring(0, keyImportFile.length() - 4) + "FIPS" + keyImportFile.substring(keyImportFile.length() - 4));
+            ltpaKeyFileResource = getLTPAKeyFileResource(locService, keyImportFile.substring(0, keyImportFile.length() - 5) + "FIPS" + keyImportFile.substring(keyImportFile.length() - 5));
+            System.out.println("FIPS Keys found: " + keyImportFile.substring(0, keyImportFile.length() - 5) + "FIPS" + keyImportFile.substring(keyImportFile.length() - 5));
         }
 
         if (ltpaKeyFileResource == null){
