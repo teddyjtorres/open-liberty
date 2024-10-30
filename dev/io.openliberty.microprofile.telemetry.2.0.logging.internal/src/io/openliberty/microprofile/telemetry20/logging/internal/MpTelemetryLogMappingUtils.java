@@ -253,7 +253,7 @@ public class MpTelemetryLogMappingUtils {
             if (kvp != null) {
                 if (!kvp.isList()) {
                     key = kvp.getKey();
-                    if (key.equals("eventName")) {
+                    if (key.equals(MpTelemetryLogFieldConstants.AUDIT_EVENT_NAME)) {
                         // Explicitly parse the eventName to map it to the body in the LogRecordBuilder and as well as in the AttributeBuilder.
                         builder.setBody(kvp.getStringValue());
                         attributes.put(SemanticAttributes.EVENT_NAME, kvp.getStringValue());

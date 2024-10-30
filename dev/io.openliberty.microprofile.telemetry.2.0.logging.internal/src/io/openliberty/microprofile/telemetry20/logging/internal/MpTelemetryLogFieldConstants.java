@@ -39,4 +39,8 @@ public class MpTelemetryLogFieldConstants {
 
     // OpenTelemetry Scope Info field
     public static final String OTEL_SCOPE_INFO = "scopeInfo:";
+
+    // Audit Event Name
+    public static final String AUDIT_EVENT_NAME = "eventName";
+
 }
