@@ -160,7 +160,7 @@ Service-Component: \
 	com.ibm.ws.org.osgi.annotation.versioning;version=latest,\
 	io.openliberty.org.apache.commons.codec;version=latest,\
 	com.ibm.ws.com.google.guava;version=latest,\
-	com.ibm.ws.common.crypto;version=latest,\
+	com.ibm.ws.kernel.service;version=latest,\
 	osgi.cmpn
 
 instrument.classesExcludes: com/ibm/ws/security/saml/sso20/internal/resources/SamlSso20Messages*.class
