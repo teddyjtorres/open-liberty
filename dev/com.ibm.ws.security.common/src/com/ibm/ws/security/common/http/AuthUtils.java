@@ -50,6 +50,7 @@ public class AuthUtils {
             return rawHeaderValue;
         }
         if (scheme != null) {
+            scheme = scheme.trim();
             if (rawHeaderValue.startsWith(scheme)) {
                 return rawHeaderValue.substring(scheme.length()).trim();
             }
