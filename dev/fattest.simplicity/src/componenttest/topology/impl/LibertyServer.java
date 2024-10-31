@@ -1663,12 +1663,8 @@ public class LibertyServer implements LogMonitorClient {
         JVM_ARGS += " -Djava.security.egd=file:/dev/urandom";
 
         JavaInfo info = JavaInfo.forServer(this);
-        // Debug for a highly intermittent problem on IBM JVMs.
-        // Unfortunately, this problem does not seem to happen when we enable this dump trace. We also can't proceed without getting
-        // a system dump, so our only option is to enable this and hope the timing eventually works out.
-        if (info.VENDOR == Vendor.IBM) {
-            JVM_ARGS += " -Xdump:system+java+snap:events=throw+systhrow,filter=\"java/lang/ClassCastException#ServiceFactoryUse.<init>*\"";
-            JVM_ARGS += " -Xdump:system+java+snap:events=throw+systhrow,filter=\"java/lang/ClassCastException#org/eclipse/osgi/internal/serviceregistry/ServiceFactoryUse.<init>*\"";
+        // Debug for a highly intermittent problems on j9/semeru JVMs.
+        if (info.VENDOR == Vendor.IBM || info.VENDOR == Vendor.OPENJ9) {
             JVM_ARGS += " -Xdump:system+java+snap:events=systhrow,filter=\"java/lang/NoSuchMethodError#com/ibm/ws/classloading/internal/AppClassLoader.<init>*\",msg_filter=\"*getPrivateLibraries*\",request=exclusive+prepwalk";
         }
 
