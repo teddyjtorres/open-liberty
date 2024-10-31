@@ -51,7 +51,8 @@ public class DataErrPathsTest extends FATServletClient {
                                    "CWWKD1084E.*bornIn", // Param annotation omitted
                                    "CWWKD1084E.*livingIn", // named parameter mismatch
                                    "CWWKD1085E.*livingOn", // extra Param annotations
-                                   "CWWKD1086E.*withAddressShorterThan" // Param used for positional parameter
+                                   "CWWKD1086E.*withAddressShorterThan", // Param used for positional parameter
+                                   "CWWKD1090E.*findByAddressOrderBy" // OrderBy anno/keyword conflict
                     };
 
     @Server("io.openliberty.data.internal.fat.errpaths")
