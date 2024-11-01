@@ -98,7 +98,7 @@ public class CursoredPageImpl<T> implements CursoredPage<T> {
                 for (int size = results.size(), i = 0, j = size - (size > maxPageSize ? 2 : 1); i < j; i++, j--)
                     Collections.swap(results, i, j);
         } catch (Exception x) {
-            throw RepositoryImpl.failure(x);
+            throw RepositoryImpl.failure(x, em);
         } finally {
             em.close();
         }
@@ -128,7 +128,7 @@ public class CursoredPageImpl<T> implements CursoredPage<T> {
 
             return query.getSingleResult();
         } catch (Exception x) {
-            throw RepositoryImpl.failure(x);
+            throw RepositoryImpl.failure(x, em);
         } finally {
             em.close();
         }

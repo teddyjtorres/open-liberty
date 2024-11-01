@@ -60,6 +60,7 @@ import com.ibm.websphere.ras.annotation.Trivial;
 import com.ibm.ws.LocalTransaction.LocalTransactionCoordinator;
 import com.ibm.ws.ffdc.FFDCFilter;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
+import com.ibm.ws.rsadapter.jdbc.WSJdbcDataSource;
 
 import io.openliberty.data.internal.persistence.QueryInfo.Type;
 import io.openliberty.data.internal.persistence.cdi.DataExtension;
@@ -421,7 +422,7 @@ public class RepositoryImpl<R> implements InvocationHandler {
      * @return exception to replace with, if any. Otherwise, the original.
      */
     @Trivial
-    static RuntimeException failure(Exception original) {
+    static RuntimeException failure(Exception original, EntityManager em) {
         final boolean trace = TraceComponent.isAnyTracingEnabled();
         RuntimeException x = null;
         if (original instanceof PersistenceException) {
@@ -429,11 +430,13 @@ public class RepositoryImpl<R> implements InvocationHandler {
                 if (trace && tc.isDebugEnabled())
                     Tr.debug(tc, "checking " + cause.getClass().getName() + " with message " + cause.getMessage());
 
-                // TODO If this ever becomes real code, it should be delegated to the JDBC integration layer
-                // where there is more thorough logic that takes into account configuration and database differences
-                if (cause instanceof SQLRecoverableException
-                    || cause instanceof SQLNonTransientConnectionException
-                    || cause instanceof SQLTransientConnectionException)
+                if (em != null && cause instanceof SQLException) { //attempt to have the JDBC layer determine if this is a connection exception
+                    WSJdbcDataSource ds = (WSJdbcDataSource) em.unwrap(DataSource.class);
+                    if (ds.getDatabaseHelper().isConnectionError((java.sql.SQLException) cause))
+                        x = new DataConnectionException(original);
+                } else if (cause instanceof SQLRecoverableException
+                           || cause instanceof SQLNonTransientConnectionException
+                           || cause instanceof SQLTransientConnectionException)
                     x = new DataConnectionException(original);
                 else if (cause instanceof SQLSyntaxErrorException)
                     x = new MappingException(original);
@@ -603,6 +606,7 @@ public class RepositoryImpl<R> implements InvocationHandler {
      * @throws Exception                  if an error occurs.
      */
     private Object findAndUpdateOne(Object e, QueryInfo queryInfo, EntityManager em) throws Exception {
+
         String jpql = queryInfo.jpql;
         EntityInfo entityInfo = queryInfo.entityInfo;
 
@@ -897,6 +901,7 @@ public class RepositoryImpl<R> implements InvocationHandler {
     public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
         CompletableFuture<QueryInfo> queryInfoFuture = queries.get(method);
         boolean isDefaultMethod = false;
+        EntityManager em = null;
 
         if (queryInfoFuture == null)
             if (method.isDefault()) {
@@ -959,7 +964,7 @@ public class RepositoryImpl<R> implements InvocationHandler {
             }
 
             LocalTransactionCoordinator suspendedLTC = null;
-            EntityManager em = null;
+
             Object returnValue;
             Class<?> returnType = method.getReturnType();
             boolean failed = true;
@@ -1528,7 +1533,7 @@ public class RepositoryImpl<R> implements InvocationHandler {
             return returnValue;
         } catch (Throwable x) {
             if (!isDefaultMethod && x instanceof Exception)
-                x = failure((Exception) x);
+                x = failure((Exception) x, em);
             if (trace && tc.isEntryEnabled())
                 Tr.exit(this, tc, "invoke " + repositoryInterface.getSimpleName() + '.' + method.getName(), x);
             throw x;
