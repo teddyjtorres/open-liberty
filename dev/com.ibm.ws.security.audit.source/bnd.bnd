@@ -56,7 +56,6 @@ Include-Resource: \
 	com.ibm.ws.collector;version=latest,\
 	com.ibm.ws.container.service;version=latest,\
 	com.ibm.ws.crypto.passwordutil;version=latest,\
-	com.ibm.ws.common.crypto;version=latest,\
 	com.ibm.ws.kernel.service;version=latest,\
 	com.ibm.ws.kernel.boot;version=latest,\
 	com.ibm.ws.event;version=latest,\
