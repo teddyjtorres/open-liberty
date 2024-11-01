@@ -257,16 +257,12 @@ public class MpTelemetryLogMappingUtils {
                         // Explicitly parse the eventName to map it to the body in the LogRecordBuilder and as well as in the AttributeBuilder.
                         builder.setBody(kvp.getStringValue());
                         attributes.put(SemanticAttributes.EVENT_NAME, kvp.getStringValue());
-                    } else if (key.equals(MpTelemetryLogFieldConstants.AUDIT_EVENT_SEQUENCE_NUMBER)) {
-                        // Explicitly get the eventSequenceNumber and set it in the AttributeBuilder.
-                        attributes.put(MpTelemetryLogFieldConstants.LIBERTY_AUDIT_EVENT_SEQUENCE_NUMBER, kvp.getStringValue());
-                    } else if (key.equals(MpTelemetryLogFieldConstants.AUDIT_EVENT_TIME)) {
-                        // Explicitly get the eventTime and set it in the AttributeBuilder.
-                        attributes.put(MpTelemetryLogFieldConstants.LIBERTY_AUDIT_EVENT_TIME, kvp.getStringValue());
-                    } else if (key.equals(LogFieldConstants.IBM_DATETIME) || key.equals("loggingEventTime") || AuditData.getDatetimeKey(0).equals(key)) {
+                    } else if (key.equals(LogFieldConstants.IBM_DATETIME) || key.equals(MpTelemetryLogFieldConstants.LOGGING_EVENT_TIME)
+                               || AuditData.getDatetimeKey(0).equals(key)) {
                         // Get Timestamp as a Long value and set it in the LogRecordBuilder
                         builder.setTimestamp(kvp.getLongValue(), TimeUnit.MILLISECONDS);
-                    } else if (key.equals(LogFieldConstants.IBM_SEQUENCE) || key.equals("loggingSequenceNumber") || AuditData.getSequenceKey(0).equals(key)) {
+                    } else if (key.equals(LogFieldConstants.IBM_SEQUENCE) || key.equals(MpTelemetryLogFieldConstants.LOGGING_SEQUENCE_NUMBER)
+                               || AuditData.getSequenceKey(0).equals(key)) {
                         // Explicitly get the ibm_sequence and set it in the AttributeBuilder.
                         attributes.put(MpTelemetryLogFieldConstants.LIBERTY_SEQUENCE, kvp.getStringValue());
                     } else if (key.equals(LogFieldConstants.IBM_THREADID) || AuditData.getThreadIDKey(0).equals(key)) {
