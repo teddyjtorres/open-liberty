@@ -1155,12 +1155,15 @@ public class InstallKernelMap implements Map {
                     System.setProperty("https.proxyPort", (String) envMap.get("http.proxyPort"));
                 }
             }
-            if (System.getProperty("featureUtility.beta") != null && System.getProperty("featureUtility.beta").equals("true") && envMap.get("http.nonProxyHosts") != null) {
+            if (envMap.get("http.nonProxyHosts") != null) {
                 String noProxyHosts = (String) envMap.get("http.nonProxyHosts");
                 //if users provide list of hosts using ",", replace to "|"
                 noProxyHosts = noProxyHosts.replace(",", "|");
                 System.setProperty("http.nonProxyHosts", noProxyHosts);
             }
+            logger.fine("http.proxyHost " + System.getProperty("http.proxyHost"));
+            logger.fine("https.proxyHost " + System.getProperty("https.proxyHost"));
+            logger.fine("proxy exclusion list: " + System.getProperty("http.nonProxyHosts"));
         } catch (InstallException e) {
             data.put(InstallConstants.ACTION_ERROR_MESSAGE, e.getMessage());
             data.put(InstallConstants.ACTION_EXCEPTION_STACKTRACE, ExceptionUtils.stacktraceToString(e));
@@ -1975,10 +1978,8 @@ public class InstallKernelMap implements Map {
                 envMapRet.put(key, httpsProxyVariables.get(key));
             }
         }
-        if (System.getProperty("featureUtility.beta") != null && System.getProperty("featureUtility.beta").equals("true")) {
-            envMapRet.put("http.nonProxyHosts", System.getenv("no_proxy"));
-        }
 
+        envMapRet.put("http.nonProxyHosts", System.getenv("no_proxy"));
         envMapRet.put("FEATURE_REPO_URL", System.getenv("FEATURE_REPO_URL"));
         envMapRet.put("FEATURE_REPO_USER", System.getenv("FEATURE_REPO_USER"));
         envMapRet.put("FEATURE_REPO_PASSWORD", System.getenv("FEATURE_REPO_PASSWORD"));
