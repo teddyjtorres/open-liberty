@@ -434,7 +434,9 @@ public class RepositoryImpl<R> implements InvocationHandler {
                     WSJdbcDataSource ds = (WSJdbcDataSource) em.unwrap(DataSource.class);
                     if (ds.getDatabaseHelper().isConnectionError((java.sql.SQLException) cause))
                         x = new DataConnectionException(original);
-                } else if (cause instanceof SQLRecoverableException
+                }
+                if (x == null)
+                    if (cause instanceof SQLRecoverableException
                            || cause instanceof SQLNonTransientConnectionException
                            || cause instanceof SQLTransientConnectionException)
                     x = new DataConnectionException(original);
