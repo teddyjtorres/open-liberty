@@ -5,7 +5,7 @@ bSymbolicName=io.openliberty.org.hibernate.validator.9.0
 
 Bundle-Name: Hibernate Validator Engine
 Bundle-SymbolicName: io.openliberty.org.hibernate.validator.9.0
-Bundle-Description: Hibernate's Jakarta Bean Validation 3.1 reference implementation; version=9.0.0.Beta3
+Bundle-Description: Hibernate's Jakarta Validation 3.1 reference implementation; version=9.0.0.Beta3
 
 # Provide these as resources to applications
 app-resources= \
