@@ -178,6 +178,7 @@ public abstract class LogstashCollectorTest {
             ValidateHelper.runGetMethod(url);
         } catch (Exception e) {
             Log.info(c, method, " ---> Exception : " + e.getMessage());
+            e.printStackTrace();
         }
     }
 
@@ -283,6 +284,7 @@ public abstract class LogstashCollectorTest {
             } catch (InterruptedException e) {
             }
         }
+        Log.info(c, "waitForStringInOutput", "Timed out and could not find any lines containing : " + regex);
         return null; // timed out and not found
     }
 
