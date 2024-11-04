@@ -33,7 +33,7 @@ public class DatabaseContainerTypeTest {
         assertEquals(DatabaseContainerType.Postgres, //
                      DatabaseContainerType.valueOf(new PostgreSQLContainer(DockerImageName.parse("postgres:14.1-alpine"))));
         assertEquals(DatabaseContainerType.SQLServer,
-                     DatabaseContainerType.valueOf(new MSSQLServerContainer<>(DockerImageName.parse("mcr.microsoft.com/mssql/server:2019-CU18-ubuntu-20.04"))));
+                     DatabaseContainerType.valueOf(new MSSQLServerContainer<>(DockerImageName.parse("mcr.microsoft.com/mssql/server:2019-CU28-ubuntu-20.04"))));
     }
 
     @Test

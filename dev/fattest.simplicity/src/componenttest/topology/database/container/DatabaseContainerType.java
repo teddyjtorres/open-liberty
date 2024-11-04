@@ -49,7 +49,7 @@ public enum DatabaseContainerType {
     Postgres("postgresql.jar", PostgreSQLContainer.class.getCanonicalName(), Properties_postgresql.class, //
              DockerImageName.parse("postgres:14.1-alpine"), "Postgre", "PostgreSQL"),
     SQLServer("mssql-jdbc.jar", MSSQLServerContainer.class.getCanonicalName(), Properties_microsoft_sqlserver.class, //
-              DockerImageName.parse("mcr.microsoft.com/mssql/server:2019-CU18-ubuntu-20.04"), "MSSQLServer");
+              DockerImageName.parse("mcr.microsoft.com/mssql/server:2019-CU28-ubuntu-20.04"), "MSSQLServer");
 
     private final String driverName;
     private final Class<DataSourceProperties> dsPropsClass;
@@ -163,6 +163,10 @@ public enum DatabaseContainerType {
 
         // Did not find, throw original exception
         throw caught;
+    }
+
+    public <T> T cast(Object instance) {
+        return (T) this.getContainerClass().cast(instance);
     }
 
     /**

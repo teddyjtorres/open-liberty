@@ -29,7 +29,7 @@ kyleaure/sqlserver-ssl:2019-CU18-ubuntu-20.04
 letsencrypt/pebble-challtestsrv:latest
 letsencrypt/pebble:latest
 mariadb:10.3
-mcr.microsoft.com/mssql/server:2019-CU18-ubuntu-20.04
+mcr.microsoft.com/mssql/server:2019-CU28-ubuntu-20.04
 mongo:6.0.6
 openzipkin/zipkin-slim:2.23
 otel/opentelemetry-collector-contrib:0.103.0
