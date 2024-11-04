@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2013, 2020 IBM Corporation and others.
+ * Copyright (c) 2013, 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -13,10 +13,7 @@
 
 package com.ibm.ws.jca.fat.regr;
 
-import static com.ibm.ws.jca.fat.FATSuite.sneakyThrow;
 import static org.junit.Assert.assertNotNull;
-
-import java.util.function.Supplier;
 
 import org.junit.ClassRule;
 import org.junit.Test;
@@ -44,28 +41,17 @@ public class InboundSecurityTest extends JCAFATTest implements RarTests {
     private final static Class<?> c = InboundSecurityTest.class;
     private final String servletName = "InboundSecurityTestServlet";
     private static ServerConfiguration originalServerConfig;
-    public static Supplier<LibertyServer> serverSupplier = () -> server;
-    public static Runnable initialSetup = () -> {
-        try {
-            setUp();
-        } catch (Exception e) {
-            sneakyThrow(e);
-        }
-    };
-    public static Runnable finalTearDown = () -> {
-        try {
-            tearDown();
-        } catch (Exception e) {
-            sneakyThrow(e);
-        }
-    };
 
     @ClassRule
     public static CheckpointRule checkpointRule = new CheckpointRule()
-                    .setServerSupplier(serverSupplier)
+                    .setServerSupplier(InboundSecurityTest::server)
                     .setBeta(true)
-                    .setInitialSetup(initialSetup)
-                    .setFinalTearDown(finalTearDown);
+                    .setInitialSetup(InboundSecurityTest::setUp)
+                    .setFinalTearDown(InboundSecurityTest::tearDown);
+
+    private static LibertyServer server() {
+        return server;
+    }
 
     public static void setUp() throws Exception {
         server = LibertyServerFactory.getLibertyServer("com.ibm.ws.jca.fat.regr", null, true);

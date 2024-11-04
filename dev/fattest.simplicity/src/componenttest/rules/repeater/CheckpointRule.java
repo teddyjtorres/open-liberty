@@ -40,9 +40,14 @@ public class CheckpointRule implements TestRule {
         Log.info(CheckpointRule.class, method, msg);
     }
 
-    private Runnable initialSetup;
+    @FunctionalInterface
+    public static interface Action<T extends Throwable> {
+        public void call() throws T;
+    }
 
-    private Runnable finalTearDown;
+    private Action<?> initialSetup;
+
+    private Action<?> finalTearDown;
 
     private Supplier<LibertyServer> serverSupplier;
 
@@ -67,7 +72,7 @@ public class CheckpointRule implements TestRule {
      *
      * @return              this
      */
-    public CheckpointRule setInitialSetup(Runnable initialSetup) {
+    public <T extends Throwable> CheckpointRule setInitialSetup(Action<T> initialSetup) {
         this.initialSetup = initialSetup;
         return this;
     }
@@ -77,7 +82,7 @@ public class CheckpointRule implements TestRule {
      *
      * @return               this
      */
-    public CheckpointRule setFinalTearDown(Runnable finalTearDown) {
+    public <T extends Throwable> CheckpointRule setFinalTearDown(Action<T> finalTearDown) {
         this.finalTearDown = finalTearDown;
         return this;
     }
@@ -140,7 +145,7 @@ public class CheckpointRule implements TestRule {
             log("evaluate", "running initial setup");
 
             if (initialSetup != null) {
-                initialSetup.run();
+                initialSetup.call();
             }
 
             //Set server after the initialSetup is done.
@@ -152,7 +157,7 @@ public class CheckpointRule implements TestRule {
             } finally {
 
                 if (finalTearDown != null) {
-                    finalTearDown.run();
+                    finalTearDown.call();
                 }
                 unsetCheckpoint();
             }
@@ -173,7 +178,7 @@ public class CheckpointRule implements TestRule {
             if (isCheckpointSupported()) {
                 //Stop the server before running tests again for InstantOn.
                 if (finalTearDown != null) {
-                    finalTearDown.run();
+                    finalTearDown.call();
                 } else {
                     server.stopServer();
                 }
