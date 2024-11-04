@@ -39,7 +39,7 @@ import com.ibm.websphere.simplicity.log.Log;
 @SuppressWarnings("rawtypes")
 public enum DatabaseContainerType {
     DB2("jcc.jar", Db2Container.class.getCanonicalName(), Properties_db2_jcc.class, //
-        DockerImageName.parse("kyleaure/db2:1.0").asCompatibleSubstituteFor("ibmcom/db2")),
+        DockerImageName.parse("icr.io/db2_community/db2:11.5.9.0")),
     Derby("derby.jar", DerbyNoopContainer.class.getCanonicalName(), Properties_derby_embedded.class, DockerImageName.parse(""), //
           "DerbyEmbedded"),
     DerbyClient("derbyclient.jar", DerbyClientContainer.class.getCanonicalName(), Properties_derby_client.class, //
