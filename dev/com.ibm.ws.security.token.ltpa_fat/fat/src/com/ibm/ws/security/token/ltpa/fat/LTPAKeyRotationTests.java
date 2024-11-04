@@ -39,6 +39,7 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.TestRule;
 import org.junit.rules.TestWatcher;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
@@ -53,6 +54,8 @@ import com.ibm.websphere.simplicity.log.Log;
 import com.ibm.ws.webcontainer.security.test.servlets.FormLoginClient;
 
 import componenttest.annotation.AllowedFFDC;
+import componenttest.annotation.CheckForLeakedPasswords;
+import componenttest.vulnerability.LeakedPasswordChecker;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.custom.junit.runner.Mode;
 import componenttest.custom.junit.runner.Mode.TestMode;
@@ -91,7 +94,8 @@ public class LTPAKeyRotationTests {
     private static final String[] serverShutdownMessages = { "CWWKG0058E", "CWWKG0083W", "CWWKS4106E", "CWWKS4109W", "CWWKS4110E", "CWWKS4111E", "CWWKS4112E", "CWWKS4113W",
                                                              "CWWKS4114W", "CWWKS4115W", "CWWKS1859E" };
 
-    private static final String validationKeyPassword = "{xor}Lz4sLCgwLTs=";
+    private static String validationKeyPassword = "{xor}Lz4sLCgwLTs=";
+    private static String validationKeyFIPSPassword = "{xor}CDo9Hgw=";
 
     // Initialize the FormLogin Clients
     private static final FormLoginClient flClient1 = new FormLoginClient(server, FormLoginClient.DEFAULT_SERVLET_NAME, "/formlogin1");
@@ -103,12 +107,34 @@ public class LTPAKeyRotationTests {
     private static final String VALIDATION_KEYS_PATH = "resources/security/";
     private static final String VALIDATION_KEY1_PATH = "resources/security/validation1.keys";
     private static final String VALIDATION_KEY2_PATH = "resources/security/validation2.keys";
-    private static final String BAD_3DES_VALIDATION_KEY1_PATH = "resources/security/validation3.keys";
-    private static final String BAD_3DES_VALIDATION_KEY2_PATH = "resources/security/validation4.keys";
+    private static final String BAD_Shared_VALIDATION_KEY1_PATH = "resources/security/validation3.keys";
+    private static final String BAD_Shared_VALIDATION_KEY2_PATH = "resources/security/validation4.keys";
     private static final String BAD_PRIVATE_VALIDATION_KEY1_PATH = "resources/security/validation5.keys";
     private static final String BAD_PRIVATE_VALIDATION_KEY2_PATH = "resources/security/validation6.keys";
     private static final String BAD_PUBLIC_VALIDATION_KEY1_PATH = "resources/security/validation7.keys";
     private static final String BAD_PUBLIC_VALIDATION_KEY2_PATH = "resources/security/validation8.keys";
+
+    // Define the paths to the alternate key files
+    private static String ALT_VALIDATION_KEY1_PATH = "alternate/validation1.keys";
+    private static String ALT_VALIDATION_KEY2_PATH = "alternate/validation2.keys";
+    private static String ALT_VALIDATION_KEY3_PATH = "alternate/validation3.keys";
+    private static String ALT_VALIDATION_KEY4_PATH = "alternate/validation4.keys";
+    private static String ALT_VALIDATION_KEY5_PATH = "alternate/validation5.keys";
+    private static String ALT_VALIDATION_KEY6_PATH = "alternate/validation6.keys";
+    private static String ALT_VALIDATION_KEY7_PATH = "alternate/validation7.keys";
+    private static String ALT_VALIDATION_KEY8_PATH = "alternate/validation8.keys";
+
+    // Define the paths to the alternate key files
+    private static String ALT_FIPS_VALIDATION_KEY1_PATH = "alternateFIPS/validation1.keys";
+    private static String ALT_FIPS_VALIDATION_KEY2_PATH = "alternateFIPS/validation2.keys";
+    private static String ALT_FIPS_VALIDATION_KEY3_PATH = "alternateFIPS/validation3.keys";
+    private static String ALT_FIPS_VALIDATION_KEY4_PATH = "alternateFIPS/validation4.keys";
+    private static String ALT_FIPS_VALIDATION_KEY5_PATH = "alternateFIPS/validation5.keys";
+    private static String ALT_FIPS_VALIDATION_KEY6_PATH = "alternateFIPS/validation6.keys";
+    private static String ALT_FIPS_VALIDATION_KEY7_PATH = "alternateFIPSvalidation7.keys";
+    private static String ALT_FIPS_VALIDATION_KEY8_PATH = "alternateFIPS/validation8.keys";
+    private static String ALT_FIPS_SERVER_XML_PATH = "serverFIPS.xml";
+
 
     // Define the paths to the server.xml files
     private static final String relativeDirectory = server.getServerRoot();
@@ -117,6 +143,34 @@ public class LTPAKeyRotationTests {
 
     // Define the remote message log file
     private static RemoteFile messagesLogFile = null;
+
+    // Define fipsEnabled
+    private static final boolean fipsEnabled;
+
+    static {
+        boolean isFipsEnabled = false;
+        try {
+            isFipsEnabled = server.isFIPS140_3EnabledAndSupported();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        fipsEnabled = isFipsEnabled;
+
+        if (fipsEnabled){
+            ALT_VALIDATION_KEY1_PATH = ALT_FIPS_VALIDATION_KEY1_PATH;
+            ALT_VALIDATION_KEY2_PATH = ALT_FIPS_VALIDATION_KEY2_PATH;
+            ALT_VALIDATION_KEY3_PATH = ALT_FIPS_VALIDATION_KEY3_PATH;
+            ALT_VALIDATION_KEY4_PATH = ALT_FIPS_VALIDATION_KEY4_PATH;
+            ALT_VALIDATION_KEY5_PATH = ALT_FIPS_VALIDATION_KEY5_PATH;
+            ALT_VALIDATION_KEY6_PATH = ALT_FIPS_VALIDATION_KEY6_PATH;
+            ALT_VALIDATION_KEY7_PATH = ALT_FIPS_VALIDATION_KEY7_PATH;
+            ALT_VALIDATION_KEY8_PATH = ALT_FIPS_VALIDATION_KEY8_PATH;
+            validationKeyPassword = validationKeyFIPSPassword;
+        }
+    }
+
+    @Rule
+    public TestRule passwordChecker = new LeakedPasswordChecker(server);
 
     @Rule
     public final TestWatcher logger = new TestWatcher() {
@@ -130,15 +184,18 @@ public class LTPAKeyRotationTests {
         public void finished(Description description) {
             Log.info(thisClass, description.getMethodName(), "\n@@@@@@@@@@@@@@@@@\nExiting test " + description.getMethodName() + "\n@@@@@@@@@@@@@@@@@");
         }
-
     };
 
     @BeforeClass
     public static void setUp() throws Exception {
         // Copy validation key file (validation1.keys) to the server
-        copyFileToServerResourcesSecurityDir("alternate/validation1.keys");
+        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY1_PATH);
 
         server.setupForRestConnectorAccess();
+
+        if (fipsEnabled){
+            renameFileIfExists(ALT_FIPS_SERVER_XML_PATH, "server.xml", true);
+        }
 
         server.startServer(true);
 
@@ -203,6 +260,7 @@ public class LTPAKeyRotationTests {
      */
     @Mode(TestMode.LITE)
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testLTPAFileCreationDeletion_monitorValidationKeysDir_true_monitorInterval_10() throws Exception {
         // Configure the server
@@ -257,13 +315,14 @@ public class LTPAKeyRotationTests {
      * </OL>
      */
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testLTPAFileReplacement_newValidKey_monitorValidationKeysDir_true_monitorInterval_10() throws Exception {
         // Configure the server
         configureServer("true", "10", true);
 
         // Copy validation key file (validation2.keys) to the server
-        copyFileToServerResourcesSecurityDir("alternate/validation2.keys");
+        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY2_PATH);
 
         // Wait for the LTPA configuration to be ready after the change
         assertNotNull("Expected LTPA configuration ready message not found in the log.",
@@ -302,23 +361,24 @@ public class LTPAKeyRotationTests {
      * <OL>
      * <LI>Set MonitorValidationKeysDir to true, and MonitorInterval to 10.
      * <LI>Attempt to access a simple servlet configured for form login1 with valid credentials.
-     * <LI>Replace the primary key with a different invalid key which has garbage values in the 3DES key.
+     * <LI>Replace the primary key with a different invalid key which has garbage values in the Shared key.
      * <LI>Retry access to the simple servlet configured for form login1 with ltpa cookie1.
-     * <LI>Replace the primary key with a different invalid key which has swapped values in the 3DES key from another validation.keys file.
+     * <LI>Replace the primary key with a different invalid key which has swapped values in the Shared key from another validation.keys file.
      * <LI>Retry access to the simple servlet configured for form login1 with ltpa cookie1.
      * <OL>
      * <P>Expected Results:
      * <OL>
      * <LI>MonitorValidationKeysDir is set to true, and MonitorInterval to 10.
      * <LI>Successful authentication to simple servlet with ltpa cookie1 created.
-     * <LI>The ltpa.keys file is replaced with a different 3DES key causing a CWWKS4106E: LTPA configuration error.
+     * <LI>The ltpa.keys file is replaced with a different Shared key causing a CWWKS4106E: LTPA configuration error.
      * <LI>Successful authentication to simple servlet since the old cookie is still being used.
-     * <LI>The ltpa.keys file is replaced with a different 3DES key.
-     * <LI>Unsuccessful authentication to simple servlet since the decryption fails with the swapped 3DES values.
+     * <LI>The ltpa.keys file is replaced with a different Shared key.
+     * <LI>Unsuccessful authentication to simple servlet since the decryption fails with the swapped Shared values.
      */
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "javax.crypto.BadPaddingException", "java.lang.IllegalArgumentException",  "java.lang.NullPointerException" })
-    public void testLTPAFileReplacement_invalid3DESKey_monitorValidationKeysDir_true_monitorInterval_10() throws Exception {
+    public void testLTPAFileReplacement_invalidSharedKey_monitorValidationKeysDir_true_monitorInterval_10() throws Exception {
         // Configure the server
         configureServer("true", "10", true);
 
@@ -328,8 +388,8 @@ public class LTPAKeyRotationTests {
         Boolean configurationUpdateNeeded = setAuthenticationCacheEnabledElement(auth, "false");
         updateConfigDynamically(server, serverConfiguration);
 
-        // Copy validation keys file (validation1.keys) to the server. This file has a valid 3DES key.
-        copyFileToServerResourcesSecurityDir("alternate/validation1.keys");
+        // Copy validation keys file (validation1.keys) to the server. This file has a valid Shared key.
+        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY1_PATH);
 
         // Wait for the LTPA configuration to be ready after the change
         assertNotNull("Expected LTPA configuration ready message not found in the log.",
@@ -349,15 +409,15 @@ public class LTPAKeyRotationTests {
         String cookie1 = flClient1.getCookieFromLastLogin();
         assertNotNull("Expected SSO Cookie 1 is missing.", cookie1);
 
-        // Copy validation keys file (validation3.keys) to the server. This file has garbage values in the 3DES key.
-        copyFileToServerResourcesSecurityDir("alternate/validation3.keys");
+        // Copy validation keys file (validation3.keys) to the server. This file has garbage values in the Shared key.
+        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY3_PATH);
 
         // Wait for the LTPA configuration modified message after the change
         assertNotNull("Expected LTPA configuration modified message not found in the log.",
                       server.waitForStringInLog("CWWKS4107A", 5000));
 
         // Replace the primary key with a different invalid key
-        renameFileIfExists(BAD_3DES_VALIDATION_KEY1_PATH, DEFAULT_KEY_PATH, true);
+        renameFileIfExists(BAD_Shared_VALIDATION_KEY1_PATH, DEFAULT_KEY_PATH, true);
 
         // Check for the following exception message in the log
         assertNotNull("Expected LTPA configuration error message not found in the log.",
@@ -366,15 +426,15 @@ public class LTPAKeyRotationTests {
         // Attempt to access the simple servlet again with the same ltpa cookie1 and assert it works
         String response2 = flClient1.accessProtectedServletWithAuthorizedCookie(FormLoginClient.PROTECTED_SIMPLE, cookie1);
 
-        // Copy validation keys file (validation4.keys) to the server. This file has swapped values in the 3DES key from another validation.keys file.
-        copyFileToServerResourcesSecurityDir("alternate/validation4.keys");
+        // Copy validation keys file (validation4.keys) to the server. This file has swapped values in the Shared key from another validation.keys file.
+        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY4_PATH);
 
         // Wait for the LTPA configuration modified message after the change
         assertNotNull("Expected LTPA configuration modified message not found in the log.",
                       server.waitForStringInLog("CWWKS4107A", 5000));
 
         // Replace the primary key with a different invalid key
-        renameFileIfExists(BAD_3DES_VALIDATION_KEY2_PATH, DEFAULT_KEY_PATH, true);
+        renameFileIfExists(BAD_Shared_VALIDATION_KEY2_PATH, DEFAULT_KEY_PATH, true);
 
         // Wait for the LTPA configuration to be ready after the change
         assertNotNull("Expected LTPA configuration ready message not found in the log.",
@@ -414,6 +474,7 @@ public class LTPAKeyRotationTests {
      * </OL>
      */
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "javax.crypto.BadPaddingException", "java.lang.IllegalArgumentException",  "java.lang.NullPointerException" })
     public void testLTPAFileReplacement_invalidPrivateKey_monitorValidationKeysDir_true_monitorInterval_10() throws Exception {
         // Configure the server
@@ -426,7 +487,7 @@ public class LTPAKeyRotationTests {
         updateConfigDynamically(server, serverConfiguration);
 
         // Copy validation keys file (validation1.keys) to the server. This file has a valid Private key.
-        copyFileToServerResourcesSecurityDir("alternate/validation1.keys");
+        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY1_PATH);
 
         // Wait for the LTPA configuration to be ready after the change
         assertNotNull("Expected LTPA configuration ready message not found in the log.",
@@ -447,7 +508,7 @@ public class LTPAKeyRotationTests {
         assertNotNull("Expected SSO Cookie 1 is missing.", cookie1);
 
         // Copy validation keys file (validation5.keys) to the server. This file has garbage values in the Private key.
-        copyFileToServerResourcesSecurityDir("alternate/validation5.keys");
+        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY5_PATH);
 
         // Wait for the LTPA configuration modified message after the change
         assertNotNull("Expected LTPA configuration modified message not found in the log.",
@@ -464,7 +525,7 @@ public class LTPAKeyRotationTests {
         String response2 = flClient1.accessProtectedServletWithAuthorizedCookie(FormLoginClient.PROTECTED_SIMPLE, cookie1);
 
         // Copy validation keys file (validation6.keys) to the server. This file has swapped values in the Private key from another validation.keys file.
-        copyFileToServerResourcesSecurityDir("alternate/validation6.keys");
+        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY6_PATH);
 
         // Wait for the LTPA configuration modified message after the change
         assertNotNull("Expected LTPA configuration modified message not found in the log.",
@@ -511,6 +572,7 @@ public class LTPAKeyRotationTests {
      * </OL>
      */
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "javax.crypto.BadPaddingException", "java.lang.IllegalArgumentException",  "java.lang.NullPointerException" })
     public void testLTPAFileReplacement_invalidPublicKey_monitorValidationKeysDir_true_monitorInterval_10() throws Exception {
         // Configure the server
@@ -523,7 +585,7 @@ public class LTPAKeyRotationTests {
         updateConfigDynamically(server, serverConfiguration);
 
         // Copy validation keys file (validation1.keys) to the server. This file has a valid Public key.
-        copyFileToServerResourcesSecurityDir("alternate/validation1.keys");
+        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY1_PATH);
 
         // Wait for the LTPA configuration to be ready after the change
         assertNotNull("Expected LTPA configuration ready message not found in the log.",
@@ -544,7 +606,7 @@ public class LTPAKeyRotationTests {
         assertNotNull("Expected SSO Cookie 1 is missing.", cookie1);
 
         // Copy validation keys file (validation7.keys) to the server. This file has garbage values in the Public key.
-        copyFileToServerResourcesSecurityDir("alternate/validation7.keys");
+        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY7_PATH);
 
         // Wait for the LTPA configuration modified message after the change
         assertNotNull("Expected LTPA configuration modified message not found in the log.",
@@ -561,7 +623,7 @@ public class LTPAKeyRotationTests {
         String response2 = flClient1.accessProtectedServletWithAuthorizedCookie(FormLoginClient.PROTECTED_SIMPLE, cookie1);
 
         // Copy validation keys file (validation8.keys) to the server. This file has swapped values in the Public key from another validation.keys file.
-        copyFileToServerResourcesSecurityDir("alternate/validation8.keys");
+        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY8_PATH);
 
         // Wait for the LTPA configuration modified message after the change
         assertNotNull("Expected LTPA configuration modified message not found in the log.",
@@ -609,6 +671,7 @@ public class LTPAKeyRotationTests {
      */
     @Mode(TestMode.LITE)
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testLTPAFileCreationDeletion_monitorValidationKeysDir_false_monitorInterval_0() throws Exception {
         // Configure the server
@@ -662,7 +725,7 @@ public class LTPAKeyRotationTests {
         configureServer("false", "0", true);
 
         // Copy validation key file (validation2.keys) to the server
-        copyFileToServerResourcesSecurityDir("alternate/validation2.keys");
+        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY2_PATH);
 
         // Initial login to simple servlet for form login1
         String response1 = flClient1.accessProtectedServletWithAuthorizedCredentials(FormLoginClient.PROTECTED_SIMPLE, validUser, validPassword);
@@ -706,6 +769,7 @@ public class LTPAKeyRotationTests {
      */
     @Mode(TestMode.LITE)
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testLTPAFileCreationDeletion_monitorValidationKeysDir_false_monitorInterval_10() throws Exception {
         // Configure the server
@@ -760,13 +824,14 @@ public class LTPAKeyRotationTests {
      * </OL>
      */
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testLTPAFileReplacement_newValidKey_monitorValidationKeysDir_false_monitorInterval_10() throws Exception {
         // Configure the server
         configureServer("false", "10", true);
 
         // Copy validation key file (validation2.keys) to the server
-        copyFileToServerResourcesSecurityDir("alternate/validation2.keys");
+        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY2_PATH);
 
         // Initial login to simple servlet for form login1
         String response1 = flClient1.accessProtectedServletWithAuthorizedCredentials(FormLoginClient.PROTECTED_SIMPLE, validUser, validPassword);
@@ -818,6 +883,7 @@ public class LTPAKeyRotationTests {
      */
     @Mode(TestMode.LITE)
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testLTPAFileCreationDeletion_monitorValidationKeysDir_true_monitorInterval_0() throws Exception {
         // Configure the server
@@ -865,13 +931,14 @@ public class LTPAKeyRotationTests {
      * </OL>
      */
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testLTPAFileReplacement_newValidKey_monitorValidationKeysDir_true_monitorInterval_0() throws Exception {
         // Configure the server
         configureServer("true", "0", true, false);
 
         // Copy validation key file (validation2.keys) to the server
-        copyFileToServerResourcesSecurityDir("alternate/validation2.keys");
+        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY2_PATH);
 
         // Initial login to simple servlet for form login1
         String response1 = flClient1.accessProtectedServletWithAuthorizedCredentials(FormLoginClient.PROTECTED_SIMPLE, validUser, validPassword);
@@ -932,6 +999,7 @@ public class LTPAKeyRotationTests {
      * </OL>
      */
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testValidationKeys_fileNameAttribute() throws Exception {
         // Configure the server
@@ -981,7 +1049,7 @@ public class LTPAKeyRotationTests {
                       server.waitForStringInLog("CWWKS4112E", 5000));
 
         // Set fileName's path to a different path than the default ltpa.keys file
-        configurationUpdateNeeded = setLTPAvalidationKeyFileNameElement(ltpa, "alternate/validation1.keys");
+        configurationUpdateNeeded = setLTPAvalidationKeyFileNameElement(ltpa, ALT_VALIDATION_KEY1_PATH);
         updateConfigDynamically(server, serverConfiguration);
 
         // Exception is thrown in the logs since the file does not exist
@@ -989,7 +1057,7 @@ public class LTPAKeyRotationTests {
                       server.waitForStringInLog("CWWKS4112E", 5000));
 
         // Copy validation key file (validation5.keys) to the server.
-        copyFileToServerResourcesSecurityDir("alternate/validation5.keys");
+        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY5_PATH);
 
         // Set fileName to point to a malformed/invalid keys file
         configurationUpdateNeeded = setLTPAvalidationKeyFileNameElement(ltpa, "validation5.keys");
@@ -1043,6 +1111,7 @@ public class LTPAKeyRotationTests {
      * </OL>
      */
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "javax.crypto.BadPaddingException", "java.lang.IllegalArgumentException", "java.lang.NullPointerException" })
     public void testValidationKeys_passwordAttribute() throws Exception {
         // Configure the server
@@ -1135,6 +1204,7 @@ public class LTPAKeyRotationTests {
      */
     @Mode(TestMode.LITE)
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.time.format.DateTimeParseException" })
     public void testValidationKeys_validUntilDateAttribute() throws Exception {
         // Configure the server
@@ -1231,6 +1301,7 @@ public class LTPAKeyRotationTests {
      */
     @Mode(TestMode.LITE)
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testConfiguredValidationKeys() throws Exception {
         // Configure the server
@@ -1302,6 +1373,7 @@ public class LTPAKeyRotationTests {
      */
     @Mode(TestMode.LITE)
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testValidUntilDate_expiringAfterConfigurationAndUsage() throws Exception {
         // Configure the server
@@ -1374,6 +1446,7 @@ public class LTPAKeyRotationTests {
      */
     @Mode(TestMode.LITE)
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testExpiredLtpaToken_monitorValidationKeysDir_true_monitorInterval_10() throws Exception {
         // Configure the server
@@ -1426,6 +1499,7 @@ public class LTPAKeyRotationTests {
      * </OL>
      */
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testExpiredLtpaToken_monitorValidationKeysDir_false_monitorInterval_0() throws Exception {
         // Configure the server
@@ -1480,6 +1554,7 @@ public class LTPAKeyRotationTests {
      * </OL>
      */
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testLTPAFileCreationDeletion_updateTrigger_disabled() throws Exception {
         // Configure the server
@@ -1545,6 +1620,7 @@ public class LTPAKeyRotationTests {
      * </OL>
      */
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testLTPAFileReplacement_newValidKey_updateTrigger_disabled() throws Exception {
         // Configure the server
@@ -1564,7 +1640,7 @@ public class LTPAKeyRotationTests {
                       server.waitForStringInLog("CWWKS4115W", 5000));
 
         // Copy validation key file (validation2.keys) to the server
-        copyFileToServerResourcesSecurityDir("alternate/validation2.keys");
+        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY2_PATH);
 
         // Initial login to simple servlet for form login1
         String response1 = flClient1.accessProtectedServletWithAuthorizedCredentials(FormLoginClient.PROTECTED_SIMPLE, validUser, validPassword);
@@ -1606,6 +1682,7 @@ public class LTPAKeyRotationTests {
      * </OL>
      */
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testPrimaryLtpaKeysFileModified_updateTrigger_mbean() throws Exception {
         // Configure the server
@@ -1669,6 +1746,7 @@ public class LTPAKeyRotationTests {
      * </OL>
      */
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testPrimaryLtpaKeysFileDeleted_updateTrigger_mbean_validationKeysFileCreated() throws Exception {
         // Configure the server
@@ -1736,6 +1814,7 @@ public class LTPAKeyRotationTests {
      * </OL>
      */
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testDifferentDirectoriesForPrimaryKeys() throws Exception {
         // Configure the server
@@ -1834,6 +1913,7 @@ public class LTPAKeyRotationTests {
      * </OL>
      */
     @Test
+    @CheckForLeakedPasswords({ validPassword })
     @AllowedFFDC({ "java.lang.IllegalArgumentException" })
     public void testDifferentDirectoriesForValidationKeys() throws Exception {
         // Configure the server
@@ -2163,7 +2243,9 @@ public class LTPAKeyRotationTests {
      */
     private static void renameFileIfExists(String filePath, String newFilePath, boolean checkFileIsGone) throws Exception {
         Log.info(thisClass, "renameFileIfExists", "\nfilepath: " + filePath + "\nnewFilePath: " + newFilePath);
-        server.setMarkToEndOfLog(server.getDefaultLogFile());
+        if (!fipsEnabled) {
+            server.setMarkToEndOfLog(server.getDefaultLogFile());
+        }
         if (fileExists(newFilePath, 1)) {
             LibertyFileManager.moveLibertyFile(server.getFileFromLibertyServerRoot(filePath), server.getFileFromLibertyServerRoot(newFilePath));
         } else {
@@ -2378,7 +2460,7 @@ public class LTPAKeyRotationTests {
     private void resetServer() throws Exception {
         Log.info(thisClass, "resetServer", "entering");
 
-        // Msure the mark is at the end of the log, so we don't use earlier messages.
+        // Make sure the mark is at the end of the log, so we don't use earlier messages.
         moveLogMark();
 
         // We need to put the base config back, otherwise the waits below will timeout on some tests

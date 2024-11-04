@@ -70,7 +70,8 @@ generate.replacement: true
 	com.ibm.json4j;version=latest,\
 	org.bitbucket.b_c.jose4j,\
 	com.unboundid.ldap.sdk,\
-    com.ibm.ws.kernel.service;version=latest,\
+  com.ibm.ws.kernel.boot;version=latest, \
+  com.ibm.ws.kernel.service;version=latest,\
 	com.ibm.ws.com.unboundid
 -testpath: \
     ../build.sharedResources/lib/junit/old/junit.jar;version=file, \
@@ -83,6 +84,8 @@ generate.replacement: true
     org.jmock:jmock;strategy=exact;version=2.5.1, \
     com.ibm.ws.org.objenesis:objenesis;version=1.0, \
     com.ibm.ws.kernel.boot;version=latest, \
+    com.ibm.ws.kernel.service;version=latest,\
+    com.ibm.ws.common.crypto;version=latest,\
     com.ibm.ws.security.test.common;version=latest, \
     com.ibm.ws.org.apache.httpcomponents;version=latest, \
     net.sourceforge.htmlunit:htmlunit;version=2.44.0,\
