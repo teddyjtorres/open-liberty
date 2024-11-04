@@ -3517,6 +3517,8 @@ public class LibertyServer implements LogMonitorClient {
                                                      "ConcurrentEnhancementVerification", //com.ibm.ws.jpa.tests.jpa_fat
                                                      "com.ibm.ws.jpa.fat.ejbpassivation", //com.ibm.ws.jpa.tests.jpa_fat
 
+                                                     "jsp23jsp22Server", //com.ibm.ws.jsp.2.3_fat
+
                                                      "Config13TCKServer", //com.ibm.ws.microprofile.config.1.3_fat_tck
 
                                                      "mpGraphQL10.basicQuery", //com.ibm.ws.microprofile.graphql.1.0_fat
@@ -3531,6 +3533,8 @@ public class LibertyServer implements LogMonitorClient {
                                                      "mpGraphQL10.types", //com.ibm.ws.microprofile.graphql.1.0_fat
                                                      "mpGraphQL10.ui", //com.ibm.ws.microprofile.graphql.1.0_fat
                                                      "mpGraphQL10.voidQuery", //com.ibm.ws.microprofile.graphql.1.0_fat
+
+                                                     "MetricsMonitorServer", //io.openliberty.microprofile.metrics.internal.5.x.monitor_fat
 
                                                      "ApplicationProcessorServer", //io.openliberty.microprofile.openapi.2.0.internal_fat
                                                      "OpenAPITestServer", //io.openliberty.microprofile.openapi.2.0.internal_fat
@@ -3563,6 +3567,7 @@ public class LibertyServer implements LogMonitorClient {
 
                                                      "RequestTimingServer", //com.ibm.ws.request.timing_fat
                                                      "HungRequestTimingServer", //com.ibm.ws.request.timing.hung_fat
+                                                     "RequestTimingFeatureWithMetrics", //com.ibm.ws.request.timing.monitor_fat
 
                                                      "com.ibm.ws.rest.handler.config.fat", //com.ibm.ws.rest.handler.config_fat
                                                      "com.ibm.ws.rest.handler.config.openapi.fat", //com.ibm.ws.rest.handler.config_fat
