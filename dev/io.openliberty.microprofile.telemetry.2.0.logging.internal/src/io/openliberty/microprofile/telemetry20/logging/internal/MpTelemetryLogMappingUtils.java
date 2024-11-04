@@ -270,7 +270,7 @@ public class MpTelemetryLogMappingUtils {
                         attributes.put(SemanticAttributes.THREAD_ID, kvp.getIntValue());
                     } else {
                         // Format and map the audit event fields accordingly
-                        attributes.put(MpTelemetryLogFieldConstants.IO_OPENLIBERTY_TAG + key, kvp.getStringValue());
+                        attributes.put(MpTelemetryLogFieldConstants.IO_OPENLIBERTY_TAG + MpTelemetryLogFieldConstants.AUDIT_TYPE_PREFIX_TAG + key, kvp.getStringValue());
                     }
                 }
             }
