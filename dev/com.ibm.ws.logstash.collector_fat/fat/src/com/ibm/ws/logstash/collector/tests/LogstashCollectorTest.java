@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -81,7 +81,8 @@ public abstract class LogstashCollectorTest {
         assertNotNull("Cannot find CWWKG0016I from messages.log", getServer().waitForStringInLogUsingMark("CWWKG0016I", 10000));
         String line = getServer().waitForStringInLogUsingMark("CWWKG0017I|CWWKG0018I", 10000);
         assertNotNull("Cannot find CWWKG0017I or CWWKG0018I from messages.log", line);
-        waitForStringInContainerOutput("CWWKG0017I|CWWKG0018I");
+        waitForStringInContainerOutput("CWWKG0017I|CWWKG0018I"); // waits for server configuration to finish updating (CWWKG0017I)
+        waitForStringInContainerOutput("CWWKZ0003I"); // waits for application to finish updating (CWWKZ0003I)
         Log.info(c, "setConfig exit", conf);
     }
 
@@ -205,9 +206,9 @@ public abstract class LogstashCollectorTest {
                     .withFileFromFile("/usr/share/logstash/config/logstash.yml", new File(PATH_TO_AUTOFVT_TESTFILES + "logstash.yml"), 644) //
                     .withFileFromFile("/usr/share/logstash/config/logstash.key", new File(PATH_TO_AUTOFVT_TESTFILES + "logstash.key"), 644) //
                     .withFileFromFile("/usr/share/logstash/config/logstash.crt", new File(PATH_TO_AUTOFVT_TESTFILES + "logstash.crt"), 644)) //
-                                    .withExposedPorts(5043) //
-                                    .withStartupTimeout(Duration.ofSeconds(240)) //
-                                    .withLogConsumer(LogstashCollectorTest::log); //
+                    .withExposedPorts(5043) //
+                    .withStartupTimeout(Duration.ofSeconds(240)) //
+                    .withLogConsumer(LogstashCollectorTest::log); //
 
     // This helper method is passed into `withLogConsumer()` of the container
     // It will consume all of the logs (System.out) of the container, which we will
