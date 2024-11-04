@@ -2065,7 +2065,6 @@ public class FeatureManager implements FixManager, FeatureProvisioner, Framework
             String compatibilityBaseName = featureRepository.getFeatureBaseName(compatibility.getFeatureName());
             for(String resolvedPlat : result.getResolvedPlatforms()){
                 ProvisioningFeatureDefinition compatibilityFeature = featureRepository.getCompatibilityFeature(resolvedPlat);
-                System.out.println(resolvedPlat + " - " + compatibilityFeature);
                 if(compatibilityFeature == null){
                     continue; 
                 }
