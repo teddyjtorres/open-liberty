@@ -74,9 +74,7 @@ public @interface Is {
             this.ignoreCase = false;
             if (not == NOT) {
                 this.isNegative = true;
-            } else {
-                throw new IllegalArgumentException();
-            }
+            } 
         }
 
         private Op(int not, Op baseOp, boolean ignoreCase) {
