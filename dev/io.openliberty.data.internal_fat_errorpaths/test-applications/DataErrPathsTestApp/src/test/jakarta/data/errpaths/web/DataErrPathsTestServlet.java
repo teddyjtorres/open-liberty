@@ -436,7 +436,7 @@ public class DataErrPathsTestServlet extends FATServlet {
 
     /**
      * Tests an error path where the repository specifies an entity that is not a
-     * valid JPA entity because it has 2 Id attributes without using IdClsas.
+     * valid JPA entity because it has 2 Id attributes without using IdClass.
      */
     @Test
     public void testRepositoryWithInvalidEntity() {
