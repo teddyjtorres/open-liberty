@@ -137,7 +137,8 @@ public class DatabaseContainerFactory {
                     //Accept License agreement
                     db2.acceptLicense();
                     //Add startup timeout since DB2 tends to take longer than the default 3 minutes on build machines.
-                    db2.withStartupTimeout(getContainerTimeout(5, 15));
+                    // TODO figure out if there is a way to create a 'fast-start' image that has the database already created.
+                    db2.withStartupTimeout(getContainerTimeout(5, 25));
 
                     break;
                 case Derby:

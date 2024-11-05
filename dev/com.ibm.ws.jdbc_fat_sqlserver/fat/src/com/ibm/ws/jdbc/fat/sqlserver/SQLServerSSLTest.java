@@ -40,7 +40,11 @@ import web.ssl.SQLServerTestSSLServlet;
 
 @Mode(FULL)
 @RunWith(FATRunner.class)
-@SkipIfSysProp(NETWORK_AWS) //TODO remove once we can update SSL image to 2019-CU28-ubuntu-20.04
+// TODO remove once we can update SSL image to 2019-CU28-ubuntu-20.04
+// Avoiding bug in SQLServer docker image https://github.com/microsoft/mssql-docker/issues/881
+// Which has logic that tightly couples the container kernel and host kernel
+// Today the kernel available on the remote docker host for AWS causes SQLServer to fail to start.
+@SkipIfSysProp(NETWORK_AWS)
 public class SQLServerSSLTest extends FATServletClient {
 
     public static final String APP_NAME = "sqlserversslfat";
