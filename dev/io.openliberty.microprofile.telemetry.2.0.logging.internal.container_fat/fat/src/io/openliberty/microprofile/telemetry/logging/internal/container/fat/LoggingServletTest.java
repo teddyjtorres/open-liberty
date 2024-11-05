@@ -44,7 +44,7 @@ public class LoggingServletTest {
     @Server("TelemetryLogsServer")
     public static LibertyServer server;
 
-    public static final String SERVER_XML_ALL_SOURCES = "allSourcesServer.xml";
+    public static final String SERVER_XML_MSG_SOURCES = "msgSourceServer.xml";
     public static final String SERVER_XML_TRACE_SOURCE = "traceSourceServer.xml";
     public static final String SERVER_XML_FFDC_SOURCE = "FFDCSourceServer.xml";
 
@@ -91,7 +91,7 @@ public class LoggingServletTest {
         TestUtils.isContainerStarted("LogsExporter", container);
 
         RemoteFile messageLogFile = server.getDefaultLogFile();
-        setConfig(SERVER_XML_ALL_SOURCES, messageLogFile, server);
+        setConfig(SERVER_XML_MSG_SOURCES, messageLogFile, server);
 
         TestUtils.runApp(server, "logs");
 
