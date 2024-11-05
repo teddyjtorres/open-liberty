@@ -436,7 +436,7 @@ public class DataErrPathsTestServlet extends FATServlet {
 
     /**
      * Tests an error path where the repository specifies an entity that is not a
-     * valid JPA entity because it has 2 Id attributes without using IdClass.
+     * valid JPA entity because it has no Id attribute.
      */
     @Test
     public void testRepositoryWithInvalidEntity() {
@@ -444,8 +444,7 @@ public class DataErrPathsTestServlet extends FATServlet {
             Invention i = errInvalidEntityRepo //
                             .save(new Invention(1, 2, "Perpetual Motion Machine"));
             fail("Should not be able to use a repository operation for an entity" +
-                 " that is not valid because it has 2 Id attributes without" +
-                 " IdClass. Saved: " + i);
+                 " that is not valid because it has no Id attribute. Saved: " + i);
         } catch (CompletionException x) {
             if (x.getMessage() == null ||
                 !x.getMessage().startsWith("CWWKD1080E:") ||
