@@ -78,9 +78,7 @@ public @interface Is {
         private Op(int not, Op baseOp, boolean ignoreCase) {
             this.base = baseOp;
             this.ignoreCase = ignoreCase;
-            if (not == NOT) {
-                this.isNegative = true;
-            }
+            this.isNegative = not == NOT; 
         }
 
         private Op(Op baseOp, boolean ignoreCase) {
