@@ -262,6 +262,6 @@ public class LPSTest {
         assertNotNull(s.getServerName() + " did not crash", s.waitForStringInTrace(XAResourceImpl.DUMP_STATE));
         s.resetStarted();
 		FATUtils.startServers(s);
-		s.resetLogOffsets();
+		s.resetLogMarks();
 	}
 }
