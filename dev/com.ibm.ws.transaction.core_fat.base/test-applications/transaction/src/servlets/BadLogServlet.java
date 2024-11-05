@@ -55,6 +55,7 @@ public class BadLogServlet extends FATServlet {
         final TransactionManager tm = TransactionManagerFactory.getTransactionManager();
 
         tm.begin();
+
         final Transaction tx = tm.getTransaction();
 
         try {
@@ -62,6 +63,8 @@ public class BadLogServlet extends FATServlet {
             fail("XA enlist succeeded unexpectedly");
         } catch (IllegalStateException e) {
         }
+
+        tm.rollback();
     }
 
     @Test
