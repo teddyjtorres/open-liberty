@@ -50,6 +50,8 @@ public class LoggingServletTest {
 
     private static final String[] EXPECTED_FAILURES = { "CWMOT5005W", "SRVE0315E", "SRVE0777E" };
 
+    public static final int WAIT_TIMEOUT = 5; // 5 seconds
+
     @ClassRule
     public static GenericContainer<?> container = new GenericContainer<>(new ImageFromDockerfile()
                     .withDockerfileFromBuilder(builder -> builder.from(TestUtils.IMAGE_NAME)
@@ -96,7 +98,7 @@ public class LoggingServletTest {
         TestUtils.runApp(server, "logs");
 
         //Allow time for the collector to receive and bridge logs.
-        TimeUnit.SECONDS.sleep(5);
+        TimeUnit.SECONDS.sleep(WAIT_TIMEOUT);
 
         final String logs = container.getLogs();
 
@@ -128,7 +130,7 @@ public class LoggingServletTest {
         TestUtils.runApp(server, "logs");
 
         //Allow time for the collector to receive and bridge logs.
-        TimeUnit.SECONDS.sleep(5);
+        TimeUnit.SECONDS.sleep(WAIT_TIMEOUT);
 
         final String logs = container.getLogs();
 
@@ -161,7 +163,7 @@ public class LoggingServletTest {
         TestUtils.runApp(server, "ffdc1");
 
         //Allow time for the collector to receive and bridge logs.
-        TimeUnit.SECONDS.sleep(5);
+        TimeUnit.SECONDS.sleep(WAIT_TIMEOUT);
 
         final String logs = container.getLogs();
 
