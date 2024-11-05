@@ -224,10 +224,10 @@ public class DelayFullTest {
         runInServlet("testDeliveryDelayForDifferentDelaysClassicApi");
 
         msg = clientServer.waitForStringInLogUsingLastOffset(
-            "Message received on mdb : QueueBindingsMessage2-ClassicApi");
+            "Message received on mdb : QueueBindingsMessage-ClassicApi2");
         assertNotNull("Could not find the upload message in the trace.log", msg);
         msg = clientServer.waitForStringInLogUsingLastOffset(
-            "Message received on mdb : QueueBindingsMessage1-ClassicApi");
+            "Message received on mdb : QueueBindingsMessage-ClassicApi1");
         assertNotNull("Could not find the upload message in the trace.log", msg);
         
         
@@ -246,10 +246,10 @@ public class DelayFullTest {
         runInServlet("testDeliveryDelayForDifferentDelaysClassicApi_Tcp");
 
         msg = clientServer.waitForStringInLogUsingLastOffset(
-            "Message received on mdb : QueueTCPMessage2-ClassicApi");
+            "Message received on mdb : QueueTCPMessage-ClassicApi2");
         assertNotNull("Could not find the upload message in the trace.log", msg);
         msg = clientServer.waitForStringInLogUsingLastOffset(
-            "Message received on mdb : QueueTCPMessage1-ClassicApi");
+            "Message received on mdb : QueueTCPMessage-ClassicApi1");
         assertNotNull("Could not find the upload message in the trace.log", msg);
         
         
@@ -281,10 +281,10 @@ public class DelayFullTest {
         runInServlet("testDeliveryDelayForDifferentDelaysTopicClassicApi");
 
         msg = clientServer.waitForStringInLogUsingLastOffset(
-            "Message received on mdb : TopicBindingsMessage2-ClassicApi");
+            "Message received on mdb : TopicBindingsMessage-ClassicApi2");
         assertNotNull("Could not find the upload message in the trace.log", msg);
         msg = clientServer.waitForStringInLogUsingLastOffset(
-            "Message received on mdb : TopicBindingsMessage1-ClassicApi");
+            "Message received on mdb : TopicBindingsMessage-ClassicApi1");
         assertNotNull("Could not find the upload message in the trace.log", msg);
         
     	// Configure server to use MDB receiving from "remote" Topic
@@ -301,10 +301,10 @@ public class DelayFullTest {
         // Run test using domain-specific API
         runInServlet("testDeliveryDelayForDifferentDelaysTopicClassicApi_Tcp");
         msg = clientServer.waitForStringInLogUsingLastOffset(
-            "Message received on mdb : TopicTCPMessage2-ClassicApi");
+            "Message received on mdb : TopicTCPMessage-ClassicApi2");
         assertNotNull("Could not find the upload message in the trace.log", msg);
         msg = clientServer.waitForStringInLogUsingLastOffset(
-            "Message received on mdb : TopicTCPMessage1-ClassicApi");
+            "Message received on mdb : TopicTCPMessage-ClassicApi1");
         assertNotNull("Could not find the upload message in the trace.log", msg);
 
         restartServers();
