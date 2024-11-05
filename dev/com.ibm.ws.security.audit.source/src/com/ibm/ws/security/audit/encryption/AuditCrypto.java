@@ -50,32 +50,12 @@ import javax.crypto.spec.SecretKeySpec;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.ws.common.crypto.CryptoUtils;
-import com.ibm.wsspi.security.audit.AuditSigningException;
 
 final class AuditCrypto {
 
     private static TraceComponent tc = Tr.register(AuditCrypto.class, null, "com.ibm.ejs.resources.security");
-//    private static final String CRYPTO_ALGORITHM = "RSA";
-//    private static final String ENCRYPT_ALGORITHM = "DESede";
-//    private static final String CIPHER = "DESede/ECB/PKCS5Padding";
-    //todo need to move this to CryptoUtils
-    //private static final String DESEDE_ECB_CIPHER = "DESede/ECB/PKCS5Padding";
-//    private static final String AES_CBC_CIPHER = "AES/CBC/PKCS5Padding";
     private static IvParameterSpec ivs8 = null;
     private static IvParameterSpec ivs16 = null;
-//    private static SecureRandom random = null;
-
-//    private static final String IBMJCE_NAME = "IBMJCE";
-//    private static final String IBMJCE_PLUS_FIPS_NAME = "IBMJCEPlusFIPS";
-    //private static final String provider = getProvider();
-
-//    private static final String SIGNATURE_ALGORITHM_SHA256WITHRSA = "SHA256withRSA";
-    //private static final String signatureAlgorithm = getSignatureAlgorithm();
-
-//    private static final String CRYPTO_ALGORITHM_RSA = "RSA";
-
-//    private static final String ENCRYPT_ALGORITHM_DESEDE = "DESede";
-//    private static final String ENCRYPT_ALGORITHM_RSA = "RSA";
     private static boolean fips140_3Enabled = CryptoUtils.isFips140_3Enabled();
     private static final String encryptAlgorithm = CryptoUtils.getEncryptionAlgorithm();
 
@@ -84,16 +64,12 @@ final class AuditCrypto {
 
     private static final String provider = CryptoUtils.getProvider();
 
-//    private static boolean issuedBetaMessage = false;
-
     /**
      * @param provider
      */
     public AuditCrypto() {
-//        fips140_3Enabled = CryptoUtils.isFIPSEnabled();
     }
 
-    //@Trivial
     static final boolean cmp(byte[] b1, int off1, byte[] b2, int off2, int n) {
         while (--n >= 0)
             if (b1[off1++] != b2[off2++])
@@ -101,7 +77,6 @@ final class AuditCrypto {
         return true;
     }
 
-    //@Trivial
     static final int msbf(byte[] data, int off, int n) {
         int v = 0;
         do {
@@ -110,19 +85,16 @@ final class AuditCrypto {
         return v;
     }
 
-    //@Trivial
     static final int msbf2(byte[] data, int i) {
         return (((data[i] & 0xFF) << 8) | (data[i + 1] & 0xFF));
     }
 
-    //@Trivial
     static final void msbf(int v, byte[] data, int off, int n) {
         do {
             data[off++] = (byte) (v >>> ((--n) * 8));
         } while (n > 0);
     }
 
-    //@Trivial
     static final void msbf4(int v, byte[] data, int i) {
         data[i] = (byte) (v >>> 24);
         data[i + 1] = (byte) (v >>> 16);
@@ -130,13 +102,11 @@ final class AuditCrypto {
         data[i + 3] = (byte) v;
     }
 
-    //@Trivial
     static final void msbf2(int v, byte[] data, int i) {
         data[i] = (byte) (v >>> 8);
         data[i + 1] = (byte) v;
     }
 
-    //@Trivial
     static final int lsbf(byte[] data, int i, int n) {
         int v = 0;
         do {
@@ -145,13 +115,11 @@ final class AuditCrypto {
         return v;
     }
 
-    //@Trivial
     static final int lsbf4(byte[] data, int i) {
         return (data[i] & 0xFF) | ((data[i + 1] & 0xFF) << 8) |
                ((data[i + 2] & 0xFF) << 16) | (data[i + 3] << 24);
     }
 
-    //@Trivial
     static final void lsbf4(int v, byte[] data, int i) {
         data[i] = (byte) v;
         data[i + 1] = (byte) (v >>> 8);
@@ -159,7 +127,6 @@ final class AuditCrypto {
         data[i + 3] = (byte) (v >>> 24);
     }
 
-    //@Trivial
     static void lsbf2(int v, byte[] data, int i) {
         data[i] = (byte) v;
         data[i + 1] = (byte) (v >>> 8);
@@ -181,7 +148,6 @@ final class AuditCrypto {
     private static int[] ones = new int[16];
     private static int[] block = new int[16];
 
-    //@Trivial
     static final void trng(byte[] to, int off, int len) {
         long accu = 0;
         int bits = 0, i, m, j;
@@ -234,7 +200,6 @@ final class AuditCrypto {
 
     static int trMix = 128;
 
-    //@Trivial
     static final void random(byte[] to, int off, int n) {
 
         if (!seedInitialized) {
@@ -281,7 +246,6 @@ final class AuditCrypto {
         }
     }
 
-    //@Trivial
     static final void sha(int[] state, byte[] data, int off, int len, byte[] to, int pos) {
         int A, B, C, D, E;
         {
@@ -381,27 +345,22 @@ final class AuditCrypto {
         }
     }
 
-    //@Trivial
     private static final int FF(int a, int b, int c, int d, int x, int l, int r, int ac) {
         return (((a += ((b & c) | (~b & d)) + x + ac) << l) | (a >>> r)) + b;
     }
 
-    //@Trivial
     private static final int GG(int a, int b, int c, int d, int x, int l, int r, int ac) {
         return (((a += ((b & d) | (c & ~d)) + x + ac) << l) | (a >>> r)) + b;
     }
 
-    //@Trivial
     private static final int HH(int a, int b, int c, int d, int x, int l, int r, int ac) {
         return (((a += (b ^ c ^ d) + x + ac) << l) | (a >>> r)) + b;
     }
 
-    //@Trivial
     private static final int II(int a, int b, int c, int d, int x, int l, int r, int ac) {
         return (((a += (c ^ (b | ~d)) + x + ac) << l) | (a >>> r)) + b;
     }
 
-    //@Trivial
     static final void md5(int[] state, byte[] data, int off, int len, byte[] to, int pos) {
         int a, b, c, d;
         {
@@ -570,7 +529,6 @@ final class AuditCrypto {
         } while (++i < 256);
     }
 
-    //@Trivial
     static final void md2(byte[][] state, byte[] data, int off, int len, byte[] to, int pos) {
         byte[] C;
         byte[] X;
@@ -617,7 +575,6 @@ final class AuditCrypto {
         System.arraycopy(X, 0, to, pos, 16);
     }
 
-    //@Trivial
     static final byte[] rc4key(byte[] rawKey, int off, int len) {
         final byte[] S = new byte[256 + 2];
         int i = 0, j = 0;
@@ -681,7 +638,6 @@ final class AuditCrypto {
         } while (++c < 56);
     }
 
-    //@Trivial
     static final int[] desKey(boolean encrypt, byte[] rawKey, int off, int len) {
         int[] pc = PC;
         final int key[] = new int[len * 4];
@@ -830,7 +786,6 @@ final class AuditCrypto {
         }
     }
 
-    //@Trivial
     static final void des(boolean encrypt, int[] key, byte[] iv,
                           byte[] data, int off, int len,
                           byte[] to, int pos) {
@@ -1124,7 +1079,6 @@ final class AuditCrypto {
         }
 
         @Override
-        //@Trivial
         public boolean equals(Object to) {
             if (!(to instanceof CachingKey)) {
                 return false;
@@ -1321,72 +1275,6 @@ final class AuditCrypto {
         return sig;
     }
 
-    /**
-     * @return
-     */
-//    public boolean isFips140_3Enabled() {
-//        Tr.debug(tc, "UTLE>>> hardcode return true");
-//
-//        //return (isFIPSEnabled() && isIBMJCEPlusFIPSAvailable());
-//        return true;
-//    }
-
-//    public static boolean isFIPSEnabled() {
-//        return true;
-//        String fipsON = AccessController.doPrivileged(new PrivilegedAction<String>() {
-//            @Override
-//            public String run() {
-//                return System.getProperty("com.ibm.jsse2.usefipsprovider");
-//            }
-//        });
-//        if (fipsON != null && fipsON.equals("true")) {
-//            return true;
-//        } else {
-//            return false;
-//        }
-//    }
-//
-//    public static boolean isIBMJCEPlusFIPSAvailable() {
-//        //TODO: UTLE not working
-//        if (ibmJCEPlusFIPSProviderChecked) {
-//            return ibmJCEPlusFIPSAvailable;
-//        } else {
-//            String ibmjceplusfipsprovider = AccessController.doPrivileged(new PrivilegedAction<String>() {
-//                @Override
-//                public String run() {
-//                    return System.getProperty("com.ibm.jsse2.usefipsProviderName");
-//                }
-//            });
-//            ibmJCEPlusFIPSProviderChecked = true;
-//            //TODO: UTLE
-////            if (ibmjceplusfipsprovider == "IBMJCEPlusFIPS" && isRunningBetaMode()) {
-//            if (ibmjceplusfipsprovider == "IBMJCEPlusFIPS") {
-//                ibmJCEPlusFIPSAvailable = true;
-//                return ibmJCEPlusFIPSAvailable;
-//            } else {
-//                if (isFIPSEnabled()) {
-//                    // UTLE TODO: error msg - FIPS is enabled but the IBMJCEPlusFIPS is not
-//                    // available
-//                }
-//                return false;
-//            }
-//        }
-//    }
-//
-//    static boolean isRunningBetaMode() {
-//        if (!ProductInfo.getBetaEdition()) {
-//            return false;
-//        } else {
-//            // Running beta exception, issue message if we haven't already issued one for
-//            // this class
-//            if (!issuedBetaMessage) {
-//                Tr.info(tc, "BETA: A beta method has been invoked for the class LTPAKeyUtil for the first time.");
-//                issuedBetaMessage = !issuedBetaMessage;
-//            }
-//            return true;
-//        }
-//    }
-
     static final boolean verifyISO9796(byte[][] key, byte[] data, int off, int len,
                                        byte[] sig, int sigOff, int sigLen) {
         return verifyISO9796(key, data, off, len, sig, sigOff, sigLen, false);
@@ -1456,7 +1344,6 @@ final class AuditCrypto {
         }
 
         @Override
-        //@Trivial
         public boolean equals(Object to) {
             if (!(to instanceof CachingVerifyKey)) {
                 return false;
@@ -1576,7 +1463,6 @@ final class AuditCrypto {
     }
 
     static final Comparator cachingVerifyKeyComparator = new Comparator() {
-        //@Trivial
         @Override
         public int compare(Object o1, Object o2) {
             CachingVerifyKey k1 = (CachingVerifyKey) o1;
@@ -1592,7 +1478,6 @@ final class AuditCrypto {
     };
 
     static final Comparator cachingKeyComparator = new Comparator() {
-        //@Trivial
         @Override
         public int compare(Object o1, Object o2) {
             CachingKey k1 = (CachingKey) o1;
@@ -1721,12 +1606,10 @@ final class AuditCrypto {
         return verified;
     }
 
-    //@Trivial
     static final byte[] padISO9796(byte[] data, int off, int len, int sigbits) {
         return padISO9796(data, off, len, sigbits, false);
     }
 
-    //@Trivial
     static final byte[] padISO9796(byte[] data, int off, int len, int sigbits, boolean useJCE) {
         byte[] pad = null;
         if (fips140_3Enabled || useJCE) {
@@ -1832,7 +1715,6 @@ final class AuditCrypto {
         return key;
     }
 
-    //@Trivial
     static final boolean dsa(int mode, byte[][] key, byte[] data, int off, int len,
                              byte[] sig, int pos) {
         int i = 0, j, l;
@@ -1957,7 +1839,6 @@ final class AuditCrypto {
         return false;
     }
 
-    //@Trivial
     static final boolean testRSAKeys(byte[] b, byte[][] privKey, byte[][] pubKey) {
         int l = pubKey[0].length;
         if (pubKey[0][0] == 0)
@@ -2093,46 +1974,8 @@ final class AuditCrypto {
                     return null;
                 }
 
-//                SecretKey sKey = null;
-//
-//                if (cipher.indexOf("AES") != -1) {
-//                    // 16 bytes = 128 bit key
-//                    sKey = new SecretKeySpec(key, 0, 16, "AES");
-//                } else {
-//                    DESedeKeySpec kSpec = new DESedeKeySpec(key);
-//                    SecretKeyFactory kFact = null;
-//                    kFact = SecretKeyFactory.getInstance(CryptoUtils.ENCRYPT_ALGORITHM_DESEDE);
-//
-//                    sKey = kFact.generateSecret(kSpec);
-//                }
-
                 SecretKey sKey = constructSecretKey(key, cipher);
-//                Cipher ci = null;
-//                ci = Cipher.getInstance(cipher);
-//
-//                if (tc.isDebugEnabled()) {
-//                    Tr.debug(tc, "The Provider Cipher used to encrypt: " + ci.getProvider());
-//                    Tr.debug(tc, "The Algorithm Cipher used to encrypt: " + ci.getAlgorithm());
-//                }
-//                if (cipher.indexOf("GCM") != -1) {
-//                    byte[] iv = new byte[12];
-//                    GCMParameterSpec params = new GCMParameterSpec(128, iv);
-//                    ci.init(Cipher.ENCRYPT_MODE, sKey, params);
-//                } else if (cipher.indexOf("ECB") == -1) {
-//                    if (cipher.indexOf("AES") != -1) {
-//                        if (ivs16 == null) {
-//                            setIVS16(key);
-//                        }
-//                        ci.init(Cipher.ENCRYPT_MODE, sKey, ivs16);
-//                    } else {
-//                        if (ivs8 == null) {
-//                            setIVS8(key);
-//                        }
-//                        ci.init(Cipher.ENCRYPT_MODE, sKey, ivs8);
-//                    }
-//                } else {
-//                    ci.init(Cipher.ENCRYPT_MODE, sKey);
-//                }
+
                 Cipher ci = createCipher(Cipher.ENCRYPT_MODE, key, cipher, sKey);
                 if (tc.isDebugEnabled())
                     Tr.debug(tc, "encrypt() Cipher.doFinal()\n   data: " + new String(data));
@@ -2211,44 +2054,7 @@ final class AuditCrypto {
                     return null;
                 }
 
-//                SecretKey sKey = null;
-//
-//                if (cipher.indexOf("AES") != -1) {
-//                    // 16 bytes = 128 bit key
-//                    sKey = new SecretKeySpec(key, 0, 16, "AES");
-//                } else {
-//                    DESedeKeySpec kSpec = new DESedeKeySpec(key);
-//                    SecretKeyFactory kFact = null;
-//                    kFact = SecretKeyFactory.getInstance(CryptoUtils.ENCRYPT_ALGORITHM_DESEDE);
-//                    sKey = kFact.generateSecret(kSpec);
-//                }
                 SecretKey sKey = constructSecretKey(key, cipher);
-
-//                Cipher ci = null;
-//                ci = Cipher.getInstance(cipher);
-//
-//                if (tc.isDebugEnabled()) {
-//                    Tr.debug(tc, "The Provider Cipher used to decrypt: " + ci.getProvider());
-//                    Tr.debug(tc, "The Algorithm Cipher used to decrypt: " + ci.getAlgorithm());
-//                }
-//
-//                if (cipher.indexOf("ECB") == -1) {
-//                    if (cipher.indexOf("AES") != -1) {
-//
-//                        if (ivs16 == null) {
-//                            setIVS16(key);
-//                        }
-//                        ci.init(Cipher.DECRYPT_MODE, sKey, ivs16);
-//                    } else {
-//
-//                        if (ivs8 == null) {
-//                            setIVS8(key);
-//                        }
-//                        ci.init(Cipher.DECRYPT_MODE, sKey, ivs8);
-//                    }
-//                } else {
-//                    ci.init(Cipher.DECRYPT_MODE, sKey);
-//                }
 
                 Cipher ci = createCipher(Cipher.DECRYPT_MODE, key, cipher, sKey);
 
@@ -2315,7 +2121,6 @@ final class AuditCrypto {
      * @throws NoSuchAlgorithmException
      * @throws InvalidKeySpecException
      */
-    //@Trivial
     private static SecretKey constructSecretKey(byte[] key, String cipher) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
         SecretKey sKey = null;
         if (cipher.indexOf("AES") != -1) {
@@ -2342,7 +2147,6 @@ final class AuditCrypto {
      * @throws InvalidKeyException
      * @throws InvalidAlgorithmParameterException
      */
-    //@Trivial
     private static Cipher createCipher(int cipherMode, byte[] key, String cipher,
                                        SecretKey sKey) throws NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, NoSuchProviderException {
 
@@ -2383,7 +2187,6 @@ final class AuditCrypto {
      * @return an unpadded byte array or <i>null</i> if the input array
      *         was not properly padded.
      */
-    //@Trivial
     private static final byte[] unpadPKCS5(byte aB[]) {
         if (null == aB)
             return null;
@@ -2414,7 +2217,6 @@ final class AuditCrypto {
      * @param aB any byte array
      * @return a new, PKCS #5 padded byte array.
      */
-    //@Trivial
     private static final byte[] padPKCS5(byte aB[]) {
         if (null == aB)
             return null;
@@ -2431,7 +2233,6 @@ final class AuditCrypto {
     /**
      * Convert a byte[] to a hexadecimal string
      **/
-    //@Trivial
     public static String toHexString(byte[] bytes) {
         String hexString = null;
         for (int i = 0; i < bytes.length; i++) {
@@ -2508,30 +2309,8 @@ final class AuditCrypto {
         }
     }
 
-    Signature getSignature() throws AuditSigningException {
-        Signature signature = null;
-        try {
-            if (fips140_3Enabled) {
-                signature = Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA256WITHRSA, provider);
-            } else
-                signature = Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA256WITHRSA);
-
-        } catch (Exception e) {
-            Tr.error(tc, "security.audit.signing.init.error", new Object[] { e });
-            throw new AuditSigningException(e.getMessage());
-        }
-
-        return signature;
-    }
-
     static String getCipher() {
-//        String cipher = DESEDE_ECB_CIPHER;
-//        if (fips140_3Enabled)
-//            cipher = CryptoUtils.AES_CBC_CIPHER;
-//        return cipher;
-
         return fips140_3Enabled ? CryptoUtils.AES_GCM_CIPHER : CryptoUtils.DES_ECB_CIPHER;
-//        return cipher;
     }
 
 }

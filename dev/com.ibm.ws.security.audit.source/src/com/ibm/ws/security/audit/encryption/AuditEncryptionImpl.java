@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -63,9 +63,6 @@ public class AuditEncryptionImpl implements AuditEncrypting {
     private String _provider = null;
     private String _password = null;
     private String _alias = null;
-
-//    private static final String ALGORITHM_DESEDE = "DESede";
-//    private static final String ALGORITHM_RSA = "RSA";
 
     /**
      * <p>

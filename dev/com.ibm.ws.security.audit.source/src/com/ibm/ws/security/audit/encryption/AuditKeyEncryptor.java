@@ -19,11 +19,6 @@ import com.ibm.ws.security.audit.source.utils.ByteArray;
  * A package local class for performing encryption and decryption of keys based on a key
  */
 public class AuditKeyEncryptor {
-//    public static final String MESSAGE_DIGEST_ALGORITHM_SHA = "SHA";
-//    public static final String MESSAGE_DIGEST_ALGORITHM_SHA256 = "SHA256";
-
-//    public static final String IBMJCE_NAME = "IBMJCE";
-//    public static final String IBMJCE_PLUS_FIPS_NAME = "IBMJCEPlusFIPS";
     private String algorithm = CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA;
     private int len = 24;
     byte[] password;

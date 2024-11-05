@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2019 IBM Corporation and others.
+ * Copyright (c) 2018, 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -21,6 +21,8 @@ import java.security.Key;
 import java.security.KeyException;
 import java.security.KeyStore;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.cert.X509Certificate;
@@ -54,19 +56,10 @@ public class AuditSigningImpl implements AuditSigning {
     private static String CRYPTO_ALGORITHM = "SHA256withRSA";
 
     private static boolean fips140_3Enabled = CryptoUtils.isFips140_3Enabled();
-//
-//    private static final String IBMJCE_NAME = "IBMJCE";
-//    private static final String IBMJCE_PLUS_FIPS_NAME = "IBMJCEPlusFIPS";
-//    private static final String OPENJCE_PLUS_NAME = "OpenJCEPlus";
-    //private static final String provider = getProvider();
-
-//    private static final String SIGNATURE_ALGORITHM_SHA256WITHRSA = "SHA256withRSA";
-    //private static final String signatureAlgorithm = getSignatureAlgorithm();
 
     private Signature signature = null;
     private final byte[] sigBytes = null;
     private final int signerKeyStoreIncrement = 1;
-    //private final CertReqInfo certInfo = null;
     private final ObjectName mgmScopeObjName = null;
 
     AuditKeyEncryptor encryptor = null;
@@ -107,17 +100,13 @@ public class AuditSigningImpl implements AuditSigning {
 
         crypto = new AuditCrypto();
 
-//        try {
-//            if (fips140_3Enabled)
-//                signature = Signature.getInstance(SIGNATURE_ALGORITHM_SHA256WITHRSA, IBMJCE_PLUS_FIPS_NAME);
-//            else
-//                signature = Signature.getInstance(SIGNATURE_ALGORITHM_SHA256WITHRSA);
-//
-//        } catch (Exception e) {
-//            Tr.error(tc, "security.audit.signing.init.error", new Object[] { e });
-//            throw new AuditSigningException(e.getMessage());
-//        }
-        signature = crypto.getSignature();
+        try {
+            signature = fips140_3Enabled ? Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA256WITHRSA,
+                                                                 CryptoUtils.getProvider()) : Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA256WITHRSA);
+        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+            Tr.error(tc, "security.audit.signing.init.error", new Object[] { e });
+            throw new AuditSigningException(e.getMessage());
+        }
 
         if (tc.isDebugEnabled()) {
             Tr.debug(tc, "Initializing audit signer at " + new java.util.Date(System.currentTimeMillis()));
