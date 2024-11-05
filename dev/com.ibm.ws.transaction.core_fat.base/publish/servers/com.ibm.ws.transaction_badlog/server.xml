@@ -16,5 +16,6 @@
         waitForRecovery="true"
     />
 
-	<application location="transaction.war"/>
+    <application location="transaction.war"/>
 </server>
+

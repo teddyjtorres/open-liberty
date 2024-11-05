@@ -61,3 +61,4 @@ public class BadLogTest extends FATServletClient {
         FATUtils.stopServers(server);
     }
 }
+

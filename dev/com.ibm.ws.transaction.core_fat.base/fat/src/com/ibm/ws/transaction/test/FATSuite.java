@@ -36,3 +36,4 @@ public class FATSuite {
                     .andWith(FeatureReplacementAction.EE9_FEATURES().fullFATOnly())
                     .andWith(FeatureReplacementAction.EE10_FEATURES().fullFATOnly());
 }
+

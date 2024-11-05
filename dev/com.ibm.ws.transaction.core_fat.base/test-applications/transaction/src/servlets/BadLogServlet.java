@@ -79,3 +79,4 @@ public class BadLogServlet extends FATServlet {
         tm.commit();
     }
 }
+
