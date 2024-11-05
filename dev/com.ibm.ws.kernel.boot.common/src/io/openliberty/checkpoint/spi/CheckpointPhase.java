@@ -472,10 +472,10 @@ public enum CheckpointPhase {
             // call with no read lock on checkpoint
             return withCheckpointLock.call();
         }
-        // call with checkpoint lock to prevent the JVM from going into single-thread mode while running
-        debug(() -> "Calling with checkpoint lock: " + withCheckpointLock);
         checkpointLock.readLock().lock();
         try {
+            // call with checkpoint lock to prevent the JVM from going into single-thread mode while running
+            debug(() -> "Calling with checkpoint lock: " + withCheckpointLock);
             return withCheckpointLock.call();
         } finally {
             checkpointLock.readLock().unlock();
