@@ -84,8 +84,6 @@ public @interface Is {
             this.ignoreCase = ignoreCase;
             if (not == NOT) {
                 this.isNegative = true;
-            } else {
-                throw new IllegalArgumentException();
             }
         }
 
