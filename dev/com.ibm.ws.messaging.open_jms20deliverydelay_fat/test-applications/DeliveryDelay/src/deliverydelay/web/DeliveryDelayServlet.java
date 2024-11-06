@@ -176,7 +176,7 @@ public class DeliveryDelayServlet extends HttpServlet {
      * @param producer
      * @param dest
      * @param send_msg
-     * @return the value of System.currentTimeMillis() from after the send call completed. This can be used as a basis for later checks for delay times.
+     * @return the value of System.currentTimeMillis() from when the send call is called. This can be used as a basis for later checks for delay times.
      * @throws JMSException
      */
     private long sendAndCheckDeliveryTime(
@@ -205,7 +205,7 @@ public class DeliveryDelayServlet extends HttpServlet {
                 " This is too slow to meaningfully test the delivery delay. Please analyse the send time.");
         }
         
-        return afterSend;
+        return beforeSend;
     }
 
     //
@@ -387,7 +387,7 @@ public class DeliveryDelayServlet extends HttpServlet {
 
             TextMessage sentMessage = jmsContext.createTextMessage(methodName() + " at " + timeStamp());
 
-            long afterSend = this.sendAndCheckDeliveryTime(jmsProducer, destination, sentMessage);
+            long beforeSend = this.sendAndCheckDeliveryTime(jmsProducer, destination, sentMessage);
 
             TextMessage receivedMessage = (TextMessage) jmsConsumer.receive(defaultTestDeliveryDelay * 2 );
             long afterReceive = System.currentTimeMillis();
@@ -410,9 +410,9 @@ public class DeliveryDelayServlet extends HttpServlet {
                 throw new TestException("No message received, sentMessage:" + sentMessage);
             if (!receivedMessage.getText().equals(sentMessage.getBody(String.class)))
                 throw new TestException("Wrong message received:" + receivedMessage + " sent:" + sentMessage);
-            if(afterReceive - afterSend < defaultTestDeliveryDelay )
-                throw new TestException("Message received to soon, afterSend:" + afterSend + " afterReceive" + afterReceive + " deliveryDelay:" + defaultTestDeliveryDelay
-                        + "\nreceivedMessage:" + receivedMessage);            
+            if(afterReceive - beforeSend < defaultTestDeliveryDelay )
+                throw new TestException("Message received too soon, beforeSend: " + beforeSend + " afterReceive: " + afterReceive + " deliveryDelay: " + defaultTestDeliveryDelay
+                        + "\nreceivedMessage:\n" + receivedMessage);            
 
             
             
@@ -463,7 +463,7 @@ public class DeliveryDelayServlet extends HttpServlet {
 
             TextMessage sentMessage = session.createTextMessage(methodName() + " at " + timeStamp());
         	
-            long afterSend = sendAndCheckDeliveryTime(sender, queue, sentMessage);
+            long beforeSend = sendAndCheckDeliveryTime(sender, queue, sentMessage);
             
             TextMessage receivedMessage = (TextMessage) receiver.receive(defaultTestDeliveryDelay * 2);
             long afterReceive = System.currentTimeMillis();
@@ -472,9 +472,9 @@ public class DeliveryDelayServlet extends HttpServlet {
                 throw new TestException("No message received, sentMessage:" + sentMessage);
             if (!receivedMessage.getText().equals(sentMessage.getBody(String.class)))
                 throw new TestException("Wrong message received:" + receivedMessage + " sent:" + sentMessage);
-            if(afterReceive - afterSend < defaultTestDeliveryDelay )
-                throw new TestException("Message received to soon, afterSend:" + afterSend + " afterReceive" + afterReceive + " deliveryDelay:" + defaultTestDeliveryDelay
-                        + "\nreceivedMessage:" + receivedMessage);            
+            if(afterReceive - beforeSend < defaultTestDeliveryDelay )
+                throw new TestException("Message received to soon, beforeSend: " + beforeSend + " afterReceive: " + afterReceive + " deliveryDelay: " + defaultTestDeliveryDelay
+                        + "\nreceivedMessage:\n" + receivedMessage);            
     		
     	}
     	
@@ -543,7 +543,7 @@ public class DeliveryDelayServlet extends HttpServlet {
             publisher.setDeliveryDelay(defaultTestDeliveryDelay);
 
             TextMessage sentMessage = session.createTextMessage(methodName() + " at " + timeStamp());
-            long afterSend = sendAndCheckDeliveryTime(publisher, topic, sentMessage);
+            long beforeSend = sendAndCheckDeliveryTime(publisher, topic, sentMessage);
             
             
             TextMessage receivedMessage = (TextMessage) subscriber.receive(defaultTestDeliveryDelay * 2);
@@ -570,9 +570,9 @@ public class DeliveryDelayServlet extends HttpServlet {
             	throw new TestException("No message received, sentMessage:" + sentMessage);
             if (!receivedMessage.getText().equals(sentMessage.getBody(String.class)))
             	throw new TestException("Wrong message received:" + receivedMessage + " sent:" + sentMessage);
-            if(afterReceive - afterSend < defaultTestDeliveryDelay )
-            	throw new TestException("Message received to soon, afterSend:" + afterSend + " afterReceive" + afterReceive + " deliveryDelay:" + defaultTestDeliveryDelay
-                        + "\nreceivedMessage:" + receivedMessage);            
+            if(afterReceive - beforeSend < defaultTestDeliveryDelay )
+            	throw new TestException("Message received to soon, beforeSend: " + beforeSend + " afterReceive: " + afterReceive + " deliveryDelay: " + defaultTestDeliveryDelay
+                        + "\nreceivedMessage:\n" + receivedMessage);            
 
     	}
     	
