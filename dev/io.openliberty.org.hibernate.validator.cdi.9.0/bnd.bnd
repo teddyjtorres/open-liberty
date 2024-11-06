@@ -17,3 +17,8 @@ instrument.disabled: true
 -buildpath: \
   org.hibernate.validator:hibernate-validator;version=9.0.0.Beta3,\
   org.hibernate.validator:hibernate-validator-cdi;version=9.0.0.Beta3
+  
+javac.source: 17
+javac.target: 17
+
+Require-Capability: osgi.ee; filter:="(&(osgi.ee=JavaSE)(version=17))"
