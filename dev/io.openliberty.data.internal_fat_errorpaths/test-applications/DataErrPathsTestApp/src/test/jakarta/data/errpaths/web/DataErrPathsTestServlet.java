@@ -84,6 +84,9 @@ public class DataErrPathsTestServlet extends FATServlet {
     InvalidJNDIRepo errIncorrectJNDIName;
 
     @Inject
+    Inventions errInvalidEntityRepo;
+
+    @Inject
     WrongPersistenceUnitRefRepo errWrongPersistenceUnitRef;
 
     @Resource
@@ -427,6 +430,25 @@ public class DataErrPathsTestServlet extends FATServlet {
             if (x.getMessage() == null ||
                 !x.getMessage().startsWith("CWWKD1080E:") ||
                 !x.getMessage().contains(InvalidDatabaseRepo.class.getName()))
+                throw x;
+        }
+    }
+
+    /**
+     * Tests an error path where the repository specifies an entity that is not a
+     * valid JPA entity because it has no Id attribute.
+     */
+    @Test
+    public void testRepositoryWithInvalidEntity() {
+        try {
+            Invention i = errInvalidEntityRepo //
+                            .save(new Invention(1, 2, "Perpetual Motion Machine"));
+            fail("Should not be able to use a repository operation for an entity" +
+                 " that is not valid because it has no Id attribute. Saved: " + i);
+        } catch (CompletionException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1080E:") ||
+                !x.getMessage().contains(Invention.class.getName()))
                 throw x;
         }
     }

@@ -46,6 +46,7 @@ public class DataErrPathsTest extends FATServletClient {
                                    "CWWKD1078E.*test.jakarta.data.errpaths.web.InvalidNonJNDIRepo",
                                    "CWWKD1079E.*test.jakarta.data.errpaths.web.InvalidJNDIRepo",
                                    "CWWKD1080E.*test.jakarta.data.errpaths.web.InvalidDatabaseRepo",
+                                   "CWWKD1080E.*test.jakarta.data.errpaths.web.Inventions", // has invalid entity class
                                    "CWWKD1082E.*test.jakarta.data.errpaths.web.WrongPersistenceUnitRefRepo",
                                    "CWWKD1083E.*bornOn", // duplicate Param annotations
                                    "CWWKD1084E.*bornIn", // Param annotation omitted
