@@ -53,6 +53,7 @@ public class DataJPATest extends FATServletClient {
                                    "CWWKD1046E.*numFullTimeWorkersAsDouble",
                                    "CWWKD1046E.*numFullTimeWorkersAsFloat",
                                    "CWWKD1046E.*numFullTimeWorkersAsShort",
+                                   "CWWKD1054E.*findByIsControlTrueAndNumericValueBetween",
                                    "CWWKD1075E.*Apartment2",
                                    "CWWKD1075E.*Apartment3"
                     };

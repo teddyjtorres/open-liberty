@@ -1096,6 +1096,7 @@ public class QueryInfo {
     @Trivial
     NonUniqueResultException excNonUniqueResult(int numResults) {
         throw exc(NonUniqueResultException.class,
+                  "CWWKD1054.non.unique.result",
                   method.getName(),
                   repositoryInterface.getName(),
                   method.getGenericReturnType().getTypeName(),
