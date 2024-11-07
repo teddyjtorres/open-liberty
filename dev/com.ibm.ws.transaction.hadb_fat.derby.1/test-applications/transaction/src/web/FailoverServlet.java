@@ -33,12 +33,12 @@ import javax.transaction.xa.XAResource;
 
 import com.ibm.tx.jta.ExtendedTransactionManager;
 import com.ibm.tx.jta.TransactionManagerFactory;
+import com.ibm.tx.jta.ut.util.HADBTestConstants.HADBTestType;
 import com.ibm.tx.jta.ut.util.TxTestUtils;
 import com.ibm.tx.jta.ut.util.XAResourceFactoryImpl;
 import com.ibm.tx.jta.ut.util.XAResourceImpl;
 import com.ibm.tx.jta.ut.util.XAResourceInfoFactory;
 import com.informix.database.ConnectionManager;
-import com.informix.jdbcx.IfxConstants.TestType;
 
 import componenttest.app.FATServlet;
 
@@ -57,101 +57,101 @@ public class FailoverServlet extends FATServlet {
 
     public void setupForRecoverableFailover() throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupForRecoverableFailover");
-        setupTestParameters(TestType.RUNTIME, -4498, 12, 1);
+        setupTestParameters(HADBTestType.RUNTIME, -4498, 12, 1);
         System.out.println("FAILOVERSERVLET: setupForRecoverableFailover complete");
     }
 
     public void setupForRecoverableFailureMultipleRetries() throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupForRecoverableFailureMultipleRetries");
-        setupTestParameters(TestType.RUNTIME, -4498, 12, 5); // Can fail up to 5 times
+        setupTestParameters(HADBTestType.RUNTIME, -4498, 12, 5); // Can fail up to 5 times
         System.out.println("FAILOVERSERVLET: setupForRecoverableFailureMultipleRetries complete");
     }
 
     public void setupForNonRecoverableFailover() throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupForNonRecoverableFailover");
-        setupTestParameters(TestType.RUNTIME, -3, 12, 1);
+        setupTestParameters(HADBTestType.RUNTIME, -3, 12, 1);
         System.out.println("FAILOVERSERVLET: setupForNonRecoverableFailover complete");
     }
 
     public void setupForNonRecoverableBatchFailover() throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupForNonRecoverableBatchFailover");
-        setupTestParameters(TestType.RUNTIME, -33, 12, 1);
+        setupTestParameters(HADBTestType.RUNTIME, -33, 12, 1);
         System.out.println("FAILOVERSERVLET: setupForNonRecoverableBatchFailover complete");
     }
 
     public void setupForConnectFailover() throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupForConnectFailover");
-        setupTestParameters(TestType.CONNECT, 0, 0, 1);
+        setupTestParameters(HADBTestType.CONNECT, 0, 0, 1);
         System.out.println("FAILOVERSERVLET: setupForConnectFailover complete");
     }
 
     public void setupForMultiConnectFailover() throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupForConnectFailover");
-        setupTestParameters(TestType.CONNECT, 0, 0, 3);
+        setupTestParameters(HADBTestType.CONNECT, 0, 0, 3);
         System.out.println("FAILOVERSERVLET: setupForConnectFailover complete");
     }
 
     public void setupForStartupFailover() throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupForStartupFailover");
-        setupTestParameters(TestType.STARTUP, -4498, 6, 1);
+        setupTestParameters(HADBTestType.STARTUP, -4498, 6, 1);
         System.out.println("FAILOVERSERVLET: setupForStartupFailover complete");
     }
 
     public void setupForNonRecoverableStartupFailover() throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupForNonRecoverableStartupFailover");
-        setupTestParameters(TestType.STARTUP, -3, 6, 1);
+        setupTestParameters(HADBTestType.STARTUP, -3, 6, 1);
         System.out.println("FAILOVERSERVLET: setupForNonRecoverableStartupFailover complete");
     }
 
     public void setupForEarlyNonRecoverableStartupFailover() throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupForNonRecoverableStartupFailover");
-        setupTestParameters(TestType.STARTUP, -3, 0, 1);
+        setupTestParameters(HADBTestType.STARTUP, -3, 0, 1);
         System.out.println("FAILOVERSERVLET: setupForNonRecoverableStartupFailover complete");
     }
 
     public void setupForDuplicationRestart() throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupForDuplicationRestart");
-        setupTestParameters(TestType.DUPLICATE_RESTART, 0, 10, 1);
+        setupTestParameters(HADBTestType.DUPLICATE_RESTART, 0, 10, 1);
         System.out.println("FAILOVERSERVLET: setupForDuplicationRestart complete");
     }
 
     public void setupForDuplicationRuntime() throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupForDuplicationRuntime");
-        setupTestParameters(TestType.DUPLICATE_RUNTIME, 0, 10, 1);
+        setupTestParameters(HADBTestType.DUPLICATE_RUNTIME, 0, 10, 1);
         System.out.println("FAILOVERSERVLET: setupForDuplicationRuntime complete");
     }
 
     public void setupForHalt() throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupForHalt");
-        setupTestParameters(TestType.HALT, 0, 12, 1); // set the ioperation to the duplicate test value + 2
+        setupTestParameters(HADBTestType.HALT, 0, 12, 1); // set the ioperation to the duplicate test value + 2
         System.out.println("FAILOVERSERVLET: setupForHalt complete");
     }
 
     public void setupForLeaseUpdate() throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupForLeaseUpdate");
-        setupTestParameters(TestType.LEASE, 0, 770, 1); // 770 interpreted as lease update
+        setupTestParameters(HADBTestType.LEASE, 0, 770, 1); // 770 interpreted as lease update
         System.out.println("FAILOVERSERVLET: setupForLeaseUpdate complete");
     }
 
     public void setupForLeaseDelete() throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupForLeaseDelete");
-        setupTestParameters(TestType.LEASE, 0, 771, 1); // 771 interpreted as lease delete
+        setupTestParameters(HADBTestType.LEASE, 0, 771, 1); // 771 interpreted as lease delete
         System.out.println("FAILOVERSERVLET: setupForLeaseDelete complete");
     }
 
     public void setupForLeaseClaim() throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupForLeaseClaim");
-        setupTestParameters(TestType.LEASE, 0, 772, 1); // 772 interpreted as lease claim
+        setupTestParameters(HADBTestType.LEASE, 0, 772, 1); // 772 interpreted as lease claim
         System.out.println("FAILOVERSERVLET: setupForLeaseClaim complete");
     }
 
     public void setupForLeaseGet() throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupForLeaseGet");
-        setupTestParameters(TestType.LEASE, 0, 773, 1); // 773 interpreted as lease get
+        setupTestParameters(HADBTestType.LEASE, 0, 773, 1); // 773 interpreted as lease get
         System.out.println("FAILOVERSERVLET: setupForLeaseGet complete");
     }
 
-    private void setupTestParameters(TestType testType,
+    private void setupTestParameters(HADBTestType testType,
                                      int thesqlcode, int operationToFail, int numberOfFailures) throws Exception {
         System.out.println("FAILOVERSERVLET: drive setupTestParameters");
 
@@ -173,7 +173,7 @@ public class FailoverServlet extends FATServlet {
             throw exToThrow;
     }
 
-    private void setupHATable(TestType testType,
+    private void setupHATable(HADBTestType testType,
                               int thesqlcode, int operationToFail, int numberOfFailures) throws Exception {
 
         try (Connection con = getConnection(); Statement stmt = con.createStatement()) {

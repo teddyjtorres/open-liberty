@@ -12,6 +12,8 @@
  *******************************************************************************/
 package com.ibm.tx.jta.ut.util;
 
+import static java.util.Collections.unmodifiableMap;
+
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,17 +25,19 @@ public class HADBTestConstants {
         DUPLICATE_RUNTIME,
         HALT,
         CONNECT,
-        LEASE;
+        LEASE,
+        NONE;
 
-        private static final Map<Integer, HADBTestType> _map = new HashMap<Integer, HADBTestType>();
+        private static final Map<Integer, HADBTestType> _map;
+
         static {
-            for (HADBTestType testType : HADBTestType.values()) {
-                _map.put(testType.ordinal(), testType);
-            }
+            Map<Integer, HADBTestType> types = new HashMap<>();
+            for (HADBTestType type: HADBTestType.values()) types.put(type.ordinal(), type);
+            _map = unmodifiableMap(types);
         }
 
         public static HADBTestType from(int ordinal) {
             return _map.get(ordinal);
         }
-    };
+    }
 }

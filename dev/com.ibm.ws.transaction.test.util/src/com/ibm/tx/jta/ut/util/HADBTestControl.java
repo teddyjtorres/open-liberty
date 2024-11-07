@@ -38,9 +38,9 @@ public class HADBTestControl {
 
         private HADBTestControl(String... values) {
                 _testType = HADBTestType.from(Integer.parseInt(values[0]));
-                _failingOperation = Integer.parseInt(values[1]);
-                _numberOfFailuresInt = Integer.parseInt(values[2]);
-                _simsqlcodeInt = Integer.parseInt(values[3]);
+                _simsqlcodeInt = Integer.parseInt(values[1]);
+                _failingOperation = Integer.parseInt(values[2]);
+                _numberOfFailuresInt = Integer.parseInt(values[3]);
         }
 
         public static HADBTestControl read() {
@@ -54,7 +54,7 @@ public class HADBTestControl {
                                         return new HADBTestControl(values);
                                 }
                         }
-                } catch (IOException e) {
+                } catch (IOException | NullPointerException e) {
                         e.printStackTrace();
                 }
 
@@ -66,7 +66,7 @@ public class HADBTestControl {
         }
 
         public String toString() {
-                return String.join(DELIMITER, _testType.toString(), String.valueOf(_failingOperation), String.valueOf(_numberOfFailuresInt), String.valueOf(_simsqlcodeInt));
+                return String.join(DELIMITER, _testType.toString(), String.valueOf(_simsqlcodeInt), String.valueOf(_failingOperation), String.valueOf(_numberOfFailuresInt));
         }
 
         /**
@@ -101,9 +101,9 @@ public class HADBTestControl {
                 testControlPath = Paths.get(serverSharedPath).resolve(controlFilename);
         }
 
-        public static void write(HADBTestType testType, int failingOperation, int numberOfFailuresInt, int simsqlcodeInt) {
+        public static void write(HADBTestType testType, int simsqlcodeInt, int failingOperation, int numberOfFailuresInt) {
                 try (BufferedWriter bw = Files.newBufferedWriter(testControlPath, StandardOpenOption.CREATE, StandardOpenOption.WRITE, StandardOpenOption.TRUNCATE_EXISTING)) {
-                        bw.write(String.join(DELIMITER, String.valueOf(testType.ordinal()), String.valueOf(failingOperation), String.valueOf(numberOfFailuresInt), String.valueOf(simsqlcodeInt)));
+                        bw.write(String.join(DELIMITER, String.valueOf(testType.ordinal()), String.valueOf(simsqlcodeInt), String.valueOf(failingOperation), String.valueOf(numberOfFailuresInt)));
                 } catch (Exception e) {
                         e.printStackTrace();
                 }

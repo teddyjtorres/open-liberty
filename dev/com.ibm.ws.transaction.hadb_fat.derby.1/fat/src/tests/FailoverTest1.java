@@ -27,6 +27,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.ibm.tx.jta.ut.util.HADBTestConstants.HADBTestType;
+import com.ibm.tx.jta.ut.util.HADBTestControl;
 import com.ibm.tx.jta.ut.util.TxTestUtils;
 import com.ibm.websphere.simplicity.log.Log;
 import com.ibm.ws.transaction.fat.util.FATUtils;
@@ -164,6 +166,8 @@ public class FailoverTest1 extends FailoverTest {
             Log.info(this.getClass(), method, "set timeout");
             server.setServerStartTimeout(START_TIMEOUT);
 
+            HADBTestControl.write(HADBTestType.RUNTIME, -4498, 12, 1);
+
             server.setAdditionalSystemProperties(Collections.singletonMap(TxTestUtils.CONNECTION_MANAGER_FAILS, "1"));
 
             FATUtils.startServers(runner, server);
@@ -203,6 +207,8 @@ public class FailoverTest1 extends FailoverTest {
         Log.info(this.getClass(), method, "set timeout");
         server.setServerStartTimeout(START_TIMEOUT);
 
+        HADBTestControl.write(HADBTestType.RUNTIME, -4498, 12, 1);
+
         FATUtils.startServers(runner, server);
 
         runInServletAndCheck(server, SERVLET_NAME, "driveTransactions");
@@ -233,6 +239,8 @@ public class FailoverTest1 extends FailoverTest {
 
         Log.info(this.getClass(), method, "set timeout");
         server.setServerStartTimeout(START_TIMEOUT);
+
+        HADBTestControl.write(HADBTestType.RUNTIME, -4498, 12, 5); // Can fail up to 5 times
 
         FATUtils.startServers(runner, server);
 
@@ -281,6 +289,8 @@ public class FailoverTest1 extends FailoverTest {
         Log.info(this.getClass(), method, "set timeout");
         server.setServerStartTimeout(START_TIMEOUT);
 
+        HADBTestControl.write(HADBTestType.RUNTIME, -3, 12, 1);
+
         FATUtils.startServers(runner, server);
 
         // An unhandled sqlcode will lead to a failure to write to the log, the
@@ -321,6 +331,8 @@ public class FailoverTest1 extends FailoverTest {
 
         FATUtils.stopServers(server);
 
+        HADBTestControl.write(HADBTestType.STARTUP, -4498, 6, 1);
+
         Log.info(this.getClass(), method, "set timeout");
         server.setServerStartTimeout(START_TIMEOUT);
 
@@ -345,6 +357,8 @@ public class FailoverTest1 extends FailoverTest {
 
         Log.info(this.getClass(), method, "set timeout");
         server.setServerStartTimeout(START_TIMEOUT);
+
+        HADBTestControl.write(HADBTestType.STARTUP, -3, 6, 1);
 
         FATUtils.startServers(runner, server);
         StringBuilder sb = runInServlet(server, SERVLET_NAME, "driveTransactions");
@@ -371,6 +385,8 @@ public class FailoverTest1 extends FailoverTest {
 
         Log.info(this.getClass(), method, "set timeout");
         server.setServerStartTimeout(START_TIMEOUT);
+
+        HADBTestControl.write(HADBTestType.STARTUP, -3, 0, 1);
 
         FATUtils.startServers(runner, server);
         StringBuilder sb = runInServlet(server, SERVLET_NAME, "driveTransactions");
@@ -400,6 +416,8 @@ public class FailoverTest1 extends FailoverTest {
 
         Log.info(this.getClass(), method, "set timeout");
         server.setServerStartTimeout(START_TIMEOUT);
+
+        HADBTestControl.write(HADBTestType.DUPLICATE_RESTART, 0, 10, 1);
 
         FATUtils.startServers(runner, server);
 
@@ -446,6 +464,8 @@ public class FailoverTest1 extends FailoverTest {
 
         Log.info(this.getClass(), method, "set timeout");
         server.setServerStartTimeout(START_TIMEOUT);
+
+        HADBTestControl.write(HADBTestType.DUPLICATE_RUNTIME, 0, 10, 1);
 
         FATUtils.startServers(runner, server);
 
@@ -511,6 +531,8 @@ public class FailoverTest1 extends FailoverTest {
 
         Log.info(this.getClass(), method, "set timeout");
         server.setServerStartTimeout(START_TIMEOUT);
+
+        HADBTestControl.write(HADBTestType.HALT, 0, 12, 1); // set the ioperation to the duplicate test value + 2
 
         FATUtils.startServers(runner, server);
 

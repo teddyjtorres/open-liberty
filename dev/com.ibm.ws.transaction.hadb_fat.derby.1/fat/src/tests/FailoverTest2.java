@@ -21,6 +21,8 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import com.ibm.tx.jta.ut.util.HADBTestConstants.HADBTestType;
+import com.ibm.tx.jta.ut.util.HADBTestControl;
 import com.ibm.websphere.simplicity.config.ServerConfiguration;
 import com.ibm.websphere.simplicity.config.Transaction;
 import com.ibm.websphere.simplicity.log.Log;
@@ -30,11 +32,9 @@ import componenttest.annotation.AllowedFFDC;
 import componenttest.annotation.ExpectedFFDC;
 import componenttest.annotation.Server;
 import componenttest.annotation.SkipIfSysProp;
-import componenttest.annotation.TestServlet;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.impl.LibertyServer;
 import suite.FATSuite;
-import web.FailoverServlet;
 
 /**
  * These tests are designed to exercise the ability of the SQLMultiScopeRecoveryLog (transaction logs stored
@@ -120,11 +120,9 @@ import web.FailoverServlet;
 public class FailoverTest2 extends FailoverTest {
 
     @Server("com.ibm.ws.transaction")
-    @TestServlet(servlet = FailoverServlet.class, contextRoot = APP_NAME)
     public static LibertyServer defaultServer;
 
     @Server("com.ibm.ws.transaction_recover")
-    @TestServlet(servlet = FailoverServlet.class, contextRoot = APP_NAME)
     public static LibertyServer recoverServer;
 
     public static String[] serverNames = new String[] {
@@ -162,6 +160,8 @@ public class FailoverTest2 extends FailoverTest {
         Log.info(this.getClass(), method, "set timeout");
         server.setServerStartTimeout(START_TIMEOUT);
 
+        HADBTestControl.write(HADBTestType.RUNTIME, -3, 12, 1);
+
         FATUtils.startServers(runner, server);
 
         // An unhandled sqlcode will lead to a failure to write to the log, the
@@ -193,6 +193,8 @@ public class FailoverTest2 extends FailoverTest {
 
         Log.info(this.getClass(), method, "set timeout");
         server.setServerStartTimeout(START_TIMEOUT);
+
+        HADBTestControl.write(HADBTestType.RUNTIME, -3, 12, 1);
 
         FATUtils.startServers(runner, server);
 
@@ -282,6 +284,8 @@ public class FailoverTest2 extends FailoverTest {
         Log.info(this.getClass(), method, "set timeout");
         server.setServerStartTimeout(START_TIMEOUT);
 
+        HADBTestControl.write(HADBTestType.RUNTIME, -3, 12, 1);
+
         FATUtils.startServers(runner, server);
 
         Log.info(this.getClass(), method, "call driveTransactionsWithFailure");
@@ -367,6 +371,8 @@ public class FailoverTest2 extends FailoverTest {
         Log.info(this.getClass(), method, "set timeout");
         server.setServerStartTimeout(START_TIMEOUT);
 
+        HADBTestControl.write(HADBTestType.CONNECT, 0, 0, 1);
+
         FATUtils.startServers(runner, server);
 
         // Should see a message like
@@ -395,6 +401,8 @@ public class FailoverTest2 extends FailoverTest {
 
         Log.info(this.getClass(), method, "set timeout");
         server.setServerStartTimeout(START_TIMEOUT);
+
+        HADBTestControl.write(HADBTestType.CONNECT, 0, 0, 1);
 
         FATUtils.startServers(runner, server);
 
@@ -425,6 +433,8 @@ public class FailoverTest2 extends FailoverTest {
 
         Log.info(this.getClass(), method, "set timeout");
         server.setServerStartTimeout(START_TIMEOUT);
+
+        HADBTestControl.write(HADBTestType.CONNECT, 0, 0, 3);
 
         try {
             // Don't care whether this actually starts a server

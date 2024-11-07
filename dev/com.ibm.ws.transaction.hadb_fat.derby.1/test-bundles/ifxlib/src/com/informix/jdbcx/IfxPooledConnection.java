@@ -12,6 +12,7 @@
  *******************************************************************************/
 package com.informix.jdbcx;
 
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -21,9 +22,15 @@ import javax.sql.ConnectionEventListener;
 import javax.sql.PooledConnection;
 import javax.sql.StatementEventListener;
 
-import com.informix.jdbcx.IfxConstants.TestType;
+import com.ibm.tx.jta.ut.util.HADBTestConstants.HADBTestType;
+import com.ibm.tx.jta.ut.util.HADBTestControl;
 
 public class IfxPooledConnection implements PooledConnection {
+
+    static {
+        HADBTestControl.init(Paths.get(System.getenv("WLP_OUTPUT_DIR")).getParent().resolve(Paths.get("shared")).toString());
+    }
+
     PooledConnection wrappedPooledConn = null;
     Connection unwrappedConnection = null;
 
@@ -96,15 +103,22 @@ public class IfxPooledConnection implements PooledConnection {
             try {
                 System.out.println("SIMHADB: Execute a query to see if we can find the table");
                 rsBasic = stmt.executeQuery("SELECT testtype, failingoperation, numberoffailures, simsqlcode" + " FROM hatable");
+                HADBTestControl testControl = HADBTestControl.read();
+                System.out.println("HADBtestControl: " + testControl);
                 if (rsBasic.next()) {
-                    final TestType testType = TestType.from(rsBasic.getInt(1));
+                    final HADBTestType testType = HADBTestType.from(rsBasic.getInt(1));
                     System.out.println("SIMHADB: Stored column testtype is: " + testType);
+                    int simsqlcodeInt = rsBasic.getInt(4);
+                    System.out.println("SIMHADB: Stored column simsqlcode is: " + simsqlcodeInt);
                     int failingOperation = rsBasic.getInt(2);
                     System.out.println("SIMHADB: Stored column failingoperation is: " + failingOperation);
                     int numberOfFailuresInt = rsBasic.getInt(3);
                     System.out.println("SIMHADB: Stored column numberoffailures is: " + numberOfFailuresInt);
-                    int simsqlcodeInt = rsBasic.getInt(4);
-                    System.out.println("SIMHADB: Stored column simsqlcode is: " + simsqlcodeInt);
+
+                    if (null == testControl || testType != testControl.getTestType() || failingOperation != testControl.getFailingOperation()
+                        || numberOfFailuresInt != testControl.getNumberOfFailuresInt() || simsqlcodeInt != testControl.getSimsqlcodeInt()) {
+                        System.out.println("SIMHADB: Mismatch!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+                    }
                     switch (testType) {
                         case STARTUP:
                             // We abuse the failovervalInt parameter. If it is set to
