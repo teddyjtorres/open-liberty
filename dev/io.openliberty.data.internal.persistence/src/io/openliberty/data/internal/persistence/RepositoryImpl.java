@@ -1010,7 +1010,7 @@ public class RepositoryImpl<R> implements InvocationHandler {
                         // The first method parameters are used as query parameters.
                         // Beyond that, they can have other purposes such as
                         // pagination and sorting.
-                        for (int i = queryInfo.paramCount; //
+                        for (int i = queryInfo.jpqlParamCount; //
                                         i < (args == null ? 0 : args.length); //
                                         i++) {
                             Object param = args[i];
@@ -1061,7 +1061,7 @@ public class RepositoryImpl<R> implements InvocationHandler {
                                           "CWWKD1023.extra.param",
                                           method.getName(),
                                           repositoryInterface.getName(),
-                                          queryInfo.paramCount,
+                                          queryInfo.jpqlParamCount,
                                           method.getParameterTypes()[i].getName(),
                                           queryInfo.jpql);
                             }

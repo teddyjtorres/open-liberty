@@ -245,6 +245,11 @@ public class QueryInfo {
     String jpqlDelete;
 
     /**
+     * Number of parameters to the JPQL query.
+     */
+    int jpqlParamCount;
+
+    /**
      * Value from findFirst#By, or 1 for findFirstBy, otherwise 0.
      */
     int maxResults;
@@ -259,11 +264,6 @@ public class QueryInfo {
      * Null if the query return type limits to single results.
      */
     final Class<?> multiType;
-
-    /**
-     * Number of parameters to the JPQL query.
-     */
-    int paramCount;
 
     /**
      * Names of named parameters in query language, ordered according to the
@@ -1074,7 +1074,7 @@ public class QueryInfo {
                    "CWWKD1019.mixed.positional.named",
                    method.getName(),
                    repositoryInterface.getName(),
-                   paramCount - methodNPCount,
+                   jpqlParamCount - methodNPCount,
                    methodNPCount,
                    allNamedParams,
                    method.getAnnotation(Query.class).value(),
@@ -1352,27 +1352,27 @@ public class QueryInfo {
         switch (condition) {
             case STARTS_WITH:
                 q.append(attributeExpr).append(negated ? " NOT " : " ").append("LIKE CONCAT(");
-                generateParam(q, ignoreCase, ++paramCount).append(", '%')");
+                generateParam(q, ignoreCase, ++jpqlParamCount).append(", '%')");
                 break;
             case ENDS_WITH:
                 q.append(attributeExpr).append(negated ? " NOT " : " ").append("LIKE CONCAT('%', ");
-                generateParam(q, ignoreCase, ++paramCount).append(")");
+                generateParam(q, ignoreCase, ++jpqlParamCount).append(")");
                 break;
             case LIKE:
                 q.append(attributeExpr).append(negated ? " NOT " : " ").append("LIKE ");
-                generateParam(q, ignoreCase, ++paramCount);
+                generateParam(q, ignoreCase, ++jpqlParamCount);
                 break;
             case BETWEEN:
                 q.append(attributeExpr).append(negated ? " NOT " : " ").append("BETWEEN ");
-                generateParam(q, ignoreCase, ++paramCount).append(" AND ");
-                generateParam(q, ignoreCase, ++paramCount);
+                generateParam(q, ignoreCase, ++jpqlParamCount).append(" AND ");
+                generateParam(q, ignoreCase, ++jpqlParamCount);
                 break;
             case CONTAINS:
                 if (isCollection) {
-                    q.append(" ?").append(++paramCount).append(negated ? " NOT " : " ").append("MEMBER OF ").append(attributeExpr);
+                    q.append(" ?").append(++jpqlParamCount).append(negated ? " NOT " : " ").append("MEMBER OF ").append(attributeExpr);
                 } else {
                     q.append(attributeExpr).append(negated ? " NOT " : " ").append("LIKE CONCAT('%', ");
-                    generateParam(q, ignoreCase, ++paramCount).append(", '%')");
+                    generateParam(q, ignoreCase, ++jpqlParamCount).append(", '%')");
                 }
                 break;
             case NULL:
@@ -1397,7 +1397,7 @@ public class QueryInfo {
                               "In");
             default:
                 q.append(attributeExpr).append(negated ? " NOT " : "").append(condition.operator);
-                generateParam(q, ignoreCase, ++paramCount);
+                generateParam(q, ignoreCase, ++jpqlParamCount);
         }
     }
 
@@ -1454,21 +1454,21 @@ public class QueryInfo {
                     if (lower) {
                         a.append(s == 0 ? "LOWER(" : " AND LOWER(").append(o_).append(name).append(')');
                         a.append(s < i ? '=' : (asc ? '>' : '<'));
-                        a.append("LOWER(").append(paramPrefix).append(paramCount + 1 + s).append(')');
+                        a.append("LOWER(").append(paramPrefix).append(jpqlParamCount + 1 + s).append(')');
                     } else {
                         a.append(s == 0 ? "" : " AND ").append(o_).append(name);
                         a.append(s < i ? '=' : (asc ? '>' : '<'));
-                        a.append(paramPrefix).append(paramCount + 1 + s);
+                        a.append(paramPrefix).append(jpqlParamCount + 1 + s);
                     }
                 if (b != null)
                     if (lower) {
                         b.append(s == 0 ? "LOWER(" : " AND LOWER(").append(o_).append(name).append(')');
                         b.append(s < i ? '=' : (asc ? '<' : '>'));
-                        b.append("LOWER(").append(paramPrefix).append(paramCount + 1 + s).append(')');
+                        b.append("LOWER(").append(paramPrefix).append(jpqlParamCount + 1 + s).append(')');
                     } else {
                         b.append(s == 0 ? "" : " AND ").append(o_).append(name);
                         b.append(s < i ? '=' : (asc ? '<' : '>'));
-                        b.append(paramPrefix).append(paramCount + 1 + s);
+                        b.append(paramPrefix).append(jpqlParamCount + 1 + s);
                     }
             }
             if (a != null)
@@ -1541,14 +1541,14 @@ public class QueryInfo {
                         q.append(" AND ");
 
                     name = entityInfo.attributeNames.get(name);
-                    q.append(o_).append(name).append("=?").append(++paramCount);
+                    q.append(o_).append(name).append("=?").append(++jpqlParamCount);
                 }
             } else {
-                q.append(o_).append(idName).append("=?").append(++paramCount);
+                q.append(o_).append(idName).append("=?").append(++jpqlParamCount);
             }
 
             if (entityInfo.versionAttributeName != null)
-                q.append(" AND ").append(o_).append(entityInfo.versionAttributeName).append("=?").append(++paramCount);
+                q.append(" AND ").append(o_).append(entityInfo.versionAttributeName).append("=?").append(++jpqlParamCount);
 
             q.append(')');
         }
@@ -1715,7 +1715,7 @@ public class QueryInfo {
                                     q.append(o_).append(name).append(op);
                             }
 
-                            paramCount++;
+                            jpqlParamCount++;
                             q.append('?').append(qp);
 
                             if (withFunction)
@@ -1791,7 +1791,7 @@ public class QueryInfo {
 
                 boolean isCollection = entityInfo.collectionElementTypes.containsKey(name);
 
-                paramCount++;
+                jpqlParamCount++;
 
                 compat.appendCondition(q, qp, method, p, o_, name, isCollection, annosForAllParams[p]);
             }
@@ -2070,7 +2070,7 @@ public class QueryInfo {
                 case '+':
                     if (CharSequence.class.isAssignableFrom(entityInfo.attributeTypes.get(name))) {
                         q.append("CONCAT(").append(o_).append(name).append(',') //
-                                        .append('?').append(++paramCount).append(')');
+                                        .append('?').append(++jpqlParamCount).append(')');
                         break;
                     }
                     // else fall through
@@ -2079,7 +2079,7 @@ public class QueryInfo {
                     q.append(o_).append(name).append(op);
                     // fall through
                 case '=':
-                    q.append('?').append(++paramCount);
+                    q.append('?').append(++jpqlParamCount);
             }
 
             u = next == Integer.MAX_VALUE ? -1 : next;
@@ -2112,7 +2112,7 @@ public class QueryInfo {
                 else
                     q.append(", ");
 
-                q.append(o_).append(name).append("=?").append(++paramCount);
+                q.append(o_).append(name).append("=?").append(++jpqlParamCount);
             }
         } else {
             // Update that returns an entity. And also used when an entity
@@ -2142,15 +2142,15 @@ public class QueryInfo {
                     q.append(" AND ");
 
                 name = entityInfo.attributeNames.get(name);
-                q.append(o_).append(name).append("=?").append(++paramCount);
+                q.append(o_).append(name).append("=?").append(++jpqlParamCount);
             }
         } else {
-            q.append(o_).append(idName).append("=?").append(++paramCount);
+            q.append(o_).append(idName).append("=?").append(++jpqlParamCount);
         }
 
         if (entityInfo.versionAttributeName != null)
             q.append(" AND ").append(o_).append(entityInfo.versionAttributeName) //
-                            .append("=?").append(++paramCount);
+                            .append("=?").append(++jpqlParamCount);
 
         q.append(')');
 
@@ -2566,7 +2566,7 @@ public class QueryInfo {
      */
     @Trivial
     private void initDynamicSortPositions(Class<?>[] paramTypes) {
-        for (int i = paramCount; i < paramTypes.length; i++)
+        for (int i = jpqlParamCount; i < paramTypes.length; i++)
             if (SORT_PARAM_TYPES.contains(paramTypes[i]))
                 initDynamicSortPosition(i);
     }
@@ -3053,7 +3053,7 @@ public class QueryInfo {
         Parameter[] params = method.getParameters();
         for (int i = 0; i < params.length &&
                         !SPECIAL_PARAM_TYPES.contains(params[i].getType()); //
-                        paramCount = ++i) {
+                        jpqlParamCount = ++i) {
             Param param = params[i].getAnnotation(Param.class);
             String paramName = null;
             if (param != null) {
@@ -3083,7 +3083,7 @@ public class QueryInfo {
         }
 
         sortPositions = NONE_QUERY_LANGUAGE_ONLY;
-        for (int i = paramCount; i < params.length; i++)
+        for (int i = jpqlParamCount; i < params.length; i++)
             if (SORT_PARAM_TYPES.contains(params[i].getType()))
                 initDynamicSortPosition(i);
 
@@ -3103,7 +3103,7 @@ public class QueryInfo {
         }
 
         // Does the method supply a mixture of named and positional parameters?
-        if (paramNamesCount > 0 && paramNamesCount < paramCount)
+        if (paramNamesCount > 0 && paramNamesCount < jpqlParamCount)
             throw excMixedQLParamTypes(paramNamesCount);
     }
 
@@ -3344,7 +3344,7 @@ public class QueryInfo {
 
         // Check parameter positions after those used for query parameters
         boolean signatureHasPageReq = false;
-        for (int i = paramCount; i < paramTypes.length; i++)
+        for (int i = jpqlParamCount; i < paramTypes.length; i++)
             signatureHasPageReq |= PageRequest.class.equals(paramTypes[i]);
 
         if (signatureHasPageReq)
@@ -3646,17 +3646,17 @@ public class QueryInfo {
     void setParameters(jakarta.persistence.Query query, Object... args) throws Exception {
         final boolean trace = TraceComponent.isAnyTracingEnabled();
 
-        if (args != null && args.length < paramCount)
+        if (args != null && args.length < jpqlParamCount)
             throw exc(DataException.class,
                       "CWWKD1021.insufficient.params",
                       method.getName(),
                       repositoryInterface.getName(),
                       args.length,
-                      paramCount,
+                      jpqlParamCount,
                       jpql);
 
         Iterator<String> namedParams = paramNames.iterator();
-        for (int i = 0, p = 0; i < paramCount; i++) {
+        for (int i = 0, p = 0; i < jpqlParamCount; i++) {
             Object arg = args[i];
 
             if (namedParams.hasNext()) {
@@ -3672,14 +3672,14 @@ public class QueryInfo {
             }
         }
         if (args != null &&
-            paramCount < args.length &&
+            jpqlParamCount < args.length &&
             type != Type.FIND &&
             type != Type.FIND_AND_DELETE) {
             throw exc(DataException.class,
                       "CWWKD1022.too.many.params",
                       method.getName(),
                       repositoryInterface.getName(),
-                      paramCount,
+                      jpqlParamCount,
                       args.length,
                       jpql);
         }
@@ -3693,14 +3693,14 @@ public class QueryInfo {
      * @throws Exception if an error occurs
      */
     void setParametersFromCursor(jakarta.persistence.Query query, PageRequest.Cursor cursor) throws Exception {
-        int paramNum = paramCount; // position before that of first cursor element
+        int paramNum = jpqlParamCount; // position before that of first cursor element
         if (paramNames.isEmpty()) // positional parameters
             for (int i = 0; i < cursor.size(); i++) {
                 Object value = cursor.get(i);
                 if (entityInfo.idClassAttributeAccessors != null && entityInfo.idType.isInstance(value)) {
                     for (Member accessor : entityInfo.idClassAttributeAccessors.values()) {
                         Object v = accessor instanceof Field ? ((Field) accessor).get(value) : ((Method) accessor).invoke(value);
-                        if (++paramNum - paramCount > sorts.size())
+                        if (++paramNum - jpqlParamCount > sorts.size())
                             cursorSizeMismatchError(cursor);
                         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
                             Tr.debug(this, tc, "set [cursor] ?" + paramNum + ' ' +
@@ -3709,7 +3709,7 @@ public class QueryInfo {
                         query.setParameter(paramNum, v);
                     }
                 } else {
-                    if (++paramNum - paramCount > sorts.size())
+                    if (++paramNum - jpqlParamCount > sorts.size())
                         cursorSizeMismatchError(cursor);
                     if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
                         Tr.debug(this, tc, "set [cursor] ?" + paramNum + ' ' +
@@ -3723,7 +3723,7 @@ public class QueryInfo {
                 if (entityInfo.idClassAttributeAccessors != null && entityInfo.idType.isInstance(value)) {
                     for (Member accessor : entityInfo.idClassAttributeAccessors.values()) {
                         Object v = accessor instanceof Field ? ((Field) accessor).get(value) : ((Method) accessor).invoke(value);
-                        if (++paramNum - paramCount > sorts.size())
+                        if (++paramNum - jpqlParamCount > sorts.size())
                             cursorSizeMismatchError(cursor);
                         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
                             Tr.debug(this, tc, "set [cursor] :cursor" + paramNum + ' ' + value.getClass().getName() + "-->" +
@@ -3731,7 +3731,7 @@ public class QueryInfo {
                         query.setParameter("cursor" + paramNum, v);
                     }
                 } else {
-                    if (++paramNum - paramCount > sorts.size())
+                    if (++paramNum - jpqlParamCount > sorts.size())
                         cursorSizeMismatchError(cursor);
                     if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
                         Tr.debug(this, tc, "set [cursor] :cursor" + paramNum + ' ' +
@@ -3740,7 +3740,7 @@ public class QueryInfo {
                 }
             }
 
-        if (sorts.size() > paramNum - paramCount) // not enough cursor elements
+        if (sorts.size() > paramNum - jpqlParamCount) // not enough cursor elements
             cursorSizeMismatchError(cursor);
     }
 
@@ -3956,8 +3956,8 @@ public class QueryInfo {
         b.append(first ? "() " : ") ");
         if (jpql != null)
             b.append(jpql);
-        if (paramCount > 0)
-            b.append(" [").append(paramCount).append(paramNames.isEmpty() ? //
+        if (jpqlParamCount > 0)
+            b.append(" [").append(jpqlParamCount).append(paramNames.isEmpty() ? //
                             " positional params]" : //
                             " named params]");
         return b.toString();
@@ -4077,7 +4077,7 @@ public class QueryInfo {
         q.jpqlCount = jpqlCount;
         q.jpqlDelete = jpqlDelete;
         q.maxResults = maxResults;
-        q.paramCount = paramCount;
+        q.jpqlParamCount = jpqlParamCount;
         q.paramNames = paramNames;
         q.sorts = sorts;
         q.type = type;
