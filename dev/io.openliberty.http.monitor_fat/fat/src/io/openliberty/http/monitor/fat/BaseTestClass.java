@@ -25,6 +25,7 @@ import java.util.Arrays;
 import java.util.Base64;
 import java.util.Scanner;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Supplier;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -33,6 +34,7 @@ import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 
+import org.junit.Assert;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.ImageNameSubstitutor;
@@ -205,7 +207,7 @@ public abstract class BaseTestClass {
         return vendorMetricsOutput;
     }
 
-    protected String getContainerCollectorMetrics(GenericContainer<?> container) throws Exception {
+    protected String getContainerCollectorMetrics(GenericContainer<?> container) {
         String containerCollectorMetrics = requestContainerHttpServlet("/metrics", container.getHost(), container.getMappedPort(8889), HttpMethod.GET, null);
         Log.info(c, "getContainerCollectorMetrics", containerCollectorMetrics);
         return containerCollectorMetrics;
@@ -486,5 +488,34 @@ public abstract class BaseTestClass {
 
         return result;
 
+    }
+
+    /**
+     * Waits one second before checking the condition. Will wait 1 second for every retry amount. Uses the defaultof 5 seconds.
+     *
+     * @param condition condition being evaluated
+     * @throws InterruptedException
+     */
+    protected void assertTrueRetryWithTimeout(Supplier<Boolean> condition) throws InterruptedException {
+        assertTrueRetryWithTimeout(condition, 5);
+    }
+
+    /**
+     * Waits one second before checking the condition. Will wait 1 second for every retry amount.
+     *
+     * @param condition  condition being evaluated
+     * @param maxTimeOut in seconds
+     * @throws InterruptedException
+     */
+    protected void assertTrueRetryWithTimeout(Supplier<Boolean> condition, int maxRetries) throws InterruptedException {
+        for (int x = 0; x <= maxRetries; x++) {
+            TimeUnit.SECONDS.sleep(1);
+
+            if (condition.get() == true) {
+                Log.info(c, "assertTrueRetryWithTimeout", String.format("It took %d retries and %d seconds of waiting to be succesful)", x, (x + 1)));
+                return;
+            }
+        }
+        Assert.fail(String.format("We've gone through the maximum retries [%d] and have waited a total of %d seconds", maxRetries, (maxRetries + 1)));
     }
 }
