@@ -3180,13 +3180,8 @@ public class QueryInfo {
                 generateWhereClause(methodName, by + 2, methodName.length(), q);
             type = Type.COUNT;
         } else if (methodName.startsWith("exists")) {
-            String name = entityInfo.idClassAttributeAccessors == null ? ID : entityInfo.idClassAttributeAccessors.firstKey();
-            String attrName = getAttributeName(name, true);
-            // TODO SELECT id(o) once #28925 is fixed
-            q = new StringBuilder(200).append("SELECT ");
-            if (attrName.charAt(attrName.length() - 1) != ')')
-                q.append(entityVar_);
-            q.append(attrName).append(" FROM ") //
+            q = new StringBuilder(200) //
+                            .append("SELECT ID(").append(o).append(") FROM ") //
                             .append(entityInfo.name).append(' ').append(o);
             if (by > 0 && methodName.length() > by + 2)
                 generateWhereClause(methodName, by + 2, methodName.length(), q);
@@ -3243,13 +3238,8 @@ public class QueryInfo {
                 generateQueryByParameters(q, methodTypeAnno, countPages);
         } else if ("Exists".equals(methodTypeAnno.annotationType().getSimpleName())) {
             type = Type.EXISTS;
-            String name = entityInfo.idClassAttributeAccessors == null ? ID : entityInfo.idClassAttributeAccessors.firstKey();
-            String attrName = getAttributeName(name, true);
-            // TODO SELECT id(o) once #28925 is fixed
-            q = new StringBuilder(200).append("SELECT ");
-            if (attrName.charAt(attrName.length() - 1) != ')')
-                q.append(entityVar_);
-            q.append(attrName).append(" FROM ") //
+            q = new StringBuilder(200) //
+                            .append("SELECT ID(").append(o).append(") FROM ") //
                             .append(entityInfo.name).append(' ').append(o);
             if (method.getParameterCount() > 0)
                 generateQueryByParameters(q, methodTypeAnno, countPages);
