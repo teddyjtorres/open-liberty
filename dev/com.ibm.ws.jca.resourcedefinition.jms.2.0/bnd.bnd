@@ -68,4 +68,6 @@ Service-Component: \
 	com.ibm.ws.jca;version=latest,\
 	com.ibm.ws.jca.cm;version=latest,\
 	com.ibm.ws.logging.core;version=latest,\
+  com.ibm.ws.kernel.boot.core;version=latest, \
+  com.ibm.ws.kernel.service;version=latest,\
 	com.ibm.ws.resource;version=latest
