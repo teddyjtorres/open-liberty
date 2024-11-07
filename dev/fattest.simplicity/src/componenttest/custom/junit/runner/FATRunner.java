@@ -75,6 +75,8 @@ public class FATRunner extends BlockJUnit4ClassRunner {
 
     public static final boolean ARM_ARCHITECTURE = System.getProperty("os.arch").equals("aarch64") || System.getProperty("os.arch").equals("arm");
 
+    public static final boolean AWS_NETWORK = System.getProperty("global.network.location", "UNKNOWN").equalsIgnoreCase("AWS");
+
     private static final int MAX_FFDC_LINES = 1000;
     private static final boolean DISABLE_FFDC_CHECKING = Boolean.getBoolean("disable.ffdc.checking");
 
@@ -97,6 +99,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
 
     static {
         Log.info(c, "<clinit>", "Is this FAT running locally?  fat.test.localrun=" + FAT_TEST_LOCALRUN);
+        Log.info(c, "<clinit>", "Is this FAT running on AWS network? " + AWS_NETWORK);
         Log.info(c, "<clinit>", "Using filters " + Arrays.toString(testFiltersToApply));
     }
 
