@@ -87,6 +87,26 @@ public class QueryInfo {
     private static final Set<Class<?>> NON_ENTITY_RESULT_TYPES = new HashSet<>();
 
     /**
+     * Indicates the repository method has no Sort, Sort[], or Order parameters
+     * for dynamic sort criteria and also does not define any static sort criteria.
+     */
+    private static final int[] NONE = new int[0];
+
+    /**
+     * Indicates the repository method has no Sort, Sort[], or Order parameters
+     * for dynamic sort criteria, but has a Query annotation that might define
+     * static sort criteria.
+     */
+    private static final int[] NONE_QUERY_LANGUAGE_ONLY = new int[0];
+
+    /**
+     * Indicates the repository method has no Sort, Sort[], or Order parameters
+     * for dynamic sort criteria, but supplies static sort criteria via the
+     * OrderBy annotation or keyword.
+     */
+    private static final int[] NONE_STATIC_SORT_ONLY = new int[0];
+
+    /**
      * Primitive types for numeric values.
      */
     static final Set<Class<?>> PRIMITIVE_NUMERIC_TYPES = //
@@ -102,6 +122,12 @@ public class QueryInfo {
                            int.class, Integer.class,
                            long.class, Long.class,
                            Number.class);
+
+    /**
+     * Valid types for repository method parameters that specify sort criteria.
+     */
+    static final Set<Class<?>> SORT_PARAM_TYPES = //
+                    Set.of(Order.class, Sort.class, Sort[].class);
 
     /**
      * Valid types for repository method parameters after the query parameters.
@@ -272,6 +298,16 @@ public class QueryInfo {
     final Class<?> singleType;
 
     /**
+     * Positions of Sort, Sort[], and Order parameters.
+     * When there are no parameters specifying sort criteria dynamically,
+     * then the value is one of:
+     * NONE
+     * NONE_QUERY_LANGUAGE_ONLY
+     * NONE_STATIC_SORT_ONLY
+     */
+    int[] sortPositions = NONE;
+
+    /**
      * Ordered list of Sort criteria, which can be defined statically via the OrderBy annotation or keyword,
      * or dynamically via PageRequest Sort parameters or Sort parameters to the repository method,
      * or a combination of both static and dynamic.
@@ -429,7 +465,7 @@ public class QueryInfo {
 
     /**
      * Adds Sort criteria to the end of the tracked list of sort criteria.
-     * For IdClass, adds all Id properties separately. TODO use id(this) instead once #28925 is fixed
+     * For IdClass, adds all Id properties separately. TODO use id(this) instead once #30093 is fixed
      *
      * @param ignoreCase if ordering is to be independent of case.
      * @param attribute  name of attribute (@OrderBy value or Sort property or parsed from OrderBy query-by-method).
@@ -1766,6 +1802,10 @@ public class QueryInfo {
         if (countPages && type == Type.FIND)
             generateCount(numAttributeParams == 0 ? null : q.substring(startIndexForWhereClause));
 
+        if (type == Type.FIND ||
+            type == Type.FIND_AND_DELETE)
+            initDynamicSortPositions(paramTypes);
+
         if (trace && tc.isEntryEnabled())
             Tr.entry(this, tc, "generateQueryByParameters", q);
         return q;
@@ -2314,26 +2354,6 @@ public class QueryInfo {
     }
 
     /**
-     * Identifies whether sort criteria can be dynamically supplied when invoking the query.
-     *
-     * @return true if it is possible to provide sort criteria dynamically, otherwise false.
-     */
-    @Trivial
-    boolean hasDynamicSortCriteria() {
-        boolean hasDynamicSort = false;
-        Class<?>[] paramTypes = method.getParameterTypes();
-        for (int i = paramCount; i < paramTypes.length && !hasDynamicSort; i++)
-            hasDynamicSort = PageRequest.class.equals(paramTypes[i])
-                             || Order.class.equals(paramTypes[i])
-                             || Sort[].class.equals(paramTypes[i])
-                             || Sort.class.equals(paramTypes[i]);
-
-        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
-            Tr.debug(this, tc, "hasDynamicSortCriteria? " + hasDynamicSort);
-        return hasDynamicSort;
-    }
-
-    /**
      * Determine if the index of the text ignoring case if it is the next non-whitespace characters.
      *
      * @parma text the text to match.
@@ -2450,8 +2470,13 @@ public class QueryInfo {
 
             // The @OrderBy annotation from Jakarta Data provides sort criteria statically
             if (orderBy.length > 0) {
-                //type = type == null ? Type.FIND : type;
-                sorts = sorts == null ? new ArrayList<>(orderBy.length + 2) : sorts;
+                if (sorts != null) // also has an OrderBy keyword
+                    throw exc(UnsupportedOperationException.class,
+                              "CWWKD1090.orderby.conflict",
+                              method.getName(),
+                              repositoryInterface.getName());
+
+                sorts = new ArrayList<>(orderBy.length);
                 if (q == null)
                     if (jpql == null) {
                         q = generateSelectClause();
@@ -2465,8 +2490,27 @@ public class QueryInfo {
                 for (int i = 0; i < orderBy.length; i++)
                     addSort(orderBy[i].ignoreCase(), orderBy[i].value(), orderBy[i].descending());
 
-                if (!hasDynamicSortCriteria())
+                if (sortPositions.length == 0) {
+                    sortPositions = NONE_STATIC_SORT_ONLY;
                     generateOrderBy(q);
+                }
+            }
+
+            // Default to ascending by ID when the repository method that uses
+            // pagination does not provide a way to indicate sort criteria.
+            if (type == Type.FIND &&
+                query == null && // do not change the user's Query value
+                sortPositions.length == 0 &&
+                (sorts == null || sorts.isEmpty()) &&
+                (Page.class.equals(multiType) ||
+                 CursoredPage.class.equals(multiType))) {
+
+                sortPositions = NONE_STATIC_SORT_ONLY;
+                String idAttr = entityInfo.attributeNames.get(ID);
+                sorts = List.of(Sort.asc(idAttr));
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                    Tr.debug(this, tc, "default sorting of " + sorts);
+                generateOrderBy(q);
             }
 
             jpql = q == null ? jpql : q.toString();
@@ -2490,6 +2534,41 @@ public class QueryInfo {
             throw x;
         }
 
+    }
+
+    /**
+     * Adds the specified 0-based index as a position where the repository method
+     * provides sort criteria.
+     *
+     * @param index 0-based position to add.
+     */
+    @Trivial
+    private void initDynamicSortPosition(int index) {
+        if (sortPositions.length == 0) {
+            sortPositions = new int[] { index };
+        } else {
+            // It is unusual, but supported, to have multiple parameters
+            // provide sort criteria
+            int[] previous = sortPositions;
+            sortPositions = new int[previous.length + 1];
+            System.arraycopy(previous, 0, sortPositions, 0, previous.length);
+            sortPositions[sortPositions.length - 1] = index;
+        }
+        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+            Tr.debug(this, tc, "found sort criteria position (1-based): " + (index + 1));
+    }
+
+    /**
+     * Records positions (0-based) of all sort criteria in the method parameters
+     * following the query parameters.
+     *
+     * @param paramTypes method parameter types.
+     */
+    @Trivial
+    private void initDynamicSortPositions(Class<?>[] paramTypes) {
+        for (int i = paramCount; i < paramTypes.length; i++)
+            if (SORT_PARAM_TYPES.contains(paramTypes[i]))
+                initDynamicSortPosition(i);
     }
 
     /**
@@ -3003,6 +3082,11 @@ public class QueryInfo {
             }
         }
 
+        sortPositions = NONE_QUERY_LANGUAGE_ONLY;
+        for (int i = paramCount; i < params.length; i++)
+            if (SORT_PARAM_TYPES.contains(params[i].getType()))
+                initDynamicSortPosition(i);
+
         int paramNamesCount = paramNames.size();
         if (hasExtraParam || qlParamNameCount != paramNamesCount) {
             // Does the method supply all named parameters that the query needs?
@@ -3054,8 +3138,11 @@ public class QueryInfo {
                 if (countPages)
                     generateCount(q.substring(where));
             }
+
+            initDynamicSortPositions(method.getParameterTypes());
             if (orderBy >= 0)
                 parseOrderBy(orderBy, q);
+
             type = Type.FIND;
         } else if (methodName.startsWith("delete") || methodName.startsWith("remove")) {
             int orderBy = -1;
@@ -3077,6 +3164,8 @@ public class QueryInfo {
 
             if (by > 0)
                 generateWhereClause(methodName, by + 2, orderBy > 0 ? orderBy : methodName.length(), q);
+
+            initDynamicSortPositions(method.getParameterTypes());
             if (orderBy > 0)
                 parseOrderBy(orderBy, q);
 
@@ -3091,13 +3180,8 @@ public class QueryInfo {
                 generateWhereClause(methodName, by + 2, methodName.length(), q);
             type = Type.COUNT;
         } else if (methodName.startsWith("exists")) {
-            String name = entityInfo.idClassAttributeAccessors == null ? ID : entityInfo.idClassAttributeAccessors.firstKey();
-            String attrName = getAttributeName(name, true);
-            // TODO SELECT id(o) once #28925 is fixed
-            q = new StringBuilder(200).append("SELECT ");
-            if (attrName.charAt(attrName.length() - 1) != ')')
-                q.append(entityVar_);
-            q.append(attrName).append(" FROM ") //
+            q = new StringBuilder(200) //
+                            .append("SELECT ID(").append(o).append(") FROM ") //
                             .append(entityInfo.name).append(' ').append(o);
             if (by > 0 && methodName.length() > by + 2)
                 generateWhereClause(methodName, by + 2, methodName.length(), q);
@@ -3154,13 +3238,8 @@ public class QueryInfo {
                 generateQueryByParameters(q, methodTypeAnno, countPages);
         } else if ("Exists".equals(methodTypeAnno.annotationType().getSimpleName())) {
             type = Type.EXISTS;
-            String name = entityInfo.idClassAttributeAccessors == null ? ID : entityInfo.idClassAttributeAccessors.firstKey();
-            String attrName = getAttributeName(name, true);
-            // TODO SELECT id(o) once #28925 is fixed
-            q = new StringBuilder(200).append("SELECT ");
-            if (attrName.charAt(attrName.length() - 1) != ')')
-                q.append(entityVar_);
-            q.append(attrName).append(" FROM ") //
+            q = new StringBuilder(200) //
+                            .append("SELECT ID(").append(o).append(") FROM ") //
                             .append(entityInfo.name).append(' ').append(o);
             if (method.getParameterCount() > 0)
                 generateQueryByParameters(q, methodTypeAnno, countPages);
@@ -3384,8 +3463,59 @@ public class QueryInfo {
                 iNext += (iNext == desc ? 4 : 3);
         }
 
-        if (!hasDynamicSortCriteria())
+        if (sortPositions == NONE && !sorts.isEmpty()) {
+            sortPositions = NONE_STATIC_SORT_ONLY;
             generateOrderBy(q);
+        }
+    }
+
+    /**
+     * Pagination is only possible if results are ordered.
+     *
+     * If the repository method has parameters to supply an order and these are
+     * empty or null, assume the user made a mistake and raise an error.
+     *
+     * @param args parameters to the repository method.
+     * @throws IllegalArgumentException if a Sort[] or Order parameter is empty.
+     * @throws NullPointerException     if a Sort or Order parameter is null.
+     */
+    @Trivial
+    void requireOrderedPagination(Object[] args) {
+        if (sortPositions.length > 0) {
+            Class<?>[] paramTypes = method.getParameterTypes();
+            for (int s = 0; s < sortPositions.length; s++) {
+                int p = sortPositions[s];
+                if (Order.class.equals(paramTypes[p]) ||
+                    Sort.class.equals(paramTypes[p]))
+                    if (args[p] == null)
+                        // BasicRepository.findAll(PageRequest, Order) requires
+                        // NullPointerException when Order is null.
+                        throw exc(NullPointerException.class,
+                                  "CWWKD1087.null.param",
+                                  paramTypes[p].getName(),
+                                  method.getName(),
+                                  repositoryInterface.getName());
+                    else
+                        throw exc(IllegalArgumentException.class,
+                                  "CWWKD1088.empty.sorts",
+                                  paramTypes[p].getName(),
+                                  method.getName(),
+                                  repositoryInterface.getName());
+                else if (Sort[].class.equals(paramTypes[p]))
+                    throw exc(IllegalArgumentException.class,
+                              "CWWKD1088.empty.sorts",
+                              Sort.class.getName() + "[]",
+                              method.getName(),
+                              repositoryInterface.getName());
+            }
+        }
+
+        if (sortPositions == NONE)
+            throw exc(IllegalArgumentException.class,
+                      "CWWKD1089.unordered.pagination",
+                      method.getName(),
+                      repositoryInterface.getName(),
+                      method.getGenericReturnType().getTypeName());
     }
 
     /**
@@ -3678,7 +3808,7 @@ public class QueryInfo {
             Sort<Object> sort = addIt.next();
             if (sort == null)
                 throw new IllegalArgumentException("Sort: null");
-            // TODO special IdClass handling should be unnecessary once 28925 is fixed
+            // TODO special IdClass handling should be unnecessary once 30093 is fixed
             else if (hasIdClass && ID.equalsIgnoreCase(sort.property()))
                 for (String name : entityInfo.idClassAttributeAccessors.keySet())
                     combined.add(getWithAttributeName(getAttributeName(name, true), sort));
@@ -3705,7 +3835,7 @@ public class QueryInfo {
         for (Sort<Object> sort : additional) {
             if (sort == null)
                 throw new IllegalArgumentException("Sort: null");
-            // TODO special IdClass handling should be unnecessary once 28925 is fixed
+            // TODO special IdClass handling should be unnecessary once 30093 is fixed
             else if (hasIdClass && ID.equalsIgnoreCase(sort.property()))
                 for (String name : entityInfo.idClassAttributeAccessors.keySet())
                     combined.add(getWithAttributeName(getAttributeName(name, true), sort));

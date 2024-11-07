@@ -132,13 +132,13 @@ OPEN_API_PATH_SEGMENT_INVALID_CWWKO1677E.explanation=OpenAPI path segment "/." o
 OPEN_API_PATH_SEGMENT_INVALID_CWWKO1677E.useraction=Remove any path "/." or "/.." segment from the path.
 
 # {1} - the server.xml element name, either includeApplication or excludeApplication
-OPEN_API_SLASH_IN_APPLICATION_CWWKO1678W=CWWKO1678W: The configured {0} application name in the {1} element is not valid because it contains the "/" character.
+OPEN_API_SLASH_IN_APPLICATION_CWWKO1678W=CWWKO1678W: The configured {0} application name in the {1} element is not valid because it contains the "/" character or is empty.
 OPEN_API_SLASH_IN_APPLICATION_CWWKO1678W.explanation=An application cannot name cannot include a "/" as the "/" is used to separate the application from its component modules.
 OPEN_API_SLASH_IN_APPLICATION_CWWKO1678W.useraction=Remove the "/" from the includeApplication or excludeApplication element in your server.xml file, or convert that element to includeModule or excludeModule to reference a single module.
 
 # {1} - the server.xml element name, either includeModule or excludeModule
 OPEN_API_SLASH_IN_MODULE_CWWKO1679W=CWWKO1679W: The configured {0} module name in the {1} element is not valid as it is not in the format "<application-name>/<module-name>".
-OPEN_API_SLASH_IN_MODULE_CWWKO1679W.explanation=A module must be in the format "<application-name>/<module-name>"; therefore, a module name without a "/" is not valid.
+OPEN_API_SLASH_IN_MODULE_CWWKO1679W.explanation=A module must be in the format "<application-name>/<module-name>"; therefore, a module name without a forward slash ("/") , or an empty application name or module name, is not valid.
 OPEN_API_SLASH_IN_MODULE_CWWKO1679W.useraction=Correct the includeModule or excludeModule element in your server.xml file, or convert that element to includeApplication or excludeApplication to reference an entire application.
 
 OPENAPI_USING_WRONG_NAME_SOURCE_CWWKO1680W=CWWKO1680W: The {1} application name in the {0} configuration element does not match the name of any deployed application, but it matches either the name from the deployment descriptor or the archive name of the {2} application. The application name that is used here must be the one specified in the server.xml file, or if no name is specified, the archive file name without the extension.
@@ -157,3 +157,7 @@ OPENAPI_VERSION_NOT_SUPPORTED_CWWK06182W.useraction=Update the openAPIVersion at
 OPENAPI_INFO_INVALID_SERVERXML_CWWKO1683W=CWWKO1683W: The mpOpenAPI info configuration element in the server.xml file is invalid. Both the title and version attributes must be set. The info element will be ignored.
 OPENAPI_INFO_INVALID_SERVERXML_CWWKO1683W.explanation=The title and version fields are required properties in the info object of an OpenAPI document. When configuring the info object, a value must be provided for the title and version attributes.
 OPENAPI_INFO_INVALID_SERVERXML_CWWKO1683W.useraction=Ensure that the title and version attributes are set to valid values in the mpOpenAPI info element.
+
+OPENAPI_MERGE_UNUSED_INCLUDE_SERVERXML_CWWKO1684W=CWWKO1684W: The {0} configuration element includes "{1}" but that does not match any deployed application or web module.
+OPENAPI_MERGE_UNUSED_INCLUDE_SERVERXML_CWWKO1684W.explanation=The server is configured to create OpenAPI documentation for the application or module name, but no application or web module with that name was deployed.
+OPENAPI_MERGE_UNUSED_INCLUDE_SERVERXML_CWWKO1684W.useraction=Check that all applications started correctly and that the names in the configuration are specified correctly.
