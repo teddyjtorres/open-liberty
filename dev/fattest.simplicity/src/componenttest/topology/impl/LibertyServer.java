@@ -3519,19 +3519,6 @@ public class LibertyServer implements LogMonitorClient {
 
                                                      "Config13TCKServer", //com.ibm.ws.microprofile.config.1.3_fat_tck
 
-                                                     "mpGraphQL10.basicQuery", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.defaultvalue", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.graphQLInterface", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.iface", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.ignore", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.inputFields", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.jarInWar", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.outputFields", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.rolesAuth", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.types", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.ui", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.voidQuery", //com.ibm.ws.microprofile.graphql.1.0_fat
-
                                                      "MetricsMonitorServer", //io.openliberty.microprofile.metrics.internal.5.x.monitor_fat
 
                                                      "ApplicationProcessorServer", //io.openliberty.microprofile.openapi.2.0.internal_fat
