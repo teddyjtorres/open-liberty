@@ -215,12 +215,15 @@ public class CxfX509MigSymEE7LiteTests extends CommonTests {
             Log.info(thisClass, thisMethod, "In test method testBasic192ServiceDisableReturnError, ");
             String messageToSearch = "org.apache.cxf.binding.soap.SoapFault: A security error was encountered when verifying the message";
             Log.info(thisClass, thisMethod, "Searching the input string in messages.log: " + messageToSearch);
-            String result_client = server.waitForStringInLog(messageToSearch);
-            Log.info(thisClass, thisMethod, "The search result in messages.log is: " + result_client);
+            long startSearch = System.currentTimeMillis(); // Get the time before the search to give proper timeout if necessary
+            String result_client = server.waitForStringInLog(messageToSearch, 20000);
+            Log.info(thisClass, thisMethod, "The search result in messages.log is: " + result_client + ", took :" + (System.currentTimeMillis() - startSearch) + " ms.");
 
             String traceToSearch = "Fault occured, printing Exception cause to trace.";
             Log.info(thisClass, thisMethod, "Searching the input string in trace.log: " + traceToSearch);
-            String result_server = server.waitForStringInTraceUsingMark(traceToSearch);
+            startSearch = System.currentTimeMillis(); // Get the time before the search to give proper timeout if necessary
+            String result_server = server.waitForStringInTraceUsingMark(traceToSearch, 40000);
+            Log.info(thisClass, thisMethod, "The search result in trace.log is: " + result_server + ", took :" + (System.currentTimeMillis() - startSearch) + " ms.");
 
             if (result_client == null) {
                 fail("The message " + "'" + messageToSearch + "'" + " is not found in messages.log ");
