@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2023 IBM Corporation and others.
+ * Copyright (c) 2018, 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -63,12 +63,12 @@ public class RequestTimingMetricsTest {
 
     @ClassRule
     public static RepeatTests r = MicroProfileActions.repeat(FeatureReplacementAction.ALL_SERVERS,
-                                                             MicroProfileActions.MP61,
-                                                             MicroProfileActions.MP50,
-                                                             MicroProfileActions.MP41,
-                                                             MicroProfileActions.MP33,
+                                                             MicroProfileActions.MP30,
                                                              MicroProfileActions.MP32,
-                                                             MicroProfileActions.MP30);
+                                                             MicroProfileActions.MP33,
+                                                             MicroProfileActions.MP41,
+                                                             MicroProfileActions.MP50,
+                                                             MicroProfileActions.MP61);
 
     private static final Class<RequestTimingMetricsTest> c = RequestTimingMetricsTest.class;
 
