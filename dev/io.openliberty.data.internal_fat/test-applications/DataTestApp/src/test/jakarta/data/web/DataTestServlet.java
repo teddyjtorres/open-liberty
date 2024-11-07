@@ -3751,7 +3751,7 @@ public class DataTestServlet extends FATServlet {
      * Verify a repository method that supplies id(this) as the sort criteria
      * hard coded within a JDQL query.
      */
-    // TODO enable once #28925 is fixed
+    // TODO enable once #30093 is fixed
     //@Test
     public void testOrderByIdFunction() {
         assertIterableEquals(List.of(19L, 17L, 13L, 11L, 7L, 5L, 3L, 2L),
