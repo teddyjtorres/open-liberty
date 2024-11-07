@@ -73,23 +73,14 @@ public class LTPAToken2 implements Token, Serializable {
             } else if (fipsEnabled && CryptoUtils.isIBMJCEPlusFIPSAvailable()) {
                 m1 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA256, CryptoUtils.IBMJCE_PLUS_FIPS_NAME);
                 m2 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA256, CryptoUtils.IBMJCE_PLUS_FIPS_NAME);
-            } else if (CryptoUtils.isOpenJCEPlusAvailable()) {
-                m1 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA, CryptoUtils.OPENJCE_PLUS_NAME);
-                m2 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA, CryptoUtils.OPENJCE_PLUS_NAME);
-            } else if (CryptoUtils.isIBMJCEAvailable()) {
-                m1 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA, CryptoUtils.IBMJCE_NAME);
-                m2 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA, CryptoUtils.IBMJCE_NAME);
             } else {
                 m1 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA);
                 m2 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA);
             }
         } catch (Exception e) {
             if (TraceComponent.isAnyTracingEnabled() && tc.isEventEnabled()) {
-                Tr.event(tc, "Error creating digest; " + e);
+                Tr.event(tc, "Failed to initialize MessageDigest for SHA algorithm: " + e);
             }
-            // Handle the case where MessageDigest instances are not initialized
-            m1 = null;
-            m2 = null;
         }
         md1JCE = m1;
         md2JCE = m2;

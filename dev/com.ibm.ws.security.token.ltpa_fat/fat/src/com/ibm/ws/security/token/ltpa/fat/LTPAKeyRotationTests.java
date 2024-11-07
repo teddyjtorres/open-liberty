@@ -107,8 +107,8 @@ public class LTPAKeyRotationTests {
     private static final String VALIDATION_KEYS_PATH = "resources/security/";
     private static final String VALIDATION_KEY1_PATH = "resources/security/validation1.keys";
     private static final String VALIDATION_KEY2_PATH = "resources/security/validation2.keys";
-    private static final String BAD_Shared_VALIDATION_KEY1_PATH = "resources/security/validation3.keys";
-    private static final String BAD_Shared_VALIDATION_KEY2_PATH = "resources/security/validation4.keys";
+    private static final String BAD_SHARED_VALIDATION_KEY1_PATH = "resources/security/validation3.keys";
+    private static final String BAD_SHARED_VALIDATION_KEY2_PATH = "resources/security/validation4.keys";
     private static final String BAD_PRIVATE_VALIDATION_KEY1_PATH = "resources/security/validation5.keys";
     private static final String BAD_PRIVATE_VALIDATION_KEY2_PATH = "resources/security/validation6.keys";
     private static final String BAD_PUBLIC_VALIDATION_KEY1_PATH = "resources/security/validation7.keys";
@@ -123,6 +123,7 @@ public class LTPAKeyRotationTests {
     private static String ALT_VALIDATION_KEY6_PATH = "alternate/validation6.keys";
     private static String ALT_VALIDATION_KEY7_PATH = "alternate/validation7.keys";
     private static String ALT_VALIDATION_KEY8_PATH = "alternate/validation8.keys";
+    private static String SERVER_XML_PATH = "server.xml";
 
     // Define the paths to the alternate key files
     private static String ALT_FIPS_VALIDATION_KEY1_PATH = "alternateFIPS/validation1.keys";
@@ -131,9 +132,9 @@ public class LTPAKeyRotationTests {
     private static String ALT_FIPS_VALIDATION_KEY4_PATH = "alternateFIPS/validation4.keys";
     private static String ALT_FIPS_VALIDATION_KEY5_PATH = "alternateFIPS/validation5.keys";
     private static String ALT_FIPS_VALIDATION_KEY6_PATH = "alternateFIPS/validation6.keys";
-    private static String ALT_FIPS_VALIDATION_KEY7_PATH = "alternateFIPSvalidation7.keys";
+    private static String ALT_FIPS_VALIDATION_KEY7_PATH = "alternateFIPS/validation7.keys";
     private static String ALT_FIPS_VALIDATION_KEY8_PATH = "alternateFIPS/validation8.keys";
-    private static String ALT_FIPS_SERVER_XML_PATH = "serverFIPS.xml";
+    private static String FIPS_SERVER_XML_PATH = "serverFIPS.xml";
 
 
     // Define the paths to the server.xml files
@@ -193,10 +194,6 @@ public class LTPAKeyRotationTests {
 
         server.setupForRestConnectorAccess();
 
-        if (fipsEnabled){
-            renameFileIfExists(ALT_FIPS_SERVER_XML_PATH, "server.xml", true);
-        }
-
         server.startServer(true);
 
         assertNotNull("Featurevalid did not report update was complete",
@@ -210,6 +207,10 @@ public class LTPAKeyRotationTests {
                       server.waitForStringInLog("CWWKS4105I"));
 
         messagesLogFile = server.getDefaultLogFile();
+
+        if (fipsEnabled){
+            renameFileIfExists(FIPS_SERVER_XML_PATH, SERVER_XML_PATH, true);
+        }
     }
 
     @Before
@@ -417,7 +418,7 @@ public class LTPAKeyRotationTests {
                       server.waitForStringInLog("CWWKS4107A", 5000));
 
         // Replace the primary key with a different invalid key
-        renameFileIfExists(BAD_Shared_VALIDATION_KEY1_PATH, DEFAULT_KEY_PATH, true);
+        renameFileIfExists(BAD_SHARED_VALIDATION_KEY1_PATH, DEFAULT_KEY_PATH, true);
 
         // Check for the following exception message in the log
         assertNotNull("Expected LTPA configuration error message not found in the log.",
@@ -434,7 +435,7 @@ public class LTPAKeyRotationTests {
                       server.waitForStringInLog("CWWKS4107A", 5000));
 
         // Replace the primary key with a different invalid key
-        renameFileIfExists(BAD_Shared_VALIDATION_KEY2_PATH, DEFAULT_KEY_PATH, true);
+        renameFileIfExists(BAD_SHARED_VALIDATION_KEY2_PATH, DEFAULT_KEY_PATH, true);
 
         // Wait for the LTPA configuration to be ready after the change
         assertNotNull("Expected LTPA configuration ready message not found in the log.",
@@ -2243,14 +2244,15 @@ public class LTPAKeyRotationTests {
      */
     private static void renameFileIfExists(String filePath, String newFilePath, boolean checkFileIsGone) throws Exception {
         Log.info(thisClass, "renameFileIfExists", "\nfilepath: " + filePath + "\nnewFilePath: " + newFilePath);
-        if (!fipsEnabled) {
-            server.setMarkToEndOfLog(server.getDefaultLogFile());
-        }
-        if (fileExists(newFilePath, 1)) {
-            LibertyFileManager.moveLibertyFile(server.getFileFromLibertyServerRoot(filePath), server.getFileFromLibertyServerRoot(newFilePath));
-        } else {
-            Log.info(thisClass, "renameFileIfExists", "Calling server.renameLibertyServerRootFile");
-            server.renameLibertyServerRootFile(filePath, newFilePath);
+        server.setMarkToEndOfLog(server.getDefaultLogFile());
+
+        if (fileExists(filePath, 1)) {
+            if (fileExists(newFilePath, 1)) {
+                LibertyFileManager.moveLibertyFile(server.getFileFromLibertyServerRoot(filePath), server.getFileFromLibertyServerRoot(newFilePath));
+            } else {
+                Log.info(thisClass, "renameFileIfExists", "Calling server.renameLibertyServerRootFile");
+                server.renameLibertyServerRootFile(filePath, newFilePath);
+            }
         }
 
         // Double check to make sure the file is gone
