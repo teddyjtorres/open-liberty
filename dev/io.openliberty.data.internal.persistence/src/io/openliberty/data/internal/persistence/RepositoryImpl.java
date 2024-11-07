@@ -422,7 +422,7 @@ public class RepositoryImpl<R> implements InvocationHandler {
      * @return exception to replace with, if any. Otherwise, the original.
      */
     @Trivial
-    static RuntimeException failure(Exception original, EntityManager em) {
+    static RuntimeException failure(Exception original, EntityManagerBuilder emb) {
         final boolean trace = TraceComponent.isAnyTracingEnabled();
         RuntimeException x = null;
         if (original instanceof PersistenceException) {
@@ -430,20 +430,22 @@ public class RepositoryImpl<R> implements InvocationHandler {
                 if (trace && tc.isDebugEnabled())
                     Tr.debug(tc, "checking " + cause.getClass().getName() + " with message " + cause.getMessage());
 
-                if (em != null && cause instanceof SQLException) { //attempt to have the JDBC layer determine if this is a connection exception
-                    WSJdbcDataSource ds = (WSJdbcDataSource) em.unwrap(DataSource.class);
-                    if (ds.getDatabaseHelper().isConnectionError((java.sql.SQLException) cause))
+                if (emb != null && cause instanceof SQLException) { //attempt to have the JDBC layer determine if this is a connection exception
+                    //TODO should this be wrapped in a try/catch to ignore potential exceptions getting the DS?
+                    WSJdbcDataSource ds = (WSJdbcDataSource) emb.getDataSource(null, null);
+                    if (ds != null && ds.getDatabaseHelper().isConnectionError((java.sql.SQLException) cause)) {
                         x = new DataConnectionException(original);
+                    }
                 }
                 if (x == null)
                     if (cause instanceof SQLRecoverableException
-                           || cause instanceof SQLNonTransientConnectionException
-                           || cause instanceof SQLTransientConnectionException)
-                    x = new DataConnectionException(original);
-                else if (cause instanceof SQLSyntaxErrorException)
-                    x = new MappingException(original);
-                else if (cause instanceof SQLIntegrityConstraintViolationException)
-                    x = new EntityExistsException(original);
+                        || cause instanceof SQLNonTransientConnectionException
+                        || cause instanceof SQLTransientConnectionException)
+                        x = new DataConnectionException(original);
+                    else if (cause instanceof SQLSyntaxErrorException)
+                        x = new MappingException(original);
+                    else if (cause instanceof SQLIntegrityConstraintViolationException)
+                        x = new EntityExistsException(original);
             }
             if (x == null) {
                 if (original instanceof OptimisticLockException)
@@ -1535,7 +1537,7 @@ public class RepositoryImpl<R> implements InvocationHandler {
             return returnValue;
         } catch (Throwable x) {
             if (!isDefaultMethod && x instanceof Exception)
-                x = failure((Exception) x, em);
+                x = failure((Exception) x, primaryEntityInfoFuture == null ? null : primaryEntityInfoFuture.join().builder);
             if (trace && tc.isEntryEnabled())
                 Tr.exit(this, tc, "invoke " + repositoryInterface.getSimpleName() + '.' + method.getName(), x);
             throw x;
