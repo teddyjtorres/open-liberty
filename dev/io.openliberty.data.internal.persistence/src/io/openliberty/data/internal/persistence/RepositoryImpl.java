@@ -610,7 +610,6 @@ public class RepositoryImpl<R> implements InvocationHandler {
      * @throws Exception                  if an error occurs.
      */
     private Object findAndUpdateOne(Object e, QueryInfo queryInfo, EntityManager em) throws Exception {
-
         String jpql = queryInfo.jpql;
         EntityInfo entityInfo = queryInfo.entityInfo;
 
