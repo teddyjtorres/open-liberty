@@ -928,6 +928,9 @@ public class RepositoryImpl<R> implements InvocationHandler {
         if (trace && tc.isEntryEnabled())
             Tr.entry(this, tc, "invoke " + repositoryInterface.getSimpleName() + '.' + method.getName(),
                      provider.loggable(repositoryInterface, method, args));
+
+        EntityInfo entityInfo = null;
+
         try {
             if (isDisposed.get())
                 throw exc(IllegalStateException.class,
@@ -977,7 +980,7 @@ public class RepositoryImpl<R> implements InvocationHandler {
 
             try {
                 QueryInfo queryInfo = queryInfoFuture.join();
-                EntityInfo entityInfo = queryInfo.entityInfo;
+                entityInfo = queryInfo.entityInfo;
 
                 if (trace && tc.isDebugEnabled())
                     Tr.debug(this, tc, queryInfo.toString());
@@ -1537,7 +1540,7 @@ public class RepositoryImpl<R> implements InvocationHandler {
             return returnValue;
         } catch (Throwable x) {
             if (!isDefaultMethod && x instanceof Exception)
-                x = failure((Exception) x, primaryEntityInfoFuture == null ? null : primaryEntityInfoFuture.join().builder);
+                x = failure((Exception) x, entityInfo == null ? null : entityInfo.builder);
             if (trace && tc.isEntryEnabled())
                 Tr.exit(this, tc, "invoke " + repositoryInterface.getSimpleName() + '.' + method.getName(), x);
             throw x;
