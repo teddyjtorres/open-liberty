@@ -422,6 +422,7 @@ public class RepositoryImpl<R> implements InvocationHandler {
      * @param original exception to possibly replace.
      * @return exception to replace with, if any. Otherwise, the original.
      */
+    @FFDCIgnore(Exception.class) // secondary error
     @Trivial
     static RuntimeException failure(Exception original, EntityManagerBuilder emb) {
         final boolean trace = TraceComponent.isAnyTracingEnabled();
