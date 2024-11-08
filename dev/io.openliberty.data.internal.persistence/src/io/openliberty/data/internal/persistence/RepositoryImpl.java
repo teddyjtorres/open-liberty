@@ -430,7 +430,7 @@ public class RepositoryImpl<R> implements InvocationHandler {
                 if (trace && tc.isDebugEnabled())
                     Tr.debug(tc, "checking " + cause.getClass().getName() + " with message " + cause.getMessage());
 
-                if (emb != null && cause instanceof SQLException) { //attempt to have the JDBC layer determine if this is a connection exception
+                if (emb instanceof DBStoreEMBuilder && cause instanceof SQLException) { //attempt to have the JDBC layer determine if this is a connection exception
                     //TODO should this be wrapped in a try/catch to ignore potential exceptions getting the DS?
                     WSJdbcDataSource ds = (WSJdbcDataSource) emb.getDataSource(null, null);
                     if (ds != null && ds.getDatabaseHelper().isConnectionError((java.sql.SQLException) cause)) {
