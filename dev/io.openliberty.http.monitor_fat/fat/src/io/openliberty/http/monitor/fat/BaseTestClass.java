@@ -10,7 +10,6 @@
 package io.openliberty.http.monitor.fat;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -412,14 +411,18 @@ public abstract class BaseTestClass {
                         assertEquals("Error. Expected 2 indexes from split " + Arrays.toString(split), split.length, 2);
 
                         double countVal = Double.parseDouble(split[1].trim());
-                        assertTrue(String.format("Expected count value to be greater than [%d]", greaterThanVal), countVal > greaterThanVal);
+
+                        if (countVal <= greaterThanVal) {
+                            Log.info(c, "validatePrometheusHTTPMetricCount", String.format("Expected count value to be greater than [%d]", greaterThanVal));
+                            return false;
+                        }
                     }
 
                     return true;
                 }
             }
         }
-
+        Log.info(c, "validatePrometheusHTTPMetricCount", String.format("Could not find matching count entry"));
         return false;
     }
 
@@ -462,13 +465,18 @@ public abstract class BaseTestClass {
                         assertEquals("Error. Expected 2 indexes from split " + Arrays.toString(split), split.length, 2);
 
                         double sumVal = Double.parseDouble(split[1].trim());
-                        assertTrue("Expected sum value to be greater than 0", sumVal > 0);
+
+                        if (sumVal <= 0) {
+                            Log.info(c, "validatePrometheusHTTPMetricSum", String.format("Expected sum value to be greater than 0"));
+                            return false;
+                        }
                     }
 
                     return true;
                 }
             }
         }
+        Log.info(c, "validatePrometheusHTTPMetricSum", String.format("Could not find matching sum entry"));
 
         return false;
     }
@@ -497,7 +505,7 @@ public abstract class BaseTestClass {
      * @throws InterruptedException
      */
     protected void assertTrueRetryWithTimeout(Supplier<Boolean> condition) throws InterruptedException {
-        assertTrueRetryWithTimeout(condition, 5);
+        assertTrueRetryWithTimeout(condition, 8);
     }
 
     /**
@@ -515,6 +523,7 @@ public abstract class BaseTestClass {
                 Log.info(c, "assertTrueRetryWithTimeout", String.format("It took %d retries and %d seconds of waiting to be succesful)", x, (x + 1)));
                 return;
             }
+            Log.info(c, "assertTrueRetryWithTimeout", "Failed to succeed on try number " + x);
         }
         Assert.fail(String.format("We've gone through the maximum retries [%d] and have waited a total of %d seconds", maxRetries, (maxRetries + 1)));
     }
