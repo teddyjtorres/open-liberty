@@ -17,6 +17,7 @@ import java.util.List;
 
 import jakarta.data.Sort;
 import jakarta.data.repository.BasicRepository;
+import jakarta.data.repository.Insert;
 import jakarta.data.repository.OrderBy;
 import jakarta.data.repository.Param;
 import jakarta.data.repository.Query;
@@ -112,6 +113,13 @@ public interface Voters extends BasicRepository<Voter, Integer> {
     List<Voter> livingOn(@Param("street") String street,
                          @Param("city") String city, // extra, unused Param
                          @Param("state") String stateCode); // extra, unused Param
+
+    /**
+     * For testing an error where the method parameter allows multiple entities,
+     * but the return type only allows one.
+     */
+    @Insert
+    Voter register(Voter... v);
 
     /**
      * This invalid method has matching named parameters and Param annotation,

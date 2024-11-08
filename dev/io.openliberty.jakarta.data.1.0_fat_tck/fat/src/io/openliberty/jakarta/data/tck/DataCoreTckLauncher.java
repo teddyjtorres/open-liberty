@@ -43,6 +43,7 @@ public class DataCoreTckLauncher {
     @After
     public void tearDown() throws Exception {
         String[] ignoredMessages = new String[] {
+                                                  "CWWKD1054E", // tested error path
                                                   "CWWKE0955E" //websphere.java.security java 18+
         };
         if (persistenceServer.isStarted()) {

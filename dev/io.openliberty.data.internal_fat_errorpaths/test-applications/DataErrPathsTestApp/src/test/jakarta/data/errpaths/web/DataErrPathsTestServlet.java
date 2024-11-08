@@ -235,6 +235,31 @@ public class DataErrPathsTestServlet extends FATServlet {
     }
 
     /**
+     * Verify an error is raised for a repository insert method with a parameter
+     * that can insert multiple entities and a return type that can only return
+     * one inserted entity.
+     */
+    @Test
+    public void testInsertMultipleEntitiesButOnlyReturnOne() {
+        Voter v1 = new Voter(100200300, "Valerie", //
+                        LocalDate.of(1947, Month.NOVEMBER, 7), //
+                        "88 23rd Ave SW, Rochester, MN 55902");
+        Voter v2 = new Voter(400500600, "Vinny", //
+                        LocalDate.of(1988, Month.NOVEMBER, 8), //
+                        "2016 45th St SE, Rochester, MN 55904");
+        try {
+            Voter inserted = voters.register(v1, v2);
+            fail("Insert method with singular return type should not be able to " +
+                 "insert two entities. Instead returned: " + inserted);
+        } catch (ClassCastException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1046E:") ||
+                !x.getMessage().contains("register"))
+                throw x;
+        }
+    }
+
+    /**
      * Verify an error is raised for a repository method that has a Param annotation
      * that specifies a name value that does not match the name of a named parameter
      * from the query.
