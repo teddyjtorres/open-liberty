@@ -3492,8 +3492,6 @@ public class LibertyServer implements LogMonitorClient {
     private static final String[] EXEMPT_SERVERS = {
                                                      "cdi20EEServer", //com.ibm.ws.cdi.1.0_fat_EE
 
-                                                     "com.ibm.ws.concurrent.mp.fat.1.3.ee10", //com.ibm.ws.concurrent.mp_fat_jakarta
-
                                                      "com.ibm.ws.security.authorization.jacc.dynamic_fat", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
                                                      "com.ibm.ws.ejbcontainer.security.jacc_fat.ejbjar.mergebindings", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
                                                      "com.ibm.ws.ejbcontainer.security.jacc_fat.ejbjar.inwar", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
