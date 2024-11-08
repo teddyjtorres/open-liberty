@@ -65,6 +65,7 @@ import com.ibm.ws.rsadapter.jdbc.WSJdbcDataSource;
 import io.openliberty.data.internal.persistence.QueryInfo.Type;
 import io.openliberty.data.internal.persistence.cdi.DataExtension;
 import io.openliberty.data.internal.persistence.cdi.FutureEMBuilder;
+import io.openliberty.data.internal.persistence.service.DBStoreEMBuilder;
 import jakarta.data.Limit;
 import jakarta.data.Order;
 import jakarta.data.Sort;
@@ -431,10 +432,14 @@ public class RepositoryImpl<R> implements InvocationHandler {
                     Tr.debug(tc, "checking " + cause.getClass().getName() + " with message " + cause.getMessage());
 
                 if (emb instanceof DBStoreEMBuilder && cause instanceof SQLException) { //attempt to have the JDBC layer determine if this is a connection exception
-                    //TODO should this be wrapped in a try/catch to ignore potential exceptions getting the DS?
-                    WSJdbcDataSource ds = (WSJdbcDataSource) emb.getDataSource(null, null);
-                    if (ds != null && ds.getDatabaseHelper().isConnectionError((java.sql.SQLException) cause)) {
-                        x = new DataConnectionException(original);
+                    try {
+                        WSJdbcDataSource ds = (WSJdbcDataSource) emb.getDataSource(null, null);
+                        if (ds != null && ds.getDatabaseHelper().isConnectionError((java.sql.SQLException) cause)) {
+                            x = new DataConnectionException(original);
+                        }
+                    } catch (Exception e) {
+                        if (trace && tc.isDebugEnabled())
+                            Tr.debug(tc, "Could not obtain DataSource during Exception checking");
                     }
                 }
                 if (x == null)
