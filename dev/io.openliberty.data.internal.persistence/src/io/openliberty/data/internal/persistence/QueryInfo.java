@@ -465,7 +465,7 @@ public class QueryInfo {
 
     /**
      * Adds Sort criteria to the end of the tracked list of sort criteria.
-     * For IdClass, adds all Id properties separately. TODO use id(this) instead once #28925 is fixed
+     * For IdClass, adds all Id properties separately. TODO use id(this) instead once #30093 is fixed
      *
      * @param ignoreCase if ordering is to be independent of case.
      * @param attribute  name of attribute (@OrderBy value or Sort property or parsed from OrderBy query-by-method).
@@ -3180,13 +3180,8 @@ public class QueryInfo {
                 generateWhereClause(methodName, by + 2, methodName.length(), q);
             type = Type.COUNT;
         } else if (methodName.startsWith("exists")) {
-            String name = entityInfo.idClassAttributeAccessors == null ? ID : entityInfo.idClassAttributeAccessors.firstKey();
-            String attrName = getAttributeName(name, true);
-            // TODO SELECT id(o) once #28925 is fixed
-            q = new StringBuilder(200).append("SELECT ");
-            if (attrName.charAt(attrName.length() - 1) != ')')
-                q.append(entityVar_);
-            q.append(attrName).append(" FROM ") //
+            q = new StringBuilder(200) //
+                            .append("SELECT ID(").append(o).append(") FROM ") //
                             .append(entityInfo.name).append(' ').append(o);
             if (by > 0 && methodName.length() > by + 2)
                 generateWhereClause(methodName, by + 2, methodName.length(), q);
@@ -3243,13 +3238,8 @@ public class QueryInfo {
                 generateQueryByParameters(q, methodTypeAnno, countPages);
         } else if ("Exists".equals(methodTypeAnno.annotationType().getSimpleName())) {
             type = Type.EXISTS;
-            String name = entityInfo.idClassAttributeAccessors == null ? ID : entityInfo.idClassAttributeAccessors.firstKey();
-            String attrName = getAttributeName(name, true);
-            // TODO SELECT id(o) once #28925 is fixed
-            q = new StringBuilder(200).append("SELECT ");
-            if (attrName.charAt(attrName.length() - 1) != ')')
-                q.append(entityVar_);
-            q.append(attrName).append(" FROM ") //
+            q = new StringBuilder(200) //
+                            .append("SELECT ID(").append(o).append(") FROM ") //
                             .append(entityInfo.name).append(' ').append(o);
             if (method.getParameterCount() > 0)
                 generateQueryByParameters(q, methodTypeAnno, countPages);
@@ -3818,7 +3808,7 @@ public class QueryInfo {
             Sort<Object> sort = addIt.next();
             if (sort == null)
                 throw new IllegalArgumentException("Sort: null");
-            // TODO special IdClass handling should be unnecessary once 28925 is fixed
+            // TODO special IdClass handling should be unnecessary once 30093 is fixed
             else if (hasIdClass && ID.equalsIgnoreCase(sort.property()))
                 for (String name : entityInfo.idClassAttributeAccessors.keySet())
                     combined.add(getWithAttributeName(getAttributeName(name, true), sort));
@@ -3845,7 +3835,7 @@ public class QueryInfo {
         for (Sort<Object> sort : additional) {
             if (sort == null)
                 throw new IllegalArgumentException("Sort: null");
-            // TODO special IdClass handling should be unnecessary once 28925 is fixed
+            // TODO special IdClass handling should be unnecessary once 30093 is fixed
             else if (hasIdClass && ID.equalsIgnoreCase(sort.property()))
                 for (String name : entityInfo.idClassAttributeAccessors.keySet())
                     combined.add(getWithAttributeName(getAttributeName(name, true), sort));

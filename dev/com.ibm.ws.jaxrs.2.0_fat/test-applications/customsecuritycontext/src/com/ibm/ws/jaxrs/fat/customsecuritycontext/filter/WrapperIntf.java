@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018, 2024 IBM Corporation and others.
+ * Copyright (c) 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -7,20 +7,10 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
-package com.ibm.ws.microprofile.config13.tck;
+package com.ibm.ws.jaxrs.fat.customsecuritycontext.filter;
 
-import org.junit.runner.RunWith;
-import org.junit.runners.Suite;
-import org.junit.runners.Suite.SuiteClasses;
-
-import componenttest.custom.junit.runner.AlwaysPassesTest;
-
-@RunWith(Suite.class)
-@SuiteClasses({
-                AlwaysPassesTest.class,
-                Config13TCKLauncher.class
-})
-
-public class FATSuite {
-
+public interface WrapperIntf {
+    default public WrapperIntf getThis() {
+        return this;
+    }
 }
