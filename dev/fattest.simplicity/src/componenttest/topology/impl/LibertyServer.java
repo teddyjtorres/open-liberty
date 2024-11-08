@@ -3500,8 +3500,6 @@ public class LibertyServer implements LogMonitorClient {
                                                      "com.ibm.ws.ejbcontainer.security.jacc_fat.bindings", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
                                                      "com.ibm.ws.ejbcontainer.security.jacc_fat.mergebindings", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
 
-                                                     "com.ibm.ws.jaxrs.fat.exceptionMappingWithOT", //com.ibm.ws.jaxrs.2.0_fat
-
                                                      "EclipseLinkServer", //com.ibm.ws.jpa.tests.eclipselink_jpa_2.1_fat
 
                                                      "com.ibm.ws.jpa.el.defaultds.fat.server", //com.ibm.ws.jpa.tests.jpa_fat
