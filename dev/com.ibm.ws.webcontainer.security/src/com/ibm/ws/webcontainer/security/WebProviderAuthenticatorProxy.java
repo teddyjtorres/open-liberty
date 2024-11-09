@@ -763,7 +763,7 @@ public class WebProviderAuthenticatorProxy implements WebAuthenticator {
             if (oauthService == null) {
                 return new AuthenticationResult(AuthResult.CONTINUE, "OAuth service is not available, skipping OAuth...");
             }
-            else if (webRequest.isUnprotectedURI() && (req.getAttribute(OidcClient.OIDC_ACCESS_TOKEN) == null)){
+            else if (webRequest.isUnprotectedURI() && !webRequest.hasAuthenticationData()){
                 return new AuthenticationResult(AuthResult.CONTINUE, "OAuth service is  available, but resource is unprotected, skipping OAuth...");
             }
 
