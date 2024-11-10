@@ -132,7 +132,7 @@ public class FailoverTest2 extends FailoverTest {
 
     @AfterClass
     public static void afterSuite() {
-        FATSuite.afterSuite("HATABLE", "WAS_TRAN_LOG", "WAS_PARTNER_LOG");
+        FATSuite.afterSuite("WAS_TRAN_LOG", "WAS_PARTNER_LOG");
     }
 
     @BeforeClass
@@ -150,15 +150,6 @@ public class FailoverTest2 extends FailoverTest {
         final String method = "testHADBNewBehaviourRuntimeFailover";
 
         server = recoverServer;
-
-        FATUtils.startServers(runner, server);
-
-        runInServletAndCheck(server, SERVLET_NAME, "setupForNonRecoverableFailover");
-
-        FATUtils.stopServers(server);
-
-        Log.info(this.getClass(), method, "set timeout");
-        server.setServerStartTimeout(START_TIMEOUT);
 
         HADBTestControl.write(HADBTestType.RUNTIME, -3, 12, 1);
 
@@ -184,15 +175,6 @@ public class FailoverTest2 extends FailoverTest {
         final String method = "testHADBNewBehaviourUpdateConfigFailover";
 
         server = recoverServer;
-
-        FATUtils.startServers(runner, server);
-
-        runInServletAndCheck(server, SERVLET_NAME, "setupForNonRecoverableFailover");
-
-        FATUtils.stopServers(server);
-
-        Log.info(this.getClass(), method, "set timeout");
-        server.setServerStartTimeout(START_TIMEOUT);
 
         HADBTestControl.write(HADBTestType.RUNTIME, -3, 12, 1);
 
@@ -223,7 +205,7 @@ public class FailoverTest2 extends FailoverTest {
             server.updateServerConfiguration(config);
             server.waitForConfigUpdateInLogUsingMark(Collections.singleton(APP_NAME));
 
-            runInServletAndCheck(server, SERVLET_NAME, "setupForNonRecoverableFailover");
+            HADBTestControl.write(HADBTestType.RUNTIME, -3, 12, 1);
 
             FATUtils.stopServers(server);
 
@@ -275,15 +257,6 @@ public class FailoverTest2 extends FailoverTest {
 
         server = defaultServer;
 
-        FATUtils.startServers(runner, server);
-
-        runInServletAndCheck(server, SERVLET_NAME, "setupForNonRecoverableFailover");
-
-        FATUtils.stopServers(server);
-
-        Log.info(this.getClass(), method, "set timeout");
-        server.setServerStartTimeout(START_TIMEOUT);
-
         HADBTestControl.write(HADBTestType.RUNTIME, -3, 12, 1);
 
         FATUtils.startServers(runner, server);
@@ -308,7 +281,7 @@ public class FailoverTest2 extends FailoverTest {
         // string appears in the messages.log
         assertNotNull("Recovery didn't happen for " + server.getServerName(), server.waitForStringInTrace("Performed recovery for " + server.getServerName()));
 
-        runInServletAndCheck(server, SERVLET_NAME, "setupForNonRecoverableFailover");
+        HADBTestControl.write(HADBTestType.RUNTIME, -3, 12, 1);
 
         FATUtils.stopServers(server);
 
@@ -362,15 +335,6 @@ public class FailoverTest2 extends FailoverTest {
 
         server = defaultServer;
 
-        FATUtils.startServers(runner, server);
-
-        runInServletAndCheck(server, SERVLET_NAME, "setupForConnectFailover");
-
-        FATUtils.stopServers(server);
-
-        Log.info(this.getClass(), method, "set timeout");
-        server.setServerStartTimeout(START_TIMEOUT);
-
         HADBTestControl.write(HADBTestType.CONNECT, 0, 0, 1);
 
         FATUtils.startServers(runner, server);
@@ -393,15 +357,6 @@ public class FailoverTest2 extends FailoverTest {
 
         server = recoverServer;
 
-        FATUtils.startServers(runner, server);
-
-        runInServletAndCheck(server, SERVLET_NAME, "setupForConnectFailover");
-
-        FATUtils.stopServers(server);
-
-        Log.info(this.getClass(), method, "set timeout");
-        server.setServerStartTimeout(START_TIMEOUT);
-
         HADBTestControl.write(HADBTestType.CONNECT, 0, 0, 1);
 
         FATUtils.startServers(runner, server);
@@ -423,16 +378,6 @@ public class FailoverTest2 extends FailoverTest {
         final String method = "testHADBNewBehaviourMultiConnectFailover";
 
         server = recoverServer;
-
-        FATUtils.startServers(runner, server);
-        Log.info(this.getClass(), method, "call testHADBNewBehaviourMultiConnectFailover");
-
-        runInServletAndCheck(server, SERVLET_NAME, "setupForMultiConnectFailover");
-
-        FATUtils.stopServers(server);
-
-        Log.info(this.getClass(), method, "set timeout");
-        server.setServerStartTimeout(START_TIMEOUT);
 
         HADBTestControl.write(HADBTestType.CONNECT, 0, 0, 3);
 
