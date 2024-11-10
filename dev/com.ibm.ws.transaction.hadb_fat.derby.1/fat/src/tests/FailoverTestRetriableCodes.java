@@ -128,7 +128,7 @@ public class FailoverTestRetriableCodes extends FailoverTest {
 
     @AfterClass
     public static void afterSuite() {
-        FATSuite.afterSuite("HATABLE", "WAS_TRAN_LOG", "WAS_PARTNER_LOG");
+        FATSuite.afterSuite("WAS_TRAN_LOG", "WAS_PARTNER_LOG");
     }
 
     @BeforeClass
@@ -145,15 +145,6 @@ public class FailoverTestRetriableCodes extends FailoverTest {
         final String method = "testHADBRetriableSqlCodeRuntimeFailover";
 
         server = retriableServer;
-
-        FATUtils.startServers(runner, server);
-
-        runInServletAndCheck(server, SERVLET_NAME, "setupForNonRecoverableFailover");
-
-        FATUtils.stopServers(server);
-
-        Log.info(this.getClass(), method, "set timeout");
-        server.setServerStartTimeout(START_TIMEOUT);
 
         HADBTestControl.write(HADBTestType.RUNTIME, -3, 12, 1);
 
@@ -177,17 +168,6 @@ public class FailoverTestRetriableCodes extends FailoverTest {
         final String method = "testHADBRetriableSqlCodeBatchFailover";
 
         server = retriableServer;
-
-        FATUtils.startServers(runner, server);
-
-        Log.info(this.getClass(), method, "call setupForNonRecoverableBatchFailover");
-
-        runInServletAndCheck(server, SERVLET_NAME, "setupForNonRecoverableBatchFailover");
-
-        FATUtils.stopServers(server);
-
-        Log.info(this.getClass(), method, "set timeout");
-        server.setServerStartTimeout(START_TIMEOUT);
 
         HADBTestControl.write(HADBTestType.RUNTIME, -33, 12, 1);
 
@@ -216,15 +196,6 @@ public class FailoverTestRetriableCodes extends FailoverTest {
         final String method = "testHADBNonRetriableRuntimeFailover";
 
         server = nonRetriableServer;
-
-        FATUtils.startServers(runner, server);
-
-        runInServletAndCheck(server, SERVLET_NAME, "setupForNonRecoverableFailover");
-
-        FATUtils.stopServers(server);
-
-        Log.info(this.getClass(), method, "set timeout");
-        server.setServerStartTimeout(START_TIMEOUT);
 
         HADBTestControl.write(HADBTestType.RUNTIME, -3, 12, 1);
 
@@ -264,12 +235,6 @@ public class FailoverTestRetriableCodes extends FailoverTest {
 
         server = nonRetriableServer;
         serverMsgs = new String[] { "WTRN0075W", "WTRN0076W", "CWWKE0701E", "DSRA8020E" };
-
-        FATUtils.startServers(runner, server);
-
-        runInServletAndCheck(server, SERVLET_NAME, "setupForNonRecoverableBatchFailover");
-
-        FATUtils.stopServers(new String[] { "WTRN0075W", "WTRN0076W", "CWWKE0701E", "DSRA8020E" }, server);
 
         HADBTestControl.write(HADBTestType.RUNTIME, -33, 12, 1);
 
