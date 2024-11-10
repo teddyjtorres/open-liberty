@@ -154,7 +154,7 @@ public class FailoverTestLease extends FATServletClient {
 
     @AfterClass
     public static void afterSuite() {
-        FATSuite.afterSuite("HATABLE", "WAS_LEASES_LOG", "WAS_PARTNER_LOGCLOUDSTALE", "WAS_TRAN_LOGCLOUDSTALE");
+        FATSuite.afterSuite("WAS_LEASES_LOG", "WAS_PARTNER_LOGCLOUDSTALE", "WAS_TRAN_LOGCLOUDSTALE");
     }
 
     public static void setUp(LibertyServer server) throws Exception {
@@ -192,12 +192,6 @@ public class FailoverTestLease extends FATServletClient {
     public void testHADBLeaseUpdateFailover() throws Exception {
         serversToStop = new LibertyServer[] { retriableCloudServer };
 
-        FATUtils.startServers(runner, retriableCloudServer);
-
-        runTest(retriableCloudServer, SERVLET_NAME, "setupForLeaseUpdate");
-
-        FATUtils.stopServers(new String[] { "WTRN0075W", "WTRN0076W", "CWWKE0701E", "DSRA8020E" }, retriableCloudServer);
-
         HADBTestControl.write(HADBTestType.LEASE, 0, 770, 1); // 770 interpreted as lease update
 
         FATUtils.startServers(runner, retriableCloudServer);
@@ -217,12 +211,6 @@ public class FailoverTestLease extends FATServletClient {
     @Test
     public void testHADBLeaseDeleteFailover() throws Exception {
         serversToStop = new LibertyServer[] { retriableCloudServer, staleCloudServer };
-
-        FATUtils.startServers(runner, retriableCloudServer);
-
-        runTest(retriableCloudServer, SERVLET_NAME, "setupForLeaseDelete");
-
-        FATUtils.stopServers(new String[] { "WTRN0075W", "WTRN0076W", "CWWKE0701E", "DSRA8020E" }, retriableCloudServer);
 
         HADBTestControl.write(HADBTestType.LEASE, 0, 771, 1); // 771 interpreted as lease delete
 
@@ -253,12 +241,6 @@ public class FailoverTestLease extends FATServletClient {
     public void testHADBLeaseClaimFailover() throws Exception {
         serversToStop = new LibertyServer[] { retriableCloudServer, staleCloudServer };
 
-        FATUtils.startServers(runner, retriableCloudServer);
-
-        runTest(retriableCloudServer, SERVLET_NAME, "setupForLeaseClaim");
-
-        FATUtils.stopServers(new String[] { "WTRN0075W", "WTRN0076W", "CWWKE0701E", "DSRA8020E" }, retriableCloudServer);
-
         HADBTestControl.write(HADBTestType.LEASE, 0, 772, 1); // 772 interpreted as lease claim
 
         // Ensure that the tables for a stale cloud server have been created
@@ -287,12 +269,6 @@ public class FailoverTestLease extends FATServletClient {
     @Test
     public void testHADBLeaseGetFailover() throws Exception {
         serversToStop = new LibertyServer[] { retriableCloudServer, staleCloudServer };
-
-        FATUtils.startServers(runner, retriableCloudServer);
-
-        runTest(retriableCloudServer, SERVLET_NAME, "setupForLeaseGet");
-
-        FATUtils.stopServers(new String[] { "WTRN0075W", "WTRN0076W", "CWWKE0701E", "DSRA8020E" }, retriableCloudServer);
 
         HADBTestControl.write(HADBTestType.LEASE, 0, 773, 1); // 773 interpreted as lease get
 
