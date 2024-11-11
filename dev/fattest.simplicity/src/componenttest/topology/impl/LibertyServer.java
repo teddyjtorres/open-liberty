@@ -3503,8 +3503,6 @@ public class LibertyServer implements LogMonitorClient {
     private static final String[] EXEMPT_SERVERS = {
                                                      "cdi20EEServer", //com.ibm.ws.cdi.1.0_fat_EE
 
-                                                     "com.ibm.ws.concurrent.mp.fat.1.3.ee10", //com.ibm.ws.concurrent.mp_fat_jakarta
-
                                                      "com.ibm.ws.security.authorization.jacc.dynamic_fat", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
                                                      "com.ibm.ws.ejbcontainer.security.jacc_fat.ejbjar.mergebindings", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
                                                      "com.ibm.ws.ejbcontainer.security.jacc_fat.ejbjar.inwar", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
@@ -3512,8 +3510,6 @@ public class LibertyServer implements LogMonitorClient {
                                                      "com.ibm.ws.ejbcontainer.security.jacc_fat", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
                                                      "com.ibm.ws.ejbcontainer.security.jacc_fat.bindings", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
                                                      "com.ibm.ws.ejbcontainer.security.jacc_fat.mergebindings", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
-
-                                                     "com.ibm.ws.jaxrs.fat.exceptionMappingWithOT", //com.ibm.ws.jaxrs.2.0_fat
 
                                                      "EclipseLinkServer", //com.ibm.ws.jpa.tests.eclipselink_jpa_2.1_fat
 
@@ -3527,21 +3523,6 @@ public class LibertyServer implements LogMonitorClient {
                                                      "com.ibm.ws.jpa.fat.ejbpassivation", //com.ibm.ws.jpa.tests.jpa_fat
 
                                                      "jsp23jsp22Server", //com.ibm.ws.jsp.2.3_fat
-
-                                                     "Config13TCKServer", //com.ibm.ws.microprofile.config.1.3_fat_tck
-
-                                                     "mpGraphQL10.basicQuery", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.defaultvalue", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.graphQLInterface", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.iface", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.ignore", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.inputFields", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.jarInWar", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.outputFields", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.rolesAuth", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.types", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.ui", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.voidQuery", //com.ibm.ws.microprofile.graphql.1.0_fat
 
                                                      "MetricsMonitorServer", //io.openliberty.microprofile.metrics.internal.5.x.monitor_fat
 

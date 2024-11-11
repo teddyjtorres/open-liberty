@@ -48,6 +48,7 @@ public class DataWebTckLauncher {
     @AfterClass
     public static void tearDown() throws Exception {
         server.stopServer(
+                          "CWWKD1054E", // tested error path
                           "CWWKE0955E" //websphere.java.security java 18+
         );
     }
