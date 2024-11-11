@@ -19,6 +19,7 @@ import java.util.logging.Logger;
 public class Util {
   public static final String    LS = System.lineSeparator();
   protected static Logger       logger_ = Logger.getLogger("FAT");
+  protected static Level defaultLogLevel = Level.INFO; // Sets the default logging level for Trace and Codepath logging. Allows this test to produce more trace by default. 
   static {
     Level l;
     String p = System.getProperty("fat.test.debug","INFO").toUpperCase();;
@@ -131,8 +132,8 @@ public class Util {
 
   public static void ALWAYS(Object ... args) { doAlways(args); }
   public static void LOG(Object ...  args) { if (logger_.isLoggable(Level.INFO)) doLog(args); }
-  public static void TRACE(Object ... args) { if (logger_.isLoggable(Level.FINEST)) doTrace(args); }
-  public static void CODEPATH() { if (logger_.isLoggable(Level.FINEST)) doTrace("CODEPATH"); }
+  public static void TRACE(Object ... args) { if (logger_.isLoggable(defaultLogLevel)) doTrace(args); }
+  public static void CODEPATH() { if (logger_.isLoggable(defaultLogLevel)) doTrace("CODEPATH"); }
 
   private static void doAlways(Object ... args) {
     Level keep = logger_.getLevel();
@@ -153,7 +154,7 @@ public class Util {
 
   private static void doTrace(Object ... args) {
     StackTraceElement e = Util.getCaller(2);
-    logger_.logp(Level.FINEST,e.getClassName(),e.getMethodName(),"["+e.getFileName()+":"+e.getLineNumber()+"] "+assembleMsg(args));
+    logger_.logp(defaultLogLevel,e.getClassName(),e.getMethodName(),"["+e.getFileName()+":"+e.getLineNumber()+"] "+assembleMsg(args));
   }
 
   private static String assembleMsg(Object ... args) {
