@@ -104,6 +104,7 @@ public class Activator implements BundleActivator {
             if (intentReg == null) {
                 Dictionary<String, Object> properties = new Hashtable<>();
                 properties.put("org.apache.cxf.dosgi.IntentName", "logging");
+                // Liberty Change
                 intentReg = safeRegister(AbstractFeature.class.getName(), logging, properties);
             }
 
@@ -111,6 +112,7 @@ public class Activator implements BundleActivator {
                 if (serviceReg == null) {
                     Dictionary<String, Object> properties = new Hashtable<>();
                     properties.put("name", "logging");
+                    // Liberty Change
                     serviceReg = safeRegister(Feature.class.getName(), logging, properties);
                 }
             } else {
@@ -121,6 +123,7 @@ public class Activator implements BundleActivator {
             }
         }
 
+        // Liberty Change Start
         private ServiceRegistration<?> safeRegister(String name, Object service, Dictionary<String, Object> properties) {
             try {
                 return bundleContext.registerService(name, service, properties);
@@ -129,6 +132,7 @@ public class Activator implements BundleActivator {
                 return null;
             }
         }
+        // Liberty Change End
 
         @SuppressWarnings("rawtypes")
         private Set<String> getTrimmedSet(Dictionary config, String propertyKey) {
