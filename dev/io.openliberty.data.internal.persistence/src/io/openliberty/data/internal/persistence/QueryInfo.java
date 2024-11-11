@@ -1315,7 +1315,7 @@ public class QueryInfo {
         Object returnValue = em.merge(toEntity(e));
 
         if (trace && tc.isEntryEnabled())
-            Tr.entry(this, tc, "findAndRemoveOne", loggable(returnValue));
+            Tr.entry(this, tc, "findAndUpdateOne", loggable(returnValue));
         return returnValue;
     }
 
