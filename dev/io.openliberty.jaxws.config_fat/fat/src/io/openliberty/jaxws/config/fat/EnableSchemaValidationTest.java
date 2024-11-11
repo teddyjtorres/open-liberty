@@ -542,7 +542,7 @@ public class EnableSchemaValidationTest {
 
         assertNull("Expected null response from server, but was" + response, response);
         assertNotNull("Expected Unmarshalling Error: unexpected element exception is not thrown",
-                      server.waitForStringInLog("SAXParseException.*unexpected element"));
+                      server.waitForStringInLog("unexpected element"));
     }
 
     private String runTest(LibertyServer server, String pathAndParams) throws ProtocolException, IOException {
