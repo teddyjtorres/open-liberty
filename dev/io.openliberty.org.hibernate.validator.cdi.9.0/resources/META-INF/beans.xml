@@ -12,13 +12,11 @@
  -->
 <beans xmlns="http://xmlns.jcp.org/xml/ns/javaee"
    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-   xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/beans_1_2.xsd"
-   version="1.2"
+   xsi:schemaLocation="https://jakarta.ee/xml/ns/jakartaee https://jakarta.ee/xml/ns/jakartaee/beans_4_1.xsd"
+   version="4.1"
    bean-discovery-mode="all">
     <scan>
         <exclude name="org.hibernate.validator.cdi.internal.interceptor.ValidationInterceptor"/>
-<!--         <exclude name="com.ibm.ws.beanvalidation.v20.cdi.internal.LibertyValidatorFactoryBean"/> -->
-<!--         <exclude name="com.ibm.ws.beanvalidation.v20.cdi.internal.LibertyValidatorBean"/> -->
     </scan>
 </beans>
 
