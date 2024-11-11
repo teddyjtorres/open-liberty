@@ -83,6 +83,10 @@
 							<argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine> <!-- Needed for ZOS. sourceEncoding is needed becuase arquillian calls string.getBtytes(). -->
 							<trimStackTrace>false</trimStackTrace>
 							<failIfNoTests>true</failIfNoTests>
+							<!-- Required configuration - each test requires a new JVM because the TCK itself has a provider
+							     which needs to be discovered in some tests, and ignored in other tests  -->
+							<forkCount>1</forkCount>
+							<reuseForks>false</reuseForks>
 							<dependenciesToScan>jakarta.json:jakarta.json-tck-tests</dependenciesToScan>
 							<systemPropertyVariables>
 								<jimage.dir>${project.build.directory}/jdk11-bundle</jimage.dir>
@@ -124,6 +128,10 @@
 							<argLine>-Dfile.encoding=${project.build.sourceEncoding}</argLine> <!-- Needed for ZOS. sourceEncoding is needed becuase arquillian calls string.getBtytes(). -->
 							<trimStackTrace>false</trimStackTrace>
 							<failIfNoTests>true</failIfNoTests>
+							<!-- Required configuration - each test requires a new JVM because the TCK itself has a provider
+							     which needs to be discovered in some tests, and ignored in other tests  -->
+							<forkCount>1</forkCount>
+							<reuseForks>false</reuseForks>
 							<dependenciesToScan>jakarta.json:jakarta.json-tck-tests-pluggability</dependenciesToScan>
 							<excludes>
 								<exclude>${exclude.tests}</exclude>
