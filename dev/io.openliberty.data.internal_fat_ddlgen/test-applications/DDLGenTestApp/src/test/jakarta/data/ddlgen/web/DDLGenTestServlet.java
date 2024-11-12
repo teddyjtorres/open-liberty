@@ -22,7 +22,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-import jakarta.annotation.Resource;
 import jakarta.inject.Inject;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -39,12 +38,11 @@ import componenttest.app.FATServlet;
 @WebServlet("/*")
 public class DDLGenTestServlet extends FATServlet {
 
-    @Resource(name = "java:app/env/adminDataSourceRef",
-              lookup = "jdbc/TestDataSource")
-    DataSource adminDataSource;
-
     @Inject
     Parts parts;
+
+    @Inject
+    Cars cars;
 
     /**
      * Executes the DDL in the database as a database admin.
@@ -54,15 +52,12 @@ public class DDLGenTestServlet extends FATServlet {
      */
     public void executeDDL(HttpServletRequest request, HttpServletResponse response) throws Exception {
         List<String> files = Arrays.asList(Objects.requireNonNull(request.getParameter("scripts")).split(","));
-        String withDatabaseStore = Objects.requireNonNull(request.getParameter("withDatabaseStore"));
         String usingDataSource = Objects.requireNonNull(request.getParameter("usingDataSource"));
+        String preamble = Objects.requireNonNull(request.getParameter("preamble")).replace("]", " ");
 
-        DataSource ds = InitialContext.doLookup(usingDataSource);
+        DataSource admin = InitialContext.doLookup(usingDataSource);
 
         for (String file : files) {
-            if (!file.contains(withDatabaseStore))
-                continue;
-
             try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
                 System.out.println("Execute DDL file: " + file);
                 String line;
@@ -70,13 +65,38 @@ public class DDLGenTestServlet extends FATServlet {
                     if (line.isBlank() || line.equals("EXIT;"))
                         continue;
 
-                    System.out.println("  Execute SQL Statement: " + line);
-                    try (Connection con = ds.getConnection(); Statement stmt = con.createStatement()) {
+                    try (Connection con = admin.getConnection(); Statement stmt = con.createStatement()) {
+                        if (!preamble.isBlank()) {
+                            System.out.println("  Execute Preamble: " + preamble);
+                            stmt.executeUpdate(preamble);
+                        }
+                        System.out.println("  Execute SQL Statement: " + line);
                         stmt.execute(line);
                     }
                 }
             }
         }
+
+    }
+
+    /**
+     * Attempt to insert, find, and delete a row in the Cars table
+     * which was created via execution of generated ddl files
+     */
+    @Test
+    public void testSaveToDefaultDatabase() {
+        assertEquals("Table should not have any starting values", 0, cars.findAll().count());
+
+        String id = cars.save(Car.of("1234", "Honda", "Civic", 2014, 89452, 7500)).vin;
+
+        Car result = cars.findById(id).orElseThrow();
+        assertEquals("Honda", result.make);
+        assertEquals("Civic", result.model);
+        assertEquals(2014, result.modelYear);
+        assertEquals(89452, result.odometer);
+        assertEquals(7500, result.price, 0.1);
+
+        cars.delete(result);
     }
 
     /**
@@ -118,4 +138,5 @@ public class DDLGenTestServlet extends FATServlet {
 
         parts.deleteAll(List.of(part2, part3));
     }
+
 }
