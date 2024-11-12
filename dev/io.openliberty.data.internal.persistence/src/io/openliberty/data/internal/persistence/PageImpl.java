@@ -63,7 +63,7 @@ public class PageImpl<T> implements Page<T> {
 
             results = query.getResultList();
         } catch (Exception x) {
-            throw RepositoryImpl.failure(x);
+            throw RepositoryImpl.failure(x, queryInfo.entityInfo.builder);
         } finally {
             em.close();
         }
@@ -97,7 +97,7 @@ public class PageImpl<T> implements Page<T> {
 
             return query.getSingleResult();
         } catch (Exception x) {
-            throw RepositoryImpl.failure(x);
+            throw RepositoryImpl.failure(x, queryInfo.entityInfo.builder);
         } finally {
             em.close();
         }
