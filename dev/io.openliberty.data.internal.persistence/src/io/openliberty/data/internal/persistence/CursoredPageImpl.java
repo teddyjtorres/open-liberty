@@ -56,6 +56,9 @@ public class CursoredPageImpl<T> implements CursoredPage<T> {
 
     @FFDCIgnore(Exception.class)
     CursoredPageImpl(QueryInfo queryInfo, PageRequest pageRequest, Object[] args) {
+        final boolean trace = TraceComponent.isAnyTracingEnabled();
+        if (trace && tc.isEntryEnabled())
+            Tr.entry(tc, "<init>", queryInfo, pageRequest, queryInfo.loggable(args));
 
         if (pageRequest == null)
             queryInfo.missingPageRequest();
@@ -102,6 +105,9 @@ public class CursoredPageImpl<T> implements CursoredPage<T> {
         } finally {
             em.close();
         }
+
+        if (trace && tc.isEntryEnabled())
+            Tr.exit(this, tc, "<init>");
     }
 
     /**
@@ -135,20 +141,27 @@ public class CursoredPageImpl<T> implements CursoredPage<T> {
     }
 
     @Override
+    @Trivial
     public List<T> content() {
         int size = results.size();
         int max = pageRequest.size();
-        return size > max ? new ResultList(max) : results;
+        List<T> content = size > max ? new ResultList(max) : results;
+
+        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+            Tr.debug(this, tc, "content", queryInfo.loggable(content));
+        return content;
     }
 
     @Override
     public PageRequest.Cursor cursor(int index) {
+        final boolean trace = TraceComponent.isAnyTracingEnabled();
+
         if (index < 0 || index >= pageRequest.size())
             throw new IllegalArgumentException("index: " + index);
 
         T entity = results.get(index);
 
-        final Object[] keyValues = new Object[queryInfo.sorts.size()];
+        final Object[] keyElements = new Object[queryInfo.sorts.size()];
         int k = 0;
         for (Sort<?> keyInfo : queryInfo.sorts)
             try {
@@ -159,12 +172,16 @@ public class CursoredPageImpl<T> implements CursoredPage<T> {
                         value = ((Method) accessor).invoke(value);
                     else
                         value = ((Field) accessor).get(value);
-                keyValues[k++] = value;
+                keyElements[k++] = value;
+
+                if (trace && tc.isDebugEnabled())
+                    Tr.debug(this, tc, "key element " + k + ": " +
+                                       queryInfo.loggable(value));
             } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException x) {
                 throw new DataException(x.getCause());
             }
 
-        return Cursor.forKey(keyValues);
+        return Cursor.forKey(keyElements);
     }
 
     @Override
