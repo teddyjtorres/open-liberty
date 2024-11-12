@@ -81,4 +81,5 @@ instrument.classesExcludes: com/ibm/ws/kernel/service/utils/resources/*.class, \
 	com.ibm.websphere.org.osgi.core;version=latest, \
 	com.ibm.websphere.org.osgi.service.component;version=latest,\
 	com.ibm.ws.kernel.boot;version=latest, \
+	com.ibm.ws.kernel.security.thread;version=latest,\
 	com.ibm.ws.logging;version=latest
