@@ -177,7 +177,7 @@ public enum DatabaseContainerType {
      */
     public static DatabaseContainerType valueOf(JdbcDatabaseContainer cont) {
         for (DatabaseContainerType elem : values())
-            if (elem.getContainerClass() == cont.getClass())
+            if (elem.getContainerClass().isInstance(cont))
                 return elem;
         throw new IllegalArgumentException("Unrecognized JdbcDatabaseContainer class: " + cont.getClass().getCanonicalName());
     }
