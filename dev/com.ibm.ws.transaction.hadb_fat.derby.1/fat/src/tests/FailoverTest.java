@@ -21,6 +21,7 @@ import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
+import com.ibm.tx.jta.ut.util.HADBTestControl;
 import com.ibm.tx.jta.ut.util.LastingXAResourceImpl;
 import com.ibm.websphere.simplicity.ShrinkHelper;
 import com.ibm.ws.transaction.fat.util.FATUtils;
@@ -101,13 +102,17 @@ public class FailoverTest extends TxFATServletClient {
     };
 
     protected static void commonSetUp(Class<?> testClass) throws Exception {
+        //System.getProperties().entrySet().stream().forEach(e -> Log.info(FailoverTest.class, "commonSetUp", e.getKey() + " -> " + e.getValue()));
+
         final WebArchive app = ShrinkHelper.buildDefaultApp(APP_NAME, "web");
         for (LibertyServer server : LibertyServerFactory.getKnownLibertyServers(testClass.getName())) {
+            HADBTestControl.init(server.getServerSharedPath());
             ShrinkHelper.exportAppToServer(server, app);
         }
     }
 
     protected static void commonCleanup(String testClassName) throws Exception {
+        HADBTestControl.clear();
         for (LibertyServer server : LibertyServerFactory.getKnownLibertyServers(testClassName)) {
             // Clean up XA resource files
             server.deleteFileFromLibertyInstallRoot("/usr/shared/" + LastingXAResourceImpl.STATE_FILE_ROOT);
