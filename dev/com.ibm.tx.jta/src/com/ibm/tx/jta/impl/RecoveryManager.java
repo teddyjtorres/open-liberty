@@ -155,7 +155,7 @@ public class RecoveryManager implements Runnable {
     /**
      * This set contains a list of all recovering transactions.
      */
-    protected Set<TransactionImpl> _recoveringTransactions;
+    private final Set<TransactionImpl> _recoveringTransactions;
 
     protected final Object _recoveryMonitor = new Object();
 
