@@ -109,8 +109,8 @@ public class RecoveryManager implements Runnable {
     protected int _partnerEntryLowWatermark = -1; /* @MD18134A */
     protected int _partnerEntryNextId = -1; /* @MD18134A */
 
-    protected static final int TRANSACTION_SERVICE_ITEMS = 3;
-    protected static final int PARTNERLOG_SERVICE_ITEMS = 6;
+    private static final int TRANSACTION_SERVICE_ITEMS = 3;
+    private static final int PARTNERLOG_SERVICE_ITEMS = 6;
 
     //
     // The following relate to the service data recoverable unit in the partner log
