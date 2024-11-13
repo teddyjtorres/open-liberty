@@ -19,6 +19,7 @@ import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.Phaser;
 
 import javax.transaction.SystemException;
 import javax.transaction.xa.Xid;
@@ -78,7 +79,7 @@ public class RecoveryManager implements Runnable {
      * This attribute is used to block requests against RecoveryCoordinators or
      * CoordinatorResources before recovery has completed.
      */
-    protected final EventSemaphore _replayInProgress = new EventSemaphore();
+    protected final Phaser _replayInProgress = new Phaser(1);
     protected boolean _replayCompleted;
 
     protected final EventSemaphore _recoveryInProgress = new EventSemaphore();
@@ -1329,7 +1330,7 @@ public class RecoveryManager implements Runnable {
             if (tc.isEventEnabled())
                 Tr.event(tc, "starting to wait for replay completion");
 
-            _replayInProgress.waitEvent();
+            _replayInProgress.awaitAdvance(0);
 
             if (tc.isEventEnabled())
                 Tr.event(tc, "completed wait for replay completion");
@@ -1347,7 +1348,7 @@ public class RecoveryManager implements Runnable {
         _failureScopeController.setFailureScopeLifeCycle(fslc);
 
         _replayCompleted = true;
-        _replayInProgress.post();
+        _replayInProgress.arrive();
 
         if (tc.isEntryEnabled())
             Tr.exit(tc, "replayComplete");
