@@ -80,7 +80,6 @@ public class RecoveryManager implements Runnable {
      * CoordinatorResources before recovery has completed.
      */
     protected final Phaser _replayInProgress = new Phaser(1);
-    protected boolean _replayCompleted;
 
     protected final Phaser _recoveryInProgress = new Phaser(1);
     protected boolean _recoveryCompleted;
@@ -1326,7 +1325,7 @@ public class RecoveryManager implements Runnable {
         if (tc.isEntryEnabled())
             Tr.entry(tc, "waitForReplayCompletion", localRecovery);
 
-        if (!_replayCompleted) {
+        if (_replayInProgress.getPhase() == 0) {
             if (tc.isEventEnabled())
                 Tr.event(tc, "starting to wait for replay completion");
 
@@ -1347,7 +1346,6 @@ public class RecoveryManager implements Runnable {
         final FailureScopeLifeCycle fslc = makeFailureScopeActive(_failureScopeController.failureScope(), _failureScopeController.localFailureScope());
         _failureScopeController.setFailureScopeLifeCycle(fslc);
 
-        _replayCompleted = true;
         _replayInProgress.arrive();
 
         if (tc.isEntryEnabled())
