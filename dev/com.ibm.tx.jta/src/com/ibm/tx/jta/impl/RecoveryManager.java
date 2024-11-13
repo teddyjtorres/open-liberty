@@ -106,8 +106,8 @@ public class RecoveryManager implements Runnable {
     protected int _recoveredEpoch;
     protected String _recoveredServerName;
 
-    protected int _partnerEntryLowWatermark = -1; /* @MD18134A */
-    protected int _partnerEntryNextId = -1; /* @MD18134A */
+    private int _partnerEntryLowWatermark = -1; /* @MD18134A */
+    private int _partnerEntryNextId = -1; /* @MD18134A */
 
     protected static final int TRANSACTION_SERVICE_ITEMS = 3;
     protected static final int PARTNERLOG_SERVICE_ITEMS = 6;
