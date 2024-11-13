@@ -91,11 +91,11 @@ public class RecoveryManager implements Runnable {
     protected RecoveryLog _xaLog; // 169107
     protected final RecoveryLog _recoverXaLog; //@MD18134A
 
-    protected SharedServerLeaseLog _leaseLog;
-    protected String _recoveryGroup;
-    protected String _localRecoveryIdentity;
-    protected boolean _peerTranLogEverOpened = false;
-    protected boolean _peerXaLogEverOpened = false;
+    private SharedServerLeaseLog _leaseLog;
+    private String _recoveryGroup;
+    private String _localRecoveryIdentity;
+    private boolean _peerTranLogEverOpened = false;
+    private boolean _peerXaLogEverOpened = false;
 
     protected PartnerLogTable _recoveryPartnerLogTable;
 
