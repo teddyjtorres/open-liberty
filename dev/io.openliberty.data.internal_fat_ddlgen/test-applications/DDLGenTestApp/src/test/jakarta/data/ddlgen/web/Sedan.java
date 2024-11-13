@@ -12,13 +12,26 @@
  *******************************************************************************/
 package test.jakarta.data.ddlgen.web;
 
-import jakarta.data.repository.BasicRepository;
-import jakarta.data.repository.Repository;
+import jakarta.persistence.DiscriminatorValue;
+import jakarta.persistence.Entity;
 
 /**
- * Repository for datasource jndiName jdbc/TestDataSourceJndi
+ * Inherits from Mobile and shares a table.
  */
-@Repository(dataStore = "jdbc/TestDataSourceJndi")
-public interface Vans extends BasicRepository<Van, String> {
+@Entity
+@DiscriminatorValue(value = "sedan")
+public class Sedan extends Mobile {
+    public int doors;
 
+    public static Sedan of(String vin, String make, String model, int modelYear, int odometer, float price, int doors) {
+        Sedan inst = new Sedan();
+        inst.vin = vin;
+        inst.make = make;
+        inst.model = model;
+        inst.modelYear = modelYear;
+        inst.odometer = odometer;
+        inst.price = price;
+        inst.doors = doors;
+        return inst;
+    }
 }

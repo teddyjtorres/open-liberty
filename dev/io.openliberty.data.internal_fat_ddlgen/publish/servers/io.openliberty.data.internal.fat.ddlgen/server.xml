@@ -81,7 +81,12 @@
 	 -->
 	
 	<!-- Test 6: Persistence Unit -->
-
+	<dataSource id="TestDataSourcePersistence" jndiName="jdbc/TestDataSourcePersistence" fat.modify="true">
+		<jdbcDriver libraryRef="JDBCLibrary" />
+		<properties.derby.embedded createDatabase="create" databaseName="memory:testdb"/>
+		<containerAuthData user="${env.DB_USER}" password="${env.DB_PASS}" />
+	</dataSource>
+	
 	<!-- Test 7: DatabaseStore -->
 	<authData id="dbuser" user="${env.DB_USER}" password="${env.DB_PASS}" />
 	

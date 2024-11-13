@@ -16,9 +16,9 @@ import jakarta.data.repository.BasicRepository;
 import jakarta.data.repository.Repository;
 
 /**
- * Repository for datasource jndiName jdbc/TestDataSourceJndi
+ * Repository for persistence unit resource reference
  */
-@Repository(dataStore = "jdbc/TestDataSourceJndi")
-public interface Vans extends BasicRepository<Van, String> {
+@Repository(dataStore = "java:app/env/persistence/MyPersistenceUnitRef")
+public interface Sedans extends BasicRepository<Sedan, String> {
 
 }
