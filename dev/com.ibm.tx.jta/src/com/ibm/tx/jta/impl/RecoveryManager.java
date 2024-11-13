@@ -80,9 +80,7 @@ public class RecoveryManager implements Runnable {
      * CoordinatorResources before recovery has completed.
      */
     protected final Phaser _replayInProgress = new Phaser(1);
-
     protected final Phaser _recoveryInProgress = new Phaser(1);
-    protected boolean _recoveryCompleted;
 
     protected boolean _shutdownInProgress;
 
@@ -1363,7 +1361,7 @@ public class RecoveryManager implements Runnable {
         if (tc.isEntryEnabled())
             Tr.entry(tc, "waitForRecoveryCompletion", localRecovery);
 
-        if (!_recoveryCompleted) {
+        if (_recoveryInProgress.getPhase() == 0) {
             if (tc.isEventEnabled())
                 Tr.event(tc, "starting to wait for recovery completion");
 
@@ -1385,10 +1383,7 @@ public class RecoveryManager implements Runnable {
         if (tc.isEntryEnabled())
             Tr.entry(tc, "recoveryComplete");
 
-        if (!_recoveryCompleted) {
-            _recoveryCompleted = true;
-            _recoveryInProgress.arrive();
-        }
+        _recoveryInProgress.arrive();
 
         // If the home server is shutting down and we are recovering a peer, then don't drive initialRecoveryComplete()
         boolean bypass = false;
@@ -1436,10 +1431,7 @@ public class RecoveryManager implements Runnable {
 
         replayComplete();
 
-        if (!_recoveryCompleted) {
-            _recoveryCompleted = true;
-            _recoveryInProgress.arrive();
-        }
+        _recoveryInProgress.arrive();
 
         if (_failureScopeController.localFailureScope()) {
             TMHelper.asynchRecoveryProcessingComplete(t);
@@ -1484,7 +1476,7 @@ public class RecoveryManager implements Runnable {
                 // Put out a message stating the we are stopping recovery processing. Since this method can
                 // be called a number of times in succession (to allow nested method calls to bail out by
                 // calling this method) we only put the message out the first time round.
-                if (!_recoveryCompleted) {
+                if (_recoveryInProgress.getPhase() == 0) {
                     if (tc.isEventEnabled())
                         Tr.event(tc, "Shutdown is in progress, stopping recovery processing");
                     recoveryComplete();
