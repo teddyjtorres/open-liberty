@@ -97,7 +97,7 @@ public class RecoveryManager implements Runnable {
     protected boolean _peerTranLogEverOpened = false;
     protected boolean _peerXaLogEverOpened = false;
 
-    protected PartnerLogTable _recoveryPartnerLogTable;
+    private PartnerLogTable _recoveryPartnerLogTable;
 
     protected byte[] _ourApplId;
     protected int _ourEpoch;
