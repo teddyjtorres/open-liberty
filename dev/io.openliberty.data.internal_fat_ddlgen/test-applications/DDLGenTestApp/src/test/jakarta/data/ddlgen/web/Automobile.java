@@ -14,9 +14,12 @@ package test.jakarta.data.ddlgen.web;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
+import jakarta.persistence.Inheritance;
+import jakarta.persistence.InheritanceType;
 
 @Entity
-public class Car {
+@Inheritance(strategy = InheritanceType.TABLE_PER_CLASS)
+public class Automobile {
     @Id
     public String vin;
 
@@ -30,8 +33,8 @@ public class Car {
 
     public float price;
 
-    public static Car of(String vin, String make, String model, int modelYear, int odometer, float price) {
-        Car inst = new Car();
+    public static Automobile of(String vin, String make, String model, int modelYear, int odometer, float price) {
+        Automobile inst = new Automobile();
         inst.vin = vin;
         inst.make = make;
         inst.model = model;

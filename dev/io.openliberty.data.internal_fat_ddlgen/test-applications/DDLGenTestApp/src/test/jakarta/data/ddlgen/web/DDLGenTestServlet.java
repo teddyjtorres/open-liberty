@@ -13,10 +13,12 @@
 package test.jakarta.data.ddlgen.web;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.sql.Connection;
+import java.sql.ResultSet;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
@@ -28,6 +30,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import javax.naming.InitialContext;
+import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 import org.junit.Test;
@@ -43,6 +46,9 @@ public class DDLGenTestServlet extends FATServlet {
 
     @Inject
     Cars cars;
+
+    @Inject
+    Trucks trucks;
 
     /**
      * Executes the DDL in the database as a database admin.
@@ -85,7 +91,7 @@ public class DDLGenTestServlet extends FATServlet {
      */
     @Test
     public void testSaveToDefaultDatabase() {
-        assertEquals("Table should not have any starting values", 0, cars.findAll().count());
+        assertEquals("Table car should not have any starting values", 0, cars.findAll().count());
 
         String id = cars.save(Car.of("1234", "Honda", "Civic", 2014, 89452, 7500)).vin;
 
@@ -97,6 +103,37 @@ public class DDLGenTestServlet extends FATServlet {
         assertEquals(7500, result.price, 0.1);
 
         cars.delete(result);
+    }
+
+    /**
+     * Attempt to insert, find, and delete a row in the Trucks table
+     * which was created via execution of generated ddl files
+     *
+     * @throws NamingException
+     */
+    @Test
+    public void testSaveToDatasourceId() throws Exception {
+        assertEquals("Table truck should not have any starting values", 0, trucks.findAll().count());
+
+        String id = trucks.save(Truck.of("1234", "Honda", "Ridgeline", 2025, 10, 40150, 63.6)).vin;
+
+        //Ensure no data was not put into the automobile table
+        DataSource testDataSource = InitialContext.doLookup("jdbc/TestDataSource");
+        try (Connection con = testDataSource.getConnection(); Statement stmt = con.createStatement()) {
+            try (ResultSet rs = stmt.executeQuery("SELECT * FROM Automobile")) {
+                assertFalse("Truck element should have been saved to Truck table, not Automobile", rs.next()); //No data in table
+            }
+        }
+
+        Truck result = trucks.findById(id).orElseThrow();
+        assertEquals("Honda", result.make);
+        assertEquals("Ridgeline", result.model);
+        assertEquals(2025, result.modelYear);
+        assertEquals(10, result.odometer);
+        assertEquals(40150, result.price, 0.1);
+        assertEquals(63.6, result.bedLength, 0.01);
+
+        trucks.delete(result);
     }
 
     /**

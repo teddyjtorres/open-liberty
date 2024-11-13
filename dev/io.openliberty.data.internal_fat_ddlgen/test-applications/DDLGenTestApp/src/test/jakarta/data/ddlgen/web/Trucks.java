@@ -12,32 +12,13 @@
  *******************************************************************************/
 package test.jakarta.data.ddlgen.web;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.data.repository.BasicRepository;
+import jakarta.data.repository.Repository;
 
-@Entity
-public class Car {
-    @Id
-    public String vin;
+/**
+ * Repository for datasource id TestDataSource
+ */
+@Repository(dataStore = "TestDataSource")
+public interface Trucks extends BasicRepository<Truck, String> {
 
-    public String make;
-
-    public String model;
-
-    public int modelYear;
-
-    public int odometer;
-
-    public float price;
-
-    public static Car of(String vin, String make, String model, int modelYear, int odometer, float price) {
-        Car inst = new Car();
-        inst.vin = vin;
-        inst.make = make;
-        inst.model = model;
-        inst.modelYear = modelYear;
-        inst.odometer = odometer;
-        inst.price = price;
-        return inst;
-    }
 }

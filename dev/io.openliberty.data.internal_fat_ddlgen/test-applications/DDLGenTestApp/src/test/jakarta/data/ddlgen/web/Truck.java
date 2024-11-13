@@ -13,31 +13,23 @@
 package test.jakarta.data.ddlgen.web;
 
 import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
 
+/**
+ * Inherits from Automobile, but has it's own table
+ */
 @Entity
-public class Car {
-    @Id
-    public String vin;
+public class Truck extends Automobile {
+    public double bedLength;
 
-    public String make;
-
-    public String model;
-
-    public int modelYear;
-
-    public int odometer;
-
-    public float price;
-
-    public static Car of(String vin, String make, String model, int modelYear, int odometer, float price) {
-        Car inst = new Car();
+    public static Truck of(String vin, String make, String model, int modelYear, int odometer, float price, double bedLength) {
+        Truck inst = new Truck();
         inst.vin = vin;
         inst.make = make;
         inst.model = model;
         inst.modelYear = modelYear;
         inst.odometer = odometer;
         inst.price = price;
+        inst.bedLength = bedLength;
         return inst;
     }
 }
