@@ -99,8 +99,8 @@ public class RecoveryManager implements Runnable {
 
     protected PartnerLogTable _recoveryPartnerLogTable;
 
-    protected byte[] _ourApplId;
-    protected int _ourEpoch;
+    private byte[] _ourApplId;
+    private int _ourEpoch;
 
     protected byte[] _recoveredApplId;
     protected int _recoveredEpoch;
