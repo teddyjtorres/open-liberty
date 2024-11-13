@@ -78,6 +78,7 @@ import jakarta.data.page.PageRequest.Cursor;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceException;
+import jakarta.persistence.TypedQuery;
 import jakarta.servlet.ServletConfig;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -747,6 +748,88 @@ public class DataJPATestServlet extends FATServlet {
         assertEquals(Boolean.TRUE, isOpenFromTopLevelDefaultMethod[2]); // outer1
         assertEquals(Boolean.TRUE, isOpenFromTopLevelDefaultMethod[3]); // outer2
         assertEquals(Boolean.FALSE, isOpenFromTopLevelDefaultMethod[4]); // inner
+    }
+
+    /**
+     * Verify that escape characters can be used to correctly match results.
+     */
+    @Test
+    public void testEscapeCharacters() {
+        orders.deleteAll();
+
+        orders.create(PurchaseOrder.of(21.91f, "Escape_Characters"),
+                      PurchaseOrder.of(22.92f, "Escape%Characters"),
+                      PurchaseOrder.of(23.93f, "Escape\\Characters"),
+                      PurchaseOrder.of(24.94f, "Escape_%Characters"),
+                      PurchaseOrder.of(25.95f, "Escape\\_Characters"),
+                      PurchaseOrder.of(26.96f, "Escape\\%Characters"),
+                      PurchaseOrder.of(27.97f, "Escape\\\\Characters"),
+                      PurchaseOrder.of(28.98f, "EscapeCharacters"));
+
+        List<Float> found;
+
+        // The % wildcard matches any number of characters (including 0)
+        found = orders.purchaseTotalsFor("Escape%Characters");
+        assertEquals(found.toString(), 8, found.size());
+
+        // The _ wildcard matches any 1 character, so expect 3 results:
+        found = orders.purchaseTotalsFor("Escape_Characters");
+        assertEquals(found.toString(), 3, found.size());
+        assertEquals(21.91f, found.get(0).floatValue(), 0.001f);
+        assertEquals(22.92f, found.get(1).floatValue(), 0.001f);
+        assertEquals(23.93f, found.get(2).floatValue(), 0.001f);
+
+        // \ is NOT an escape character unless ESCAPE '\' is specified in the JPQL.
+        // and in that case, it would only apply to the _ and % wildcard characters.
+        // Nothing in JPA says that an escape character can escape itself.
+
+        // Without ESCAPE '\':
+        found = orders.purchaseTotalsFor("Escape\\\\Characters");
+        assertEquals(found.toString(), 1, found.size());
+        assertEquals(27.97f, found.get(0).floatValue(), 0.001f);
+
+        // Without ESCAPE '\':
+        found = orders.purchaseTotalsFor("Escape\\_Characters");
+        assertEquals(found.toString(), 3, found.size());
+        assertEquals(25.95f, found.get(0).floatValue(), 0.001f);
+        assertEquals(26.96f, found.get(1).floatValue(), 0.001f);
+        assertEquals(27.97f, found.get(2).floatValue(), 0.001f);
+
+        // With ESCAPE '\':
+        try (EntityManager em = orders.entityMgr()) {
+            String queryWithEscape = "SELECT total FROM Orders" +
+                                     " WHERE purchasedBy LIKE ?1 ESCAPE '\\'" +
+                                     " ORDER BY total";
+            TypedQuery<Float> query = em.createQuery(queryWithEscape, Float.class);
+
+            // Escaped % character is not a wildcard
+            query.setParameter(1, "Escape\\%Characters");
+            found = query.getResultList();
+            assertEquals(found.toString(), 1, found.size());
+            assertEquals(22.92f, found.get(0).floatValue(), 0.001f);
+
+            // Escaped _ character is not a wildcard
+            query.setParameter(1, "Escape\\_Characters");
+            found = query.getResultList();
+            assertEquals(found.toString(), 1, found.size());
+            assertEquals(21.91f, found.get(0).floatValue(), 0.001f);
+
+            // matches \ followed by any one character
+            query.setParameter(1, "Escape\\\\_Characters");
+            found = query.getResultList();
+            assertEquals(found.toString(), 3, found.size());
+            assertEquals(25.95f, found.get(0).floatValue(), 0.001f);
+            assertEquals(26.96f, found.get(1).floatValue(), 0.001f);
+            assertEquals(27.97f, found.get(2).floatValue(), 0.001f);
+
+            // matches \_ where _ is not a wildcard.
+            query.setParameter(1, "Escape\\\\\\_Characters");
+            found = query.getResultList();
+            assertEquals(found.toString(), 1, found.size());
+            assertEquals(25.95f, found.get(0).floatValue(), 0.001f);
+        }
+
+        orders.deleteAll();
     }
 
     /**
