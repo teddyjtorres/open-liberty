@@ -157,7 +157,7 @@ public class RecoveryManager implements Runnable {
      */
     protected Set<TransactionImpl> _recoveringTransactions;
 
-    protected final Object _recoveryMonitor = new Object();
+    private final Object _recoveryMonitor = new Object();
 
     protected boolean _cleanRemoteShutdown;
 
