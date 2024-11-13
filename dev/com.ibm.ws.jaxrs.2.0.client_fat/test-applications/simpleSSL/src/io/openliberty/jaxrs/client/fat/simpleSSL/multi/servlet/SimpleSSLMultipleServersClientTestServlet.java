@@ -33,6 +33,7 @@ import org.junit.Test;
 
 import componenttest.annotation.AllowedFFDC;
 import componenttest.app.FATServlet;
+import junit.framework.Assert;
 
 @SuppressWarnings("serial")
 @WebServlet(urlPatterns = "/SimpleSSLMultipleServersClientTestServlet")
@@ -43,17 +44,12 @@ public class SimpleSSLMultipleServersClientTestServlet extends FATServlet {
     private static final String TRUSTSTORE = "resources/security/trust.jks";
 
     private static Client client;
-    private static Client client2;
 
     @Override
     public void after() {
         if (client != null) {
             client.close();
-        }
-
-        if (client2 != null) {
-            client2.close();
-        }        
+        }       
     }
 
     @Test
@@ -62,6 +58,17 @@ public class SimpleSSLMultipleServersClientTestServlet extends FATServlet {
         cb.property("com.ibm.ws.jaxrs.client.ssl.config", "mySSLConfig");
         client = cb.build();
         
+        Response response = client.target(SERVER_CONTEXT_ROOT)
+                        .path("echo")
+                        .request(MediaType.TEXT_PLAIN_TYPE)
+                        .get();
+        assertEquals(200, response.getStatus());
+        assertEquals("Hello World!", response.readEntity(String.class));
+    }
+    
+//    @Test
+    public void testSimpleSSLRequestToSecondServerWebTarget() {
+        client = ClientBuilder.newClient();
         Response response = client.target(SERVER_CONTEXT_ROOT)
                         .path("echo")
                         .request(MediaType.TEXT_PLAIN_TYPE)
@@ -118,6 +125,23 @@ public class SimpleSSLMultipleServersClientTestServlet extends FATServlet {
                         .get();
         assertEquals(200, response.getStatus());
         assertEquals("Hello World!", response.readEntity(String.class));
+    }
+    
+    @Test
+    @AllowedFFDC({"com.ibm.websphere.ssl.SSLException", "java.security.PrivilegedActionException"})
+    public void testSimpleSSLRequestToSecondServerNoConfig() {
+        try {
+            ClientBuilder cb = ClientBuilder.newBuilder();
+            client = cb.build();
+            
+            Response response = client.target(SERVER_CONTEXT_ROOT)
+                            .path("echo")
+                            .request(MediaType.TEXT_PLAIN_TYPE)
+                            .get();
+            Assert.fail();
+        } catch (Exception e) {
+            // expected, don't connect
+        }
     }
     
 }

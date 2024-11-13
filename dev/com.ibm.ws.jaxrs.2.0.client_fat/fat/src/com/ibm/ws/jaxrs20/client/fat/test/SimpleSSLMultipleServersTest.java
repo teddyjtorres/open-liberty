@@ -46,6 +46,7 @@ public class SimpleSSLMultipleServersTest extends FATServletClient {
         // Build an application and export it to the dropins directory
         ShrinkHelper.defaultDropinApp(server, appName, "io.openliberty.jaxrs.client.fat.simpleSSL.multi.servlet");
         ShrinkHelper.defaultDropinApp(server2, appName, "io.openliberty.jaxrs.client.fat.simpleSSL");
+        ShrinkHelper.defaultDropinApp(server2, appName + "2", "io.openliberty.jaxrs.client.fat.simpleSSL");
 
         // Make sure we don't fail because we try to start an
         // already started server
