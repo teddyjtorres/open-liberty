@@ -255,20 +255,33 @@ public class CryptoUtils {
 
     public static String getProvider() {
         String provider = null;
-        if (fipsEnabled && isOpenJCEPlusFIPSAvailable()) {
-            provider = OPENJCE_PLUS_FIPS_NAME;
-        } else if (fipsEnabled && isIBMJCEPlusFIPSAvailable()) {
-            provider = IBMJCE_PLUS_FIPS_NAME;
+//        if (fipsEnabled && isOpenJCEPlusFIPSAvailable()) {
+//            provider = OPENJCE_PLUS_FIPS_NAME;
+//        } else if (fipsEnabled && isIBMJCEPlusFIPSAvailable()) {
+//            provider = IBMJCE_PLUS_FIPS_NAME;
+//        } else if (isZOSandRunningJava11orHigher() && isOpenJCEPlusAvailable()) {
+//            provider = OPENJCE_PLUS_NAME;
+//        } else if (isIBMJCEAvailable()) {
+//            provider = IBMJCE_NAME;
+//        }
+        if (fipsEnabled) {
+            //Do not check the provider available or not. Later on when we use the provider, the JDK will handle it.
+            if (isSemeruFips()) {
+                provider = OPENJCE_PLUS_FIPS_NAME;
+            } else {
+                provider = IBMJCE_PLUS_FIPS_NAME;
+            }
         } else if (isZOSandRunningJava11orHigher() && isOpenJCEPlusAvailable()) {
             provider = OPENJCE_PLUS_NAME;
         } else if (isIBMJCEAvailable()) {
             provider = IBMJCE_NAME;
         }
+
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-            if (provider == null) {
-                Tr.debug(tc, "Provider configured by JDK is " + Security.getProviders()[0].getName());
-            } else {
+            if (provider != null) {
                 Tr.debug(tc, "Provider configured is " + provider);
+            } else {
+                Tr.debug(tc, "Provider configured by JDK is " + (Security.getProviders() != null ? Security.getProviders()[0].getName() : "NULL"));
             }
         }
         return provider;
