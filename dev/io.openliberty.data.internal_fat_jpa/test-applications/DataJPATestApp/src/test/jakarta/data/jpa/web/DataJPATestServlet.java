@@ -451,6 +451,28 @@ public class DataJPATestServlet extends FATServlet {
     }
 
     /**
+     * Comparison ignoring case on an entity property of type char.
+     */
+    @Test
+    public void testCharIgnoreCase() {
+        // Clear out data before test
+        employees.deleteByLastName("TestCharIgnoreCase");
+
+        businesses.save(new Employee(33, "Charlotte", "TestCharIgnoreCase", (short) 1033, 'C'),
+                        new Employee(14, "Christina", "TestCharIgnoreCase", (short) 1014, 'c'),
+                        new Employee(22, "Claudia", "TestCharIgnoreCase", (short) 1022, 'b'),
+                        new Employee(54, "Cecilia", "TestCharIgnoreCase", (short) 1073, 'D'),
+                        new Employee(73, "Cindy", "TestCharIgnoreCase", (short) 1054, 'c'));
+
+        assertEquals(List.of(14, 33, 73, 54),
+                     employees.findByBadgeAccessLevelIgnoreCaseGreaterThan("B")
+                                     .map(e -> e.empNum)
+                                     .collect(Collectors.toList()));
+
+        employees.deleteByLastName("TestCharIgnoreCase");
+    }
+
+    /**
      * Use repository methods that return a collection attribute as a single value
      * and multiple attributes including a collection attribute via a record.
      */
