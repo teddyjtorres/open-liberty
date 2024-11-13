@@ -5,9 +5,6 @@
         <feature>transportSecurity-1.0</feature>
     </featureManager>
 
-    <!-- Server SSL configuration -->
-    <ssl id="defaultSSLConfig" keyStoreRef="clientKeyStore" trustStoreRef="clientTrustStore" />
-
     <!-- customize SSL configuration -->
     <ssl id="mySSLConfig" keyStoreRef="clientKeyStore" trustStoreRef="clientTrustStore" />
 
@@ -17,6 +14,8 @@
     <quickStartSecurity userName="test" userPassword="testpwd" />
 
     <include location="../fatTestPorts.xml"/>
+    <javaPermission className="java.io.FilePermission" name="resources/security/trust.jks" actions="read"/>
+    <javaPermission className="java.util.PropertyPermission" name="https.cipherSuites" actions="read"/>
     <javaPermission className="java.util.PropertyPermission" name="bvt.prop.HTTP_default" actions="read"/>
     <javaPermission className="java.util.PropertyPermission" name="bvt.prop.HTTP_default.secure" actions="read"/>
     <javaPermission className="java.util.PropertyPermission" name="bvt.prop.HTTP_secondary" actions="read"/>
