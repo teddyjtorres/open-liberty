@@ -82,7 +82,7 @@ public class RecoveryManager implements Runnable {
     protected final Phaser _replayInProgress = new Phaser(1);
     protected boolean _replayCompleted;
 
-    protected final EventSemaphore _recoveryInProgress = new EventSemaphore();
+    protected final Phaser _recoveryInProgress = new Phaser(1);
     protected boolean _recoveryCompleted;
 
     protected boolean _shutdownInProgress;
@@ -1369,7 +1369,7 @@ public class RecoveryManager implements Runnable {
             if (tc.isEventEnabled())
                 Tr.event(tc, "starting to wait for recovery completion");
 
-            _recoveryInProgress.waitEvent();
+            _recoveryInProgress.awaitAdvance(0);
 
             if (tc.isEventEnabled())
                 Tr.event(tc, "completed wait for recovery completion");
@@ -1389,7 +1389,7 @@ public class RecoveryManager implements Runnable {
 
         if (!_recoveryCompleted) {
             _recoveryCompleted = true;
-            _recoveryInProgress.post();
+            _recoveryInProgress.arrive();
         }
 
         // If the home server is shutting down and we are recovering a peer, then don't drive initialRecoveryComplete()
@@ -1440,7 +1440,7 @@ public class RecoveryManager implements Runnable {
 
         if (!_recoveryCompleted) {
             _recoveryCompleted = true;
-            _recoveryInProgress.post();
+            _recoveryInProgress.arrive();
         }
 
         if (_failureScopeController.localFailureScope()) {
