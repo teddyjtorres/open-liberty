@@ -131,6 +131,9 @@ public class DerbyRACheckpointLimitationsTest extends FATServletClient {
                 // Server should fail checkpoint and stop
                 if (server.isStarted()) {
                     server.stopServer("SRVE9967W");
+                } else {
+                    // save the logs from the failed checkpoint
+                    server.postStopServerArchive();
                 }
                 break;
             default:
