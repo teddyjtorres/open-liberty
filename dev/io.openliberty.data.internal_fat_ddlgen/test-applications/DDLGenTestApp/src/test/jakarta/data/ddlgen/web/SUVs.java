@@ -12,24 +12,13 @@
  *******************************************************************************/
 package test.jakarta.data.ddlgen.web;
 
-import jakarta.persistence.Entity;
+import jakarta.data.repository.BasicRepository;
+import jakarta.data.repository.Repository;
 
 /**
- * Inherits from Auto which is not itself an entity but a mapped superclass
+ * Repository for datasource jndiName jdbc/TestDataSource
  */
-@Entity
-public class Van extends Auto {
-    public int seats;
+@Repository(dataStore = "java:app/env/jdbc/TestDataSourceResourceRef")
+public interface SUVs extends BasicRepository<SUV, String> {
 
-    public static Van of(String vin, String make, String model, int modelYear, int odometer, float price, int seats) {
-        Van inst = new Van();
-        inst.vin = vin;
-        inst.make = make;
-        inst.model = model;
-        inst.modelYear = modelYear;
-        inst.odometer = odometer;
-        inst.price = price;
-        inst.seats = seats;
-        return inst;
-    }
 }

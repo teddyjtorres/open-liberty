@@ -26,6 +26,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import jakarta.annotation.Resource;
 import jakarta.inject.Inject;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -53,6 +54,12 @@ public class DDLGenTestServlet extends FATServlet {
 
     @Inject
     Vans vans;
+
+    @Inject
+    SUVs suvs;
+
+    @Resource(name = "java:app/env/jdbc/TestDataSourceResourceRef", lookup = "jdbc/TestDataSourceResource")
+    DataSource TestDataSourceResourceRef;
 
     /**
      * Executes the DDL in the database as a database admin.
@@ -167,6 +174,27 @@ public class DDLGenTestServlet extends FATServlet {
         assertEquals(8, result.seats);
 
         vans.delete(result);
+    }
+
+    /**
+     * Attempt to insert, find, and delete a row in the SUV table
+     * which was created via execution of generated ddl files
+     */
+    @Test
+    public void testSaveToDatasourceResourceRef() throws Exception {
+        assertEquals("Table SUV should not have any starting values", 0, suvs.findAll().count());
+
+        String id = suvs.save(SUV.of("1234", "Honda", "CR-V", 2007, 200400, 5509, true)).vin;
+
+        SUV result = suvs.findById(id).orElseThrow();
+        assertEquals("Honda", result.make);
+        assertEquals("CR-V", result.model);
+        assertEquals(2007, result.modelYear);
+        assertEquals(200400, result.odometer);
+        assertEquals(5509, result.price, 0.1);
+        assertEquals(true, result.hatchback);
+
+        suvs.delete(result);
     }
 
     /**

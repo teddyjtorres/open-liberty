@@ -18,18 +18,18 @@ import jakarta.persistence.Entity;
  * Inherits from Auto which is not itself an entity but a mapped superclass
  */
 @Entity
-public class Van extends Auto {
-    public int seats;
+public class SUV extends Auto {
+    public boolean hatchback;
 
-    public static Van of(String vin, String make, String model, int modelYear, int odometer, float price, int seats) {
-        Van inst = new Van();
+    public static SUV of(String vin, String make, String model, int modelYear, int odometer, float price, boolean hatchback) {
+        SUV inst = new SUV();
         inst.vin = vin;
         inst.make = make;
         inst.model = model;
         inst.modelYear = modelYear;
         inst.odometer = odometer;
         inst.price = price;
-        inst.seats = seats;
+        inst.hatchback = hatchback;
         return inst;
     }
 }

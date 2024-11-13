@@ -69,8 +69,16 @@
 	</dataSource>
 	
 	<!-- Test 4: Resource reference -->
+	<dataSource id="TestDataSourceResource" jndiName="jdbc/TestDataSourceResource" fat.modify="true">
+		<jdbcDriver libraryRef="JDBCLibrary" />
+		<properties.derby.embedded createDatabase="create" databaseName="memory:testdb"/>
+		<containerAuthData user="${env.DB_USER}" password="${env.DB_PASS}" />
+	</dataSource>
 
-	<!-- Test 5: DataSourceDefinition -->
+	<!-- Test 5: @DataSourceDefinition -->
+	<!-- NOTE: @DataSourceDefinition cannot be used with Database rotation since annotations are statically defined.
+	     DDLGen with DataSourceDefinition is tested against derby in io.openliberty.data.internal_fat_datastore
+	 -->
 	
 	<!-- Test 6: Persistence Unit -->
 
