@@ -62,6 +62,11 @@
 	</dataSource>
 	
 	<!-- Test 3: DataSource jndiName -->
+	<dataSource id="TestDataSourceJndi" jndiName="jdbc/TestDataSourceJndi" fat.modify="true">
+		<jdbcDriver libraryRef="JDBCLibrary" />
+		<properties.derby.embedded createDatabase="create" databaseName="memory:testdb"
+			user="${env.DB_USER}" password="${env.DB_PASS}"/>
+	</dataSource>
 	
 	<!-- Test 4: Resource reference -->
 

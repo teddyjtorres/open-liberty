@@ -14,11 +14,13 @@ package test.jakarta.data.ddlgen.web;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.fail;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Arrays;
 import java.util.List;
@@ -30,7 +32,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
 import javax.naming.InitialContext;
-import javax.naming.NamingException;
 import javax.sql.DataSource;
 
 import org.junit.Test;
@@ -49,6 +50,9 @@ public class DDLGenTestServlet extends FATServlet {
 
     @Inject
     Trucks trucks;
+
+    @Inject
+    Vans vans;
 
     /**
      * Executes the DDL in the database as a database admin.
@@ -108,8 +112,6 @@ public class DDLGenTestServlet extends FATServlet {
     /**
      * Attempt to insert, find, and delete a row in the Trucks table
      * which was created via execution of generated ddl files
-     *
-     * @throws NamingException
      */
     @Test
     public void testSaveToDatasourceId() throws Exception {
@@ -134,6 +136,37 @@ public class DDLGenTestServlet extends FATServlet {
         assertEquals(63.6, result.bedLength, 0.01);
 
         trucks.delete(result);
+    }
+
+    /**
+     * Attempt to insert, find, and delete a row in the van table
+     * which was created via execution of generated ddl files
+     */
+    @Test
+    public void testSaveToDatasourceJndiName() throws Exception {
+        assertEquals("Table van should not have any starting values", 0, vans.findAll().count());
+
+        String id = vans.save(Van.of("1234", "Honda", "Odyssey", 2015, 120500, 10926, 8)).vin;
+
+        //Ensure a table named auto was never created
+        DataSource testDataSource = InitialContext.doLookup("jdbc/TestDataSourceJndi");
+        try (Connection con = testDataSource.getConnection(); Statement stmt = con.createStatement()) {
+            try (ResultSet rs = stmt.executeQuery("SELECT * FROM Auto")) {
+                fail("The table Auto should not have been created");
+            } catch (SQLException e) {
+                //expected
+            }
+        }
+
+        Van result = vans.findById(id).orElseThrow();
+        assertEquals("Honda", result.make);
+        assertEquals("Odyssey", result.model);
+        assertEquals(2015, result.modelYear);
+        assertEquals(120500, result.odometer);
+        assertEquals(10926, result.price, 0.1);
+        assertEquals(8, result.seats);
+
+        vans.delete(result);
     }
 
     /**

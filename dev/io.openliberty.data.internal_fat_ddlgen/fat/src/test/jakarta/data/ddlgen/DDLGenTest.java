@@ -70,6 +70,7 @@ public class DDLGenTest extends FATServletClient {
                         .assertSuccessful()
                         .assertDDLFile("application[DDLGenTestApp].module[DDLGenTestApp.war].databaseStore[java.comp.DefaultDataSource]_JakartaData.ddl")
                         .assertDDLFile("application[DDLGenTestApp].databaseStore[TestDataSource]_JakartaData.ddl")
+                        .assertDDLFile("application[DDLGenTestApp].databaseStore[jdbc.TestDataSourceJndi]_JakartaData.ddl")
                         .assertDDLFile("databaseStore[TestDataStore]_JakartaData.ddl");
 
         String scripts = String.join(",", result.getFileLocations());
