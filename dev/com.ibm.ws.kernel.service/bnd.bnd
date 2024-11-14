@@ -29,7 +29,7 @@ Export-Package: \
  com.ibm.wsspi.kernel.service.location, \
  com.ibm.wsspi.kernel.service.utils;provide:=true, \
  com.ibm.ws.kernel.service.util;provide:=true, \
- com.ibm.ws.common.crypto, \
+ com.ibm.ws.common.crypto;provide:=true, \
  com.ibm.ws.common.encoder;provide:=true
  
 Private-Package: \
@@ -81,4 +81,5 @@ instrument.classesExcludes: com/ibm/ws/kernel/service/utils/resources/*.class, \
 	com.ibm.websphere.org.osgi.core;version=latest, \
 	com.ibm.websphere.org.osgi.service.component;version=latest,\
 	com.ibm.ws.kernel.boot;version=latest, \
+	com.ibm.ws.kernel.security.thread;version=latest,\
 	com.ibm.ws.logging;version=latest

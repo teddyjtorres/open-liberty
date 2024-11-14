@@ -217,8 +217,16 @@ CWWKD1018.confl.special.param.useraction=Update the repository to not use \
  both of the Jakarta Data special parameter types in the same method signature.
 
 CWWKD1019.mixed.positional.named=CWWKD1019E: The {0} method of the {1} repository \
- interface cannot have a query with a mixture of positional parameters and named \
- parameters.
+ interface cannot have a query that mixes positional and named parameters. \
+ The interface defines a mix of {2} positional parameters and
+ {3} named parameters {4} for the Query annotation value: {5}. A query with \
+ positional parameters must reference each parameter by its ordinal value, \
+ starting with ?1, and the method parameters must not have the Param annotation. \
+ In a query with named parameters, each parameter must be referenced by its name, \
+ such as {6}, and the method parameters must have the Param annotation, \
+ such as {7}. Alternatively, enabling the -parameters compile option allows \
+ method parameters to indicate the named parameter by matching its name, \
+ for example, {8}.
 CWWKD1019.mixed.positional.named.explanation=Queries with parameters must use all \
  named parameters or all positional parameters, not a combination.
 CWWKD1019.mixed.positional.named.useraction=Update the repository method to use \
@@ -600,10 +608,10 @@ CWWKD1060.name.out.of.scope.useraction=Update the Repository annotation to \
  specify a data store name that is visible to the module or library \
  providing the repository interface.
 
-CWWKD1061.comp.name.in.ejb=CWWKD1061E: The {0} repository interface which is \
- defined in the {1} enterprise bean module of the {2} application configures \
- a {2} value for the {3} attribute. However,  {4} names are not accessible to \
- enterprise bean modules. Use a name from one of the following \
+CWWKD1061.comp.name.in.ejb=CWWKD1061E: One or more repository interfaces ({0}) \
+ that are defined in the {1} enterprise bean module of the {2} application \
+ configure a {2} value for the {3} attribute. However, {4} names are not accessible \
+ to enterprise bean modules. Use a name from one of the following \
  namespaces: {5}.
 CWWKD1061.comp.name.in.ejb.explanation=The specified namespace is not accessible \
  to the enterprise bean module where the repository interface is defined.
@@ -633,24 +641,24 @@ CWWKD1064.datastore.error.explanation=An error occurred when attempting to obtai
 CWWKD1064.datastore.error.useraction=Ensure that the specified data store and all \
  other resources it depends on exist and are correctly configured.
 
-CWWKD1065.ddlgen.timeout=CWWKD1065E: DDL generation for the {0} repository \
- interface failed because the {1} data store did not complete DDL generation \
+CWWKD1065.ddlgen.timeout=CWWKD1065E: DDL generation for one or more repository \
+ interfaces ({0}) failed because the {1} data store did not complete DDL generation \
  within {2} seconds for the following entities: {3}.
 CWWKD1065.ddlgen.timeout.explanation=The DDL generation attempt timed out \
  and did not complete.
 CWWKD1065.ddlgen.timeout.useraction=Reattempt DDL generation \
  when the system and database are not under load.
 
-CWWKD1066.ddlgen.failed=CWWKD1066E: DDL generation for the {0} repository \
- interface that uses the {1} data store encountered an error when attempting \
+CWWKD1066.ddlgen.failed=CWWKD1066E: DDL generation for one or more repository \
+ interfaces ({0}) that use the {1} data store encountered an error during \
  DDL generation for the following entities: {2}. The error is: {3}.
 CWWKD1066.ddlgen.failed.explanation=The DDL generation attempt failed \
  and did not complete.
 CWWKD1066.ddlgen.failed.useraction=Investigate the error and make corrections \
  to the repository interface, entities, data store configuration, or database.
 
-CWWKD1067.ddlgen.emf.timeout=CWWKD1067E: DDL generation for the {0} repository \
- interface failed because the {1} data store was not available or was unable \
+CWWKD1067.ddlgen.emf.timeout=CWWKD1067E: DDL generation for one or more repository \
+ interfaces ({0}) failed because the {1} data store was not available or was unable \
  to make the following entities available within {2} seconds: {3}.
 CWWKD1067.ddlgen.emf.timeout.explanation=Acquisition of the resources needed \
  for DDL generation timed out and did not complete.
@@ -686,16 +694,18 @@ CWWKD1070.record.convert.err.explanation=It is not possible to use the \
 CWWKD1070.record.convert.err.useraction=Define the entity as a Jakarta Persistence \
  entity instead of using a Java record entity.
 
-CWWKD1071.record.with.type.var=CWWKD1071E: The {0} record cannot be used as an \
- entity because it has one or more type variables: {1}.
+CWWKD1071.record.with.type.var=CWWKD1071E: The {0} record is used as an entity by \
+ one or more of the repository interfaces ({1}) in the {2} application artifact, \
+ but the record cannot be an entity because it has one or more type variables: {3}.
 CWWKD1071.record.with.type.var.explanation=Entity classes cannot have generic \
  type variables.
 CWWKD1071.record.with.type.var.useraction=Remove the type variables from the \
  record.
 
-CWWKD1072.record.comp.conflict=CWWKD1072E: The {0} record cannot be used as an \
- entity because its {1} component and {2} component both resolve to the same \
- entity property name.
+CWWKD1072.record.comp.conflict=CWWKD1072E: The {0} record is used as an entity by \
+ one or more of the repository interfaces ({1}) in the {2} application artifact, \
+ but the record cannot be an entity because its {3} component and {4} component \
+ both resolve to the same entity property name.
 CWWKD1072.record.comp.conflict.explanation=Entity property names must be \
  unique ignoring case.
 CWWKD1072.record.comp.conflict.useraction=Rename one of the record components \
@@ -734,8 +744,8 @@ CWWKD1076.repo.disposed.useraction=Ensure that the repository method is not \
  used outside of the scope of the application that defines the repository.
 
 CWWKD1077.defaultds.not.found=CWWKD1077E: The {0} application artifact \
- has a {1} repository interface that uses or defaults to the \
- {2} data store, which must be configured in server configuration \
+ has one or more repository interfaces ({1}) that use or default to the \
+ {2} data store. This data store must be configured in the server configuration \
  by defining a dataSource element that has an identifier of \
  DefaultDataSource. For example, {3} \
  Alternatively, assign the dataStore value of the Repository annotation \
@@ -755,3 +765,146 @@ CWWKD1077.defaultds.not.found.explanation=Jakarta Data repositories default to \
  configuration.
 CWWKD1077.defaultds.not.found.useraction=Configure the Jakarta EE default \
  data source or specify a different data store for the repository.
+
+CWWKD1078.datastore.not.found=CWWKD1078E: One or more repository interfaces \
+ ({0}) from the {1} application artifact \
+ specify a {2} data store that does not match the ID of a \
+ dataSource element or a databaseStore element in server configuration, or it does \
+ not match the JNDI name of a data source, a data source resource reference, or \
+ a persistence unit reference that is accessible to the application artifact, \
+ or one of the related resources is not configured correctly. \
+ A dataSource element can be defined in server configuration. For example, {3} \
+ A databaseStore element can be defined in server configuration. For example, {4} \
+ An application component can use the Resource annotation to define a \
+ data source resource reference. For example, {5}, which requires server \
+ configuration to have a dataSource configuration element with a {6} attribute. \
+ An application component can use the PersistenceUnit annotation to define a \
+ persistence unit reference. For example, {7}, which requires the persistence.xml \
+ file to have a persistence-unit element with a matching name attribute. \
+ For example, {8}
+CWWKD1078.datastore.not.found.explanation=The data store of a Jakarta Data \
+ repository can be the ID of a dataSource element or databaseStore element \
+ in server configuration, or it can be a JNDI name of a data source, data source \
+ resource reference, or persistence unit reference.
+CWWKD1078.datastore.not.found.useraction=Ensure that the resource is configured \
+ correctly. If using a JNDI name, ensure that the scope of the JNDI name makes \
+ the resource accessible to the application artifact that provides the repository.
+
+CWWKD1079.jndi.not.found=CWWKD1079E: One or more repository interfaces ({0}) from \
+ the {1} application artifact specify a data store with the {2} JNDI name, \
+ but a data source, data source resource reference, or persistence unit reference \
+ with that JNDI name is not accessible to the application artifact, \
+ or one of the related resources is not configured correctly. \
+ An application component can use the Resource annotation to define a \
+ data source resource reference. For example, {3}, which points to a \
+ dataSource server configuration element with a {4} attribute. \
+ An application component can use the PersistenceUnit annotation to define a \
+ persistence unit reference. For example, {5}, which requires the persistence.xml \
+ file to have a persistence-unit element with a matching name attribute. \
+ For example, {6} \
+ An application component can use the DataSourceDefinition annotation \
+ to define a data source. Alternatively, a dataSource element can define a \
+ data source in the server configuration. For example, {7}
+CWWKD1079.jndi.not.found.explanation=When the data store of a Jakarta Data \
+ repository is set to a JNDI name of a data source, a data source resource \
+ reference, or a persistence unit reference, the JNDI name must be accessible \
+ to the application artifact that provides the repository, and the data source \
+ or persistence unit must be configured correctly.
+CWWKD1079.jndi.not.found.useraction=Ensure that the resource is configured \
+ correctly, and ensure that the scope of the JNDI name makes the resource \
+ accessible to the application artifact that provides the repository.
+
+CWWKD1080.datastore.general.err=CWWKD1080E: One or more repository interfaces \
+ ({0}) from the {1} application artifact are not available because of an error. \
+ The error might be due to a configuration problem, or the {2} data store for \
+ the repository might not be available. The error is: {3}.
+CWWKD1080.datastore.general.err.explanation=An error prevents \
+ the specified repositories from being used.
+CWWKD1080.datastore.general.err.useraction=Locate the repository interfaces and \
+ the data store configuration make corrections if needed.
+
+CWWKD1081.entity.general.err=CWWKD1081E: Due to an error, the {0} entity is \
+ not available to one or more repository interfaces ({1}) that use the \
+ {2} data store. The error is {3}.
+CWWKD1081.entity.general.err.explanation=An error prevents the \
+ specified entity from being used.
+CWWKD1081.entity.general.err.useraction=Locate the entity and make \
+ corrections if needed.
+
+CWWKD1082.entity.classes.missing=CWWKD1082E: The persistence unit for the \
+ {0} data store does not define one or more entity classes ({1}) \
+ that one or more repository interfaces ({2}), which use the data store, require.
+CWWKD1082.entity.classes.missing.explanation=Repositories use entity classes \
+ that must be defined in the persistence unit.
+CWWKD1082.entity.classes.missing.useraction=Include all entity classes \
+ in the persistence unit.
+
+CWWKD1083.dup.method.param=CWWKD1083E: Multiple parameters in the {0} method \
+ of the {1} repository interface correspond to the named parameter: {2}. \
+ You can annotate one method parameter with {3} to specify the query language \
+ named parameter. Alternatively, you can enable the -parameters compile option \
+ and define one method parameter in the form, {4}, which does not require the \
+ Param annotation.
+CWWKD1083.dup.method.param.explanation=Each method parameter must correspond \
+ to exactly one query parameter.
+CWWKD1083.dup.method.param.useraction=Check if each of the method parameters \
+ specifies the correct named parameter. Remove duplicate method parameters. \
+
+CWWKD1084.missing.named.params=CWWKD1084E: The parameters of the {0} method \
+ of the {1} repository interface do not define the named parameters ({2}) \
+ that are required by the Query annotation value: {3}. You can define a \
+ named parameter for the query by placing the Param annotation on a \
+ corresponding method parameter. For example, {4}. Alternatively, if you \
+ enable the -parameters compile option, you can omit the Param annotation \
+ if you name the method parameter to have the same name as the named parameter. \
+ For example, if String is the named parameter type, the method parameter \
+ can be {5}, which does not require the Param annotation.
+CWWKD1084.missing.named.params.explanation=The Query annotation value requires \
+ one or more named parameters that are not supplied by the repository method.
+CWWKD1084.missing.named.params.useraction=Add parameters to the repository method \
+ to specify the missing named parameters.
+
+CWWKD1085.extra.method.params=CWWKD1085E: The parameters of the {0} method \
+ of the {1} repository interface define query parameters ({2}), which do not \
+ match any of the named parameters ({3}) that are used by the Query annotation \
+ value: {4}.
+CWWKD1085.extra.method.params.explanation=All the method parameters must be \
+ used by the query or be Jakarta Data defined parameter types.
+CWWKD1085.extra.method.params.useraction=Remove the extra method parameters.
+
+CWWKD1086.named.params.unused=CWWKD1086E: The parameters of the {0} method \
+ of the {1} repository interface define named parameters ({2}), which are not \
+ used in the Query annotation value: {3}. You can refer to named parameters \
+ in a query by using the : character followed by the parameter name. \
+ For example, {4}. Positional parameters in a query can be referenced by using \
+ the ? character followed by an ordinal value, starting with ?1. Avoid \
+ annotating method parameters with the Param annotation when the query \
+ uses positional parameters or has no parameters.
+CWWKD1086.named.params.unused.explanation=The Param annotation can only be used \
+ when the query has named parameters.
+CWWKD1086.named.params.unused.useraction=Remove the Param annotation or switch \
+ the query to use named parameters.
+
+CWWKD1087.null.param=CWWKD1087E: The {0} parameter of the {1} method of the \
+ {2} repository interface is a null value. Specify a nonnull value.
+CWWKD1087.null.param.explanation=The parameter value must not be null.
+CWWKD1087.null.param.useraction=Specify a nonnull value to the parameter.
+
+CWWKD1088.empty.sorts=CWWKD1088E: The sort criteria that are specified by the \
+ {0} parameter of the {1} method of the {2} repository interface are empty.
+CWWKD1088.empty.sorts.explanation=The sort criteria must not be empty.
+CWWKD1088.empty.sorts.useraction=Specify a value for the sort criteria.
+
+CWWKD1089.unordered.pagination=CWWKD1089E: The {0} method of the {1} repository \
+ interface must specify the sort criteria because the method returns a {2} value. \
+ Unordered data cannot be split into pages.
+CWWKD1089.unordered.pagination.explanation=Pagination requires ordered data.
+CWWKD1089.unordered.pagination.useraction=Use the OrderBy annotation to define \
+ the sort criteria for the repository method.
+
+CWWKD1090.orderby.conflict=CWWKD1090E: The {0} method of the {1} repository \
+ interface cannot combine the OrderBy annotation and the OrderBy keyword.
+CWWKD1090.orderby.conflict.explanation=The OrderBy annotation is not compatible \
+ with the OrderBy keyword.
+CWWKD1090.orderby.conflict.useraction=Use only the OrderBy annotation or the \
+ OrderBy keyword.

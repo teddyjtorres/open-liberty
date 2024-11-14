@@ -49,7 +49,8 @@ public class GzipInterceptorsTest {
 
     Logger LOG = Logger.getLogger("GzipInterceptorsTest.class");
 
-    private final static int REQUEST_TIMEOUT = 10;
+    // Max timeout set to 5 minutes in milliseconds
+    private final static int REQUEST_TIMEOUT = 300000;
     private final static String GZIP_OUT_INTERCEPTOR_PROP = "-Dcxf.add.gzip.out.interceptor";
     private final static String GZIP_IN_INTERCEPTOR_PROP =  "-Dcxf.add.gzip.in.interceptor";
     private final static String GZIPOUT_INTERCEPTOR_INVOKED =  "Inside handleMessage of GZIPOutInterceptor";
@@ -93,7 +94,6 @@ public class GzipInterceptorsTest {
     @Test
     public void testEnableGZIPInterceptors() throws Exception {
 
-        gzipServer.reconfigureServer("GzipInterceptorsTestServer/server.xml", "CWWKG0017I");
         String response = runTest(gzipServer, "testWebServiceClient/IgnoreUnexpectedElementTestServiceServlet?target=AddedElement");
         // Log response to output.txt
 	LOG.info("testEnableGZIPInterceptors - Response = " + response);

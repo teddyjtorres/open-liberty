@@ -1,5 +1,5 @@
-/*******************************************************************************
- * Copyright (c) 2014, 2023 IBM Corporation and others.
+/* =============================================================================
+ * Copyright (c) 2014, 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -9,7 +9,8 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ * =============================================================================
+ */
 package com.ibm.ws.messaging.jms20.deliverydelay.fat;
 
 import static org.junit.Assert.assertNotNull;
@@ -199,10 +200,19 @@ public class DelayFullTest {
         return TestUtils.runInServlet(clientHost, clientPort, ddContextRoot, test); // throws IOException
     }
 
+    /**
+     * Tests using different delivery delay values when sending messages to a Queue destination.
+     * Runs tests with both simplified and domain-specific APIs
+     * 
+     * @throws Exception
+     */
     @Test
-    public void testDeliveryDelayForDifferentDelays_B() throws Exception {
+    public void testDeliveryDelayForDifferentDelays_Queue() throws Exception {
+    	
+    	// Configure server to use MDB receiving from "local" Queue
         restartClient(MDB_CONFIG_QUEUE_BINDINGS);
 
+        // Run test using simplified API
         runInServlet("testDeliveryDelayForDifferentDelays");
 
         String msg = clientServer.waitForStringInLogUsingLastOffset("Message received on mdb : QueueBindingsMessage2");
@@ -210,8 +220,22 @@ public class DelayFullTest {
         msg = clientServer.waitForStringInLogUsingLastOffset("Message received on mdb : QueueBindingsMessage1");
         assertNotNull("Could not find the upload message in the trace.log", msg);
 
+
+        // Run the test using domain-specific API
+        runInServlet("testDeliveryDelayForDifferentDelaysClassicApi");
+
+        msg = clientServer.waitForStringInLogUsingLastOffset(
+            "Message received on mdb : QueueBindingsMessage-ClassicApi2");
+        assertNotNull("Could not find the upload message in the trace.log", msg);
+        msg = clientServer.waitForStringInLogUsingLastOffset(
+            "Message received on mdb : QueueBindingsMessage-ClassicApi1");
+        assertNotNull("Could not find the upload message in the trace.log", msg);
+        
+        
+    	// Configure server to use MDB receiving from "remote" Queue
         restartServers(MDB_CONFIG_QUEUE_TCP);
 
+        // Run test using simplified API
         runInServlet("testDeliveryDelayForDifferentDelays_Tcp");
 
         msg = clientServer.waitForStringInLogUsingLastOffset("Message received on mdb : QueueTCPMessage2");
@@ -219,27 +243,69 @@ public class DelayFullTest {
         msg = clientServer.waitForStringInLogUsingLastOffset("Message received on mdb : QueueTCPMessage1");
         assertNotNull("Could not find the upload message in the trace.log", msg);
 
+        // Run test using domain-specific API
+        runInServlet("testDeliveryDelayForDifferentDelaysClassicApi_Tcp");
+
+        msg = clientServer.waitForStringInLogUsingLastOffset(
+            "Message received on mdb : QueueTCPMessage-ClassicApi2");
+        assertNotNull("Could not find the upload message in the trace.log", msg);
+        msg = clientServer.waitForStringInLogUsingLastOffset(
+            "Message received on mdb : QueueTCPMessage-ClassicApi1");
+        assertNotNull("Could not find the upload message in the trace.log", msg);
+        
+        
         restartServers();
     }
 
-    @Test
-    public void testDeliveryDelayForDifferentDelaysTopic_B() throws Exception {
-        restartClient(MDB_CONFIG_TOPIC_BINDINGS);
 
+    /**
+     * Tests using different delivery delay values when sending messages to a Topic destination.
+     * Runs tests with both simplified and domain-specific APIs
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void testDeliveryDelayForDifferentDelays_Topic() throws Exception {
+
+    	// Configure server to use MDB receiving from "local" Topic
+    	restartClient(MDB_CONFIG_TOPIC_BINDINGS);
+
+    	// Run test using simplified API
         runInServlet("testDeliveryDelayForDifferentDelaysTopic");
 
-        String msg = clientServer.waitForStringInLogUsingLastOffset("Message received on mdb : TopicBindingsMessage2");
+        String msg = clientServer.waitForStringInLog("Message received on mdb : TopicBindingsMessage2");
         assertNotNull("Could not find the upload message in the trace.log", msg);
-        msg = clientServer.waitForStringInLogUsingLastOffset("Message received on mdb : TopicBindingsMessage1");
+        msg = clientServer.waitForStringInLog("Message received on mdb : TopicBindingsMessage1");
         assertNotNull("Could not find the upload message in the trace.log", msg);
 
+        // Run test using domain-specific API
+        runInServlet("testDeliveryDelayForDifferentDelaysTopicClassicApi");
+
+        msg = clientServer.waitForStringInLogUsingLastOffset(
+            "Message received on mdb : TopicBindingsMessage-ClassicApi2");
+        assertNotNull("Could not find the upload message in the trace.log", msg);
+        msg = clientServer.waitForStringInLogUsingLastOffset(
+            "Message received on mdb : TopicBindingsMessage-ClassicApi1");
+        assertNotNull("Could not find the upload message in the trace.log", msg);
+        
+    	// Configure server to use MDB receiving from "remote" Topic
         restartServers(MDB_CONFIG_TOPIC_TCP);
 
+        // Run test using simplified API
         runInServlet("testDeliveryDelayForDifferentDelaysTopic_Tcp");
 
-        msg = clientServer.waitForStringInLogUsingLastOffset("Message received on mdb : TopicTCPMessage2");
+        msg = clientServer.waitForStringInLog("Message received on mdb : TopicTCPMessage2");
         assertNotNull("Could not find the upload message in the trace.log", msg);
-        msg = clientServer.waitForStringInLogUsingLastOffset("Message received on mdb : TopicTCPMessage1");
+        msg = clientServer.waitForStringInLog("Message received on mdb : TopicTCPMessage1");
+        assertNotNull("Could not find the upload message in the trace.log", msg);
+
+        // Run test using domain-specific API
+        runInServlet("testDeliveryDelayForDifferentDelaysTopicClassicApi_Tcp");
+        msg = clientServer.waitForStringInLogUsingLastOffset(
+            "Message received on mdb : TopicTCPMessage-ClassicApi2");
+        assertNotNull("Could not find the upload message in the trace.log", msg);
+        msg = clientServer.waitForStringInLogUsingLastOffset(
+            "Message received on mdb : TopicTCPMessage-ClassicApi1");
         assertNotNull("Could not find the upload message in the trace.log", msg);
 
         restartServers();
@@ -285,58 +351,6 @@ public class DelayFullTest {
         assertTrue("testPersistentMessageStoreTopic_B failed", testResult);
     }
 
-    @Test
-    public void testDeliveryDelayForDifferentDelaysClassicApi() throws Exception {
-        restartClient(MDB_CONFIG_QUEUE_BINDINGS);
-
-        runInServlet("testDeliveryDelayForDifferentDelaysClassicApi");
-
-        String msg = clientServer.waitForStringInLogUsingLastOffset(
-            "Message received on mdb : QueueBindingsMessage2-ClassicApi");
-        assertNotNull("Could not find the upload message in the trace.log", msg);
-        msg = clientServer.waitForStringInLogUsingLastOffset(
-            "Message received on mdb : QueueBindingsMessage1-ClassicApi");
-        assertNotNull("Could not find the upload message in the trace.log", msg);
-
-        restartServers(MDB_CONFIG_QUEUE_TCP);
-
-        runInServlet("testDeliveryDelayForDifferentDelaysClassicApi_Tcp");
-
-        msg = clientServer.waitForStringInLogUsingLastOffset(
-            "Message received on mdb : QueueTCPMessage2-ClassicApi");
-        assertNotNull("Could not find the upload message in the trace.log", msg);
-        msg = clientServer.waitForStringInLogUsingLastOffset(
-            "Message received on mdb : QueueTCPMessage1-ClassicApi");
-        assertNotNull("Could not find the upload message in the trace.log", msg);
-
-        restartServers();
-    }
-
-    @Test
-    public void testDeliveryDelayForDifferentDelaysTopicClassicApi()throws Exception {
-        restartClient(MDB_CONFIG_TOPIC_BINDINGS);
-
-        runInServlet("testDeliveryDelayForDifferentDelaysTopicClassicApi");
-
-        String msg = clientServer.waitForStringInLogUsingLastOffset(
-            "Message received on mdb : TopicBindingsMessage2-ClassicApi");
-        assertNotNull("Could not find the upload message in the trace.log", msg);
-        msg = clientServer.waitForStringInLogUsingLastOffset(
-            "Message received on mdb : TopicBindingsMessage1-ClassicApi");
-        assertNotNull("Could not find the upload message in the trace.log", msg);
-
-        restartServers(MDB_CONFIG_TOPIC_TCP);
-
-        runInServlet("testDeliveryDelayForDifferentDelaysTopicClassicApi_Tcp");
-        msg = clientServer.waitForStringInLogUsingLastOffset(
-            "Message received on mdb : TopicTCPMessage2-ClassicApi");
-        assertNotNull("Could not find the upload message in the trace.log", msg);
-        msg = clientServer.waitForStringInLogUsingLastOffset(
-            "Message received on mdb : TopicTCPMessage1-ClassicApi");
-        assertNotNull("Could not find the upload message in the trace.log", msg);
-
-        restartServers();
-    }
 
     @Test
     public void testPersistentMessageStoreClassicApi_B() throws Exception {

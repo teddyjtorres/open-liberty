@@ -23,6 +23,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
+import com.ibm.tx.jta.ut.util.HADBTestConstants.HADBTestType;
+import com.ibm.tx.jta.ut.util.HADBTestControl;
 import com.ibm.ws.transaction.fat.util.FATUtils;
 import com.ibm.ws.transaction.fat.util.SetupRunner;
 
@@ -152,7 +154,7 @@ public class FailoverTestLease extends FATServletClient {
 
     @AfterClass
     public static void afterSuite() {
-        FATSuite.afterSuite("HATABLE", "WAS_LEASES_LOG", "WAS_PARTNER_LOGCLOUDSTALE", "WAS_TRAN_LOGCLOUDSTALE");
+        FATSuite.afterSuite("WAS_LEASES_LOG", "WAS_PARTNER_LOGCLOUDSTALE", "WAS_TRAN_LOGCLOUDSTALE");
     }
 
     public static void setUp(LibertyServer server) throws Exception {
@@ -180,6 +182,7 @@ public class FailoverTestLease extends FATServletClient {
         FATUtils.stopServers(serversToStop);
         FailoverTest.commonCleanup(this.getClass().getName());
         serversToStop = null;
+        FATSuite.dropTables("WAS_LEASES_LOG");
     }
 
     /**
@@ -189,11 +192,7 @@ public class FailoverTestLease extends FATServletClient {
     public void testHADBLeaseUpdateFailover() throws Exception {
         serversToStop = new LibertyServer[] { retriableCloudServer };
 
-        FATUtils.startServers(runner, retriableCloudServer);
-
-        runTest(retriableCloudServer, SERVLET_NAME, "setupForLeaseUpdate");
-
-        FATUtils.stopServers(new String[] { "WTRN0075W", "WTRN0076W", "CWWKE0701E", "DSRA8020E" }, retriableCloudServer);
+        HADBTestControl.write(HADBTestType.LEASE, 0, 770, 1); // 770 interpreted as lease update
 
         FATUtils.startServers(runner, retriableCloudServer);
 
@@ -202,6 +201,8 @@ public class FailoverTestLease extends FATServletClient {
         // Should see a message like
         // WTRN0108I: Have recovered from SQLException when updating server lease for server with identity cloud0011
         assertNotNull("No warning message signifying failover", retriableCloudServer.waitForStringInLog("Have recovered from SQLException when updating server lease"));
+
+        retriableCloudServer.waitForStringInTrace("<<< END:   driveTransactions");
     }
 
     /**
@@ -211,11 +212,7 @@ public class FailoverTestLease extends FATServletClient {
     public void testHADBLeaseDeleteFailover() throws Exception {
         serversToStop = new LibertyServer[] { retriableCloudServer, staleCloudServer };
 
-        FATUtils.startServers(runner, retriableCloudServer);
-
-        runTest(retriableCloudServer, SERVLET_NAME, "setupForLeaseDelete");
-
-        FATUtils.stopServers(new String[] { "WTRN0075W", "WTRN0076W", "CWWKE0701E", "DSRA8020E" }, retriableCloudServer);
+        HADBTestControl.write(HADBTestType.LEASE, 0, 771, 1); // 771 interpreted as lease delete
 
         // Ensure that the tables for a stale cloud server have been created
         // And set the com.ibm.ws.recoverylog.disablehomelogdeletion property for the stale server to ensure they survive shutdown.
@@ -234,7 +231,7 @@ public class FailoverTestLease extends FATServletClient {
             assertNotNull("No warning message signifying failover", retriableCloudServer.waitForStringInLog("Have recovered from SQLException when deleting server lease"));
         }
 
-        runTest(retriableCloudServer, SERVLET_NAME, "deleteStaleLease");
+        retriableCloudServer.waitForStringInTrace("Performed recovery for cloudstale");
     }
 
     /**
@@ -244,11 +241,7 @@ public class FailoverTestLease extends FATServletClient {
     public void testHADBLeaseClaimFailover() throws Exception {
         serversToStop = new LibertyServer[] { retriableCloudServer, staleCloudServer };
 
-        FATUtils.startServers(runner, retriableCloudServer);
-
-        runTest(retriableCloudServer, SERVLET_NAME, "setupForLeaseClaim");
-
-        FATUtils.stopServers(new String[] { "WTRN0075W", "WTRN0076W", "CWWKE0701E", "DSRA8020E" }, retriableCloudServer);
+        HADBTestControl.write(HADBTestType.LEASE, 0, 772, 1); // 772 interpreted as lease claim
 
         // Ensure that the tables for a stale cloud server have been created
         // And set the com.ibm.ws.recoverylog.disablehomelogdeletion property for the stale server to ensure they survive shutdown.
@@ -267,7 +260,7 @@ public class FailoverTestLease extends FATServletClient {
             assertNotNull("No warning message signifying failover", retriableCloudServer.waitForStringInLog("Have recovered from SQLException for server with recovery identity"));
         }
 
-        runTest(retriableCloudServer, SERVLET_NAME, "deleteStaleLease");
+        retriableCloudServer.waitForStringInTrace("Performed recovery for cloudstale");
     }
 
     /**
@@ -277,11 +270,7 @@ public class FailoverTestLease extends FATServletClient {
     public void testHADBLeaseGetFailover() throws Exception {
         serversToStop = new LibertyServer[] { retriableCloudServer, staleCloudServer };
 
-        FATUtils.startServers(runner, retriableCloudServer);
-
-        runTest(retriableCloudServer, SERVLET_NAME, "setupForLeaseGet");
-
-        FATUtils.stopServers(new String[] { "WTRN0075W", "WTRN0076W", "CWWKE0701E", "DSRA8020E" }, retriableCloudServer);
+        HADBTestControl.write(HADBTestType.LEASE, 0, 773, 1); // 773 interpreted as lease get
 
         // Ensure that the tables for a stale cloud server have been created
         // And set the com.ibm.ws.recoverylog.disablehomelogdeletion property for the stale server to ensure they survive shutdown.
@@ -302,6 +291,6 @@ public class FailoverTestLease extends FATServletClient {
             assertNotNull("No warning message signifying failover", retriableCloudServer.waitForStringInLog("Have recovered from SQLException when retrieving server leases"));
         }
 
-        runTest(retriableCloudServer, SERVLET_NAME, "deleteStaleLease");
+        retriableCloudServer.waitForStringInTrace("Performed recovery for cloudstale");
     }
 }

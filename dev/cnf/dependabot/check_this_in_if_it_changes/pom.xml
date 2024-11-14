@@ -144,17 +144,17 @@
     <dependency>
       <groupId>com.github.docker-java</groupId>
       <artifactId>docker-java-api</artifactId>
-      <version>3.3.4</version>
+      <version>3.4.0</version>
     </dependency>
     <dependency>
       <groupId>com.github.docker-java</groupId>
       <artifactId>docker-java-transport-zerodep</artifactId>
-      <version>3.3.4</version>
+      <version>3.4.0</version>
     </dependency>
     <dependency>
       <groupId>com.github.docker-java</groupId>
       <artifactId>docker-java-transport</artifactId>
-      <version>3.3.4</version>
+      <version>3.4.0</version>
     </dependency>
     <dependency>
       <groupId>com.github.mwiede</groupId>
@@ -184,12 +184,12 @@
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java-util</artifactId>
-      <version>3.23.4</version>
+      <version>3.25.5</version>
     </dependency>
     <dependency>
       <groupId>com.google.protobuf</groupId>
       <artifactId>protobuf-java</artifactId>
-      <version>3.23.4</version>
+      <version>3.25.5</version>
     </dependency>
     <dependency>
       <groupId>com.googlecode.json-simple</groupId>
@@ -199,7 +199,7 @@
     <dependency>
       <groupId>com.graphql-java</groupId>
       <artifactId>graphql-java</artifactId>
-      <version>19.5</version>
+      <version>20.9</version>
     </dependency>
     <dependency>
       <groupId>com.graphql-java</groupId>
@@ -1239,7 +1239,7 @@
     <dependency>
       <groupId>io.smallrye</groupId>
       <artifactId>smallrye-open-api-core</artifactId>
-      <version>4.0.0-alpha5</version>
+      <version>4.0.2</version>
     </dependency>
     <dependency>
       <groupId>io.smallrye</groupId>
@@ -1249,7 +1249,12 @@
     <dependency>
       <groupId>io.smallrye</groupId>
       <artifactId>smallrye-open-api-jaxrs</artifactId>
-      <version>4.0.0-alpha5</version>
+      <version>4.0.2</version>
+    </dependency>
+    <dependency>
+      <groupId>io.smallrye</groupId>
+      <artifactId>smallrye-open-api-model</artifactId>
+      <version>4.0.2</version>
     </dependency>
     <dependency>
       <groupId>io.zipkin.reporter2</groupId>
@@ -2374,7 +2379,7 @@
     <dependency>
       <groupId>org.apache.myfaces.core</groupId>
       <artifactId>myfaces-api</artifactId>
-      <version>4.1.0-RC2</version>
+      <version>4.1.0-RC3</version>
     </dependency>
     <dependency>
       <groupId>org.apache.myfaces.core</groupId>
@@ -2399,7 +2404,7 @@
     <dependency>
       <groupId>org.apache.myfaces.core</groupId>
       <artifactId>myfaces-impl</artifactId>
-      <version>4.1.0-RC2</version>
+      <version>4.1.0-RC3</version>
     </dependency>
     <dependency>
       <groupId>org.apache.neethi</groupId>
@@ -3069,7 +3074,7 @@
     <dependency>
       <groupId>org.eclipse.microprofile.openapi</groupId>
       <artifactId>microprofile-openapi-api</artifactId>
-      <version>4.0</version>
+      <version>4.0.2</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.microprofile.opentracing</groupId>
@@ -3184,7 +3189,7 @@
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>org.eclipse.persistence.asm</artifactId>
-      <version>9.7.0</version>
+      <version>9.7.1</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
@@ -3578,6 +3583,11 @@
     </dependency>
     <dependency>
       <groupId>org.hibernate.validator</groupId>
+      <artifactId>hibernate-validator-cdi</artifactId>
+      <version>9.0.0.Beta3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.hibernate.validator</groupId>
       <artifactId>hibernate-validator</artifactId>
       <version>6.2.5.Final</version>
     </dependency>
@@ -3587,9 +3597,14 @@
       <version>7.0.4.Final</version>
     </dependency>
     <dependency>
+      <groupId>org.hibernate.validator</groupId>
+      <artifactId>hibernate-validator</artifactId>
+      <version>9.0.0.Beta3</version>
+    </dependency>
+    <dependency>
       <groupId>org.hibernate</groupId>
       <artifactId>hibernate-core</artifactId>
-      <version>5.2.17.Final</version>
+      <version>5.3.20.Final</version>
     </dependency>
     <dependency>
       <groupId>org.hibernate</groupId>
@@ -3678,6 +3693,11 @@
     </dependency>
     <dependency>
       <groupId>org.jboss.logging</groupId>
+      <artifactId>jboss-logging-processor</artifactId>
+      <version>3.0.0.Final</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.logging</groupId>
       <artifactId>jboss-logging</artifactId>
       <version>3.4.3.Final</version>
     </dependency>
@@ -3685,6 +3705,11 @@
       <groupId>org.jboss.logging</groupId>
       <artifactId>jboss-logging</artifactId>
       <version>3.5.0.Final</version>
+    </dependency>
+    <dependency>
+      <groupId>org.jboss.logging</groupId>
+      <artifactId>jboss-logging</artifactId>
+      <version>3.6.0.Final</version>
     </dependency>
     <dependency>
       <groupId>org.jboss.narayana.arjunacore</groupId>
@@ -4329,27 +4354,27 @@
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-analysis</artifactId>
-      <version>9.7</version>
+      <version>9.7.1</version>
     </dependency>
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-commons</artifactId>
-      <version>9.7</version>
+      <version>9.7.1</version>
     </dependency>
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-tree</artifactId>
-      <version>9.7</version>
+      <version>9.7.1</version>
     </dependency>
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm-util</artifactId>
-      <version>9.7</version>
+      <version>9.7.1</version>
     </dependency>
     <dependency>
       <groupId>org.ow2.asm</groupId>
       <artifactId>asm</artifactId>
-      <version>9.7</version>
+      <version>9.7.1</version>
     </dependency>
     <dependency>
       <groupId>org.postgresql</groupId>
@@ -4449,17 +4474,12 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-autoconfigure</artifactId>
-      <version>2.2.5.RELEASE</version>
+      <version>2.7.18</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-autoconfigure</artifactId>
-      <version>3.0.4</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-autoconfigure</artifactId>
-      <version>3.2.4</version>
+      <version>3.3.5</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
@@ -4469,17 +4489,12 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot</artifactId>
-      <version>2.2.5.RELEASE</version>
+      <version>2.7.18</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot</artifactId>
-      <version>3.0.4</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot</artifactId>
-      <version>3.2.4</version>
+      <version>3.3.5</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.data</groupId>
@@ -4494,12 +4509,12 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-config</artifactId>
-      <version>5.2.2.RELEASE</version>
+      <version>5.7.13</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-config</artifactId>
-      <version>6.0.3</version>
+      <version>6.3.4</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
@@ -4509,12 +4524,12 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-core</artifactId>
-      <version>5.2.2.RELEASE</version>
+      <version>5.7.13</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-core</artifactId>
-      <version>6.0.3</version>
+      <version>6.3.4</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
@@ -4524,7 +4539,7 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-crypto</artifactId>
-      <version>6.0.3</version>
+      <version>6.3.4</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
@@ -4534,17 +4549,12 @@
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-web</artifactId>
-      <version>5.2.2.RELEASE</version>
+      <version>5.7.13</version>
     </dependency>
     <dependency>
       <groupId>org.springframework.security</groupId>
       <artifactId>spring-security-web</artifactId>
-      <version>5.7.2</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.security</groupId>
-      <artifactId>spring-security-web</artifactId>
-      <version>6.0.3</version>
+      <version>6.3.4</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -4559,17 +4569,17 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-aop</artifactId>
-      <version>5.2.4.RELEASE</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-aop</artifactId>
       <version>5.3.21</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-aop</artifactId>
-      <version>6.0.6</version>
+      <version>5.3.39</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-aop</artifactId>
+      <version>6.1.14</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -4589,17 +4599,12 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-beans</artifactId>
-      <version>5.2.4.RELEASE</version>
+      <version>5.3.39</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-beans</artifactId>
-      <version>6.0.6</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-beans</artifactId>
-      <version>6.1.5</version>
+      <version>6.1.14</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -4614,17 +4619,12 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
-      <version>5.2.4.RELEASE</version>
+      <version>5.3.39</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-context</artifactId>
-      <version>6.0.6</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-context</artifactId>
-      <version>6.1.5</version>
+      <version>6.1.14</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -4639,17 +4639,12 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
-      <version>5.2.4.RELEASE</version>
+      <version>5.3.39</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-core</artifactId>
-      <version>6.0.6</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-core</artifactId>
-      <version>6.1.5</version>
+      <version>6.1.14</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -4660,11 +4655,6 @@
       <groupId>org.springframework</groupId>
       <artifactId>spring-expression</artifactId>
       <version>4.3.13.RELEASE</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-expression</artifactId>
-      <version>5.2.4.RELEASE</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -4674,7 +4664,12 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-expression</artifactId>
-      <version>6.0.6</version>
+      <version>5.3.39</version>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework</groupId>
+      <artifactId>spring-expression</artifactId>
+      <version>6.1.14</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -4689,17 +4684,12 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-web</artifactId>
-      <version>5.2.4.RELEASE</version>
+      <version>5.3.39</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-web</artifactId>
-      <version>6.0.6</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-web</artifactId>
-      <version>6.1.5</version>
+      <version>6.1.14</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -4709,12 +4699,7 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-webflux</artifactId>
-      <version>6.0.6</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-webflux</artifactId>
-      <version>6.1.5</version>
+      <version>6.1.14</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -4724,12 +4709,12 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-webmvc</artifactId>
-      <version>5.2.4.RELEASE</version>
+      <version>5.3.39</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-webmvc</artifactId>
-      <version>6.0.6</version>
+      <version>6.1.14</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
@@ -4739,72 +4724,67 @@
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-websocket</artifactId>
-      <version>5.0.8.RELEASE</version>
+      <version>5.3.39</version>
     </dependency>
     <dependency>
       <groupId>org.springframework</groupId>
       <artifactId>spring-websocket</artifactId>
-      <version>5.3.21</version>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework</groupId>
-      <artifactId>spring-websocket</artifactId>
-      <version>6.0.6</version>
+      <version>6.1.14</version>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>database-commons</artifactId>
-      <version>1.19.5</version>
+      <version>1.20.3</version>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>db2</artifactId>
-      <version>1.19.5</version>
+      <version>1.20.3</version>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>jdbc</artifactId>
-      <version>1.19.5</version>
+      <version>1.20.3</version>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>kafka</artifactId>
-      <version>1.19.5</version>
+      <version>1.20.3</version>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>mongodb</artifactId>
-      <version>1.19.5</version>
+      <version>1.20.3</version>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>mssqlserver</artifactId>
-      <version>1.19.5</version>
+      <version>1.20.3</version>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>oracle-free</artifactId>
-      <version>1.19.5</version>
+      <version>1.20.3</version>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>oracle-xe</artifactId>
-      <version>1.19.5</version>
+      <version>1.20.3</version>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>postgresql</artifactId>
-      <version>1.19.5</version>
+      <version>1.20.3</version>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>selenium</artifactId>
-      <version>1.19.5</version>
+      <version>1.20.3</version>
     </dependency>
     <dependency>
       <groupId>org.testcontainers</groupId>
       <artifactId>testcontainers</artifactId>
-      <version>1.19.5</version>
+      <version>1.20.3</version>
     </dependency>
     <dependency>
       <groupId>org.testng</groupId>

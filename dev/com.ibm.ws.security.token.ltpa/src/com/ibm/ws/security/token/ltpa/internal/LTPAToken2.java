@@ -90,6 +90,7 @@ public class LTPAToken2 implements Token, Serializable {
 //        }
         m1 = CryptoUtils.getMessageDigestForLTPA();
         m2 = CryptoUtils.getMessageDigestForLTPA();
+
         md1JCE = m1;
         md2JCE = m2;
         lockObj1 = new Object();

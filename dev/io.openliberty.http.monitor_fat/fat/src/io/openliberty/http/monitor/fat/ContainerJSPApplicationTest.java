@@ -12,7 +12,6 @@ package io.openliberty.http.monitor.fat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.util.concurrent.TimeUnit;
 
 import org.jboss.shrinkwrap.api.ShrinkWrap;
 import org.jboss.shrinkwrap.api.asset.FileAsset;
@@ -92,7 +91,7 @@ public class ContainerJSPApplicationTest extends BaseTestClass {
     }
 
     @Test
-    public void jsp_noWebXmlJSP() throws Exception {
+    public void cjsp_jsp_noWebXmlJSP() throws Exception {
 
         assertTrue(server.isStarted());
 
@@ -103,14 +102,13 @@ public class ContainerJSPApplicationTest extends BaseTestClass {
 
         String res = requestHttpServlet(route, server, requestMethod);
         //Allow time for the collector to receive and expose metrics
-        TimeUnit.SECONDS.sleep(4);
-        assertTrue(validateMpTelemetryHttp(SERVICE_NAME, getContainerCollectorMetrics(container), expectedRoute, responseStatus,
-                                           requestMethod));
+        assertTrueRetryWithTimeout(() -> validateMpTelemetryHttp(SERVICE_NAME, getContainerCollectorMetrics(container), expectedRoute, responseStatus,
+                                                                 requestMethod));
 
     }
 
     @Test
-    public void jsp_configredWebXmlJSP() throws Exception {
+    public void cjsp_jsp_configredWebXmlJSP() throws Exception {
 
         assertTrue(server.isStarted());
 
@@ -120,13 +118,12 @@ public class ContainerJSPApplicationTest extends BaseTestClass {
 
         String res = requestHttpServlet(route, server, requestMethod);
         //Allow time for the collector to receive and expose metrics
-        TimeUnit.SECONDS.sleep(4);
-        assertTrue(validateMpTelemetryHttp(SERVICE_NAME, getContainerCollectorMetrics(container), route, responseStatus, requestMethod));
+        assertTrueRetryWithTimeout(() -> validateMpTelemetryHttp(SERVICE_NAME, getContainerCollectorMetrics(container), route, responseStatus, requestMethod));
 
     }
 
     @Test
-    public void jsp_defaultHTML() throws Exception {
+    public void cjsp_jsp_defaultHTML() throws Exception {
 
         assertTrue(server.isStarted());
 
@@ -137,20 +134,18 @@ public class ContainerJSPApplicationTest extends BaseTestClass {
 
         String res = requestHttpServlet(route, server, requestMethod);
         //Allow time for the collector to receive and expose metrics
-        TimeUnit.SECONDS.sleep(4);
-        assertTrue(validateMpTelemetryHttp(SERVICE_NAME, getContainerCollectorMetrics(container), expectedRoute, responseStatus,
-                                           requestMethod));
+        assertTrueRetryWithTimeout(() -> validateMpTelemetryHttp(SERVICE_NAME, getContainerCollectorMetrics(container), expectedRoute, responseStatus,
+                                                                 requestMethod));
 
         route = Constants.JSP_CONTEXT_ROOT + "/Testhtml.html";
-        expectedRoute = Constants.JSP_CONTEXT_ROOT + "/\\*";
-        requestMethod = HttpMethod.GET;
-        responseStatus = "200";
+        String expectedRoute2 = Constants.JSP_CONTEXT_ROOT + "/\\*";
+        String requestMethod2 = HttpMethod.GET;
+        String responseStatus2 = "200";
 
         res = requestHttpServlet(route, server, requestMethod);
         //Allow time for the collector to receive and expose metrics
-        TimeUnit.SECONDS.sleep(4);
-        assertTrue(validateMpTelemetryHttp(SERVICE_NAME, getContainerCollectorMetrics(container), expectedRoute, responseStatus,
-                                           requestMethod));
+        assertTrueRetryWithTimeout(() -> validateMpTelemetryHttp(SERVICE_NAME, getContainerCollectorMetrics(container), expectedRoute2, responseStatus2,
+                                                                 requestMethod2));
     }
 
 }

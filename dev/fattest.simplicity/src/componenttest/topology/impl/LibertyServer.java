@@ -1094,7 +1094,7 @@ public class LibertyServer implements LogMonitorClient {
     /**
      * Swaps in a different server.xml file from the server directory.
      *
-     * @param  fileName
+     * @param  fileName  the name of a server.xml file found in the wlp/usr/[server]/ directory
      * @throws Exception
      */
     public void swapInServerXMLFromPublish(String fileName) throws Exception {
@@ -1663,13 +1663,9 @@ public class LibertyServer implements LogMonitorClient {
         JVM_ARGS += " -Djava.security.egd=file:/dev/urandom";
 
         JavaInfo info = JavaInfo.forServer(this);
-        // Debug for a highly intermittent problem on IBM JVMs.
-        // Unfortunately, this problem does not seem to happen when we enable this dump trace. We also can't proceed without getting
-        // a system dump, so our only option is to enable this and hope the timing eventually works out.
-        if (info.VENDOR == Vendor.IBM) {
-            JVM_ARGS += " -Xdump:system+java+snap:events=throw+systhrow,filter=\"java/lang/ClassCastException#ServiceFactoryUse.<init>*\"";
-            JVM_ARGS += " -Xdump:system+java+snap:events=throw+systhrow,filter=\"java/lang/ClassCastException#org/eclipse/osgi/internal/serviceregistry/ServiceFactoryUse.<init>*\"";
-            JVM_ARGS += " -Xdump:system+java+snap:events=throw+systhrow,filter=\"java/lang/NoClassDefFoundError\",msg_filter=\"com.ibm.ws.classloading.internal.providers.Providers\",request=exclusive+prepwalk+serial+preempt";
+        // Debug for a highly intermittent problems on j9/semeru JVMs.
+        if (info.VENDOR == Vendor.IBM || info.VENDOR == Vendor.OPENJ9) {
+            JVM_ARGS += " -Xdump:system+java+snap:events=systhrow,filter=\"java/lang/NoSuchMethodError#com/ibm/ws/classloading/internal/AppClassLoader.<init>*\",msg_filter=\"*getPrivateLibraries*\",request=exclusive+prepwalk";
         }
 
         // Add JaCoCo java agent to generate code coverage for FAT test run
@@ -3507,10 +3503,6 @@ public class LibertyServer implements LogMonitorClient {
     private static final String[] EXEMPT_SERVERS = {
                                                      "cdi20EEServer", //com.ibm.ws.cdi.1.0_fat_EE
 
-                                                     "cdi12EJBServer", //com.ibm.ws.cdi.visibility_fat
-
-                                                     "com.ibm.ws.concurrent.mp.fat.1.3.ee10", //com.ibm.ws.concurrent.mp_fat_jakarta
-
                                                      "com.ibm.ws.security.authorization.jacc.dynamic_fat", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
                                                      "com.ibm.ws.ejbcontainer.security.jacc_fat.ejbjar.mergebindings", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
                                                      "com.ibm.ws.ejbcontainer.security.jacc_fat.ejbjar.inwar", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
@@ -3518,8 +3510,6 @@ public class LibertyServer implements LogMonitorClient {
                                                      "com.ibm.ws.ejbcontainer.security.jacc_fat", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
                                                      "com.ibm.ws.ejbcontainer.security.jacc_fat.bindings", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
                                                      "com.ibm.ws.ejbcontainer.security.jacc_fat.mergebindings", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
-
-                                                     "com.ibm.ws.jaxrs.fat.exceptionMappingWithOT", //com.ibm.ws.jaxrs.2.0_fat
 
                                                      "EclipseLinkServer", //com.ibm.ws.jpa.tests.eclipselink_jpa_2.1_fat
 
@@ -3532,20 +3522,7 @@ public class LibertyServer implements LogMonitorClient {
                                                      "ConcurrentEnhancementVerification", //com.ibm.ws.jpa.tests.jpa_fat
                                                      "com.ibm.ws.jpa.fat.ejbpassivation", //com.ibm.ws.jpa.tests.jpa_fat
 
-                                                     "Config13TCKServer", //com.ibm.ws.microprofile.config.1.3_fat_tck
-
-                                                     "mpGraphQL10.basicQuery", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.defaultvalue", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.graphQLInterface", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.iface", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.ignore", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.inputFields", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.jarInWar", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.outputFields", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.rolesAuth", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.types", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.ui", //com.ibm.ws.microprofile.graphql.1.0_fat
-                                                     "mpGraphQL10.voidQuery", //com.ibm.ws.microprofile.graphql.1.0_fat
+                                                     "jsp23jsp22Server", //com.ibm.ws.jsp.2.3_fat
 
                                                      "ApplicationProcessorServer", //io.openliberty.microprofile.openapi.2.0.internal_fat
                                                      "OpenAPITestServer", //io.openliberty.microprofile.openapi.2.0.internal_fat
@@ -3601,11 +3578,6 @@ public class LibertyServer implements LogMonitorClient {
 
                                                      "RequestTimingServer", //com.ibm.ws.request.timing_fat
 
-                                                     "io.openliberty.jcache.internal.fat.jwt.auth.cache.1", //io.openliberty.checkpoint_fat_jcache_hazelcast
-                                                     "io.openliberty.jcache.internal.fat.jwt.auth.cache.2", //io.openliberty.checkpoint_fat_jcache_hazelcast
-
-                                                     "ContainerJSPServer", //io.openliberty.http.monitor_fat
-
                                                      "MPServer41", //io.openliberty.microprofile41.internal_fat
                                                      "MPServer", //io.openliberty.microprofile.internal_fat
 
@@ -3634,34 +3606,36 @@ public class LibertyServer implements LogMonitorClient {
 
                 Set<String> expectedFeatures = new HashSet<>(featureReplacementAction.getAddFeatures()); //the expected features, if present
                 expectedFeatures.addAll(featureReplacementAction.getAlwaysAddFeatures());
-                Set<String> installedFeatures = getInstalledFeatures(); //the features actually installed at runtime
+                List<Set<String>> installedFeatures = getInstalledFeatures(); //the features actually installed at runtime
+                for (Set<String> installedFeatureSet : installedFeatures) {
 
-                //expected feature -> actual feature
-                Map<String, String> unexpectedFeatures = getUnexpectedFeatures(expectedFeatures, installedFeatures);
+                    //expected feature -> actual feature
+                    Map<String, String> unexpectedFeatures = getUnexpectedFeatures(expectedFeatures, installedFeatureSet);
 
-                if (unexpectedFeatures.size() > 0) {
-                    String message = "Runtime features were not of the expected version for repeat action (Server: " + serverName + ", Action: " + action.getID() + ").\n";
-                    for (Map.Entry<String, String> entry : unexpectedFeatures.entrySet()) {
-                        message = message + "Expected: " + entry.getKey() + ", Actual: " + entry.getValue() + ".\n";
-                    }
-                    message = message
-                              + "This is usually caused by a feature not being explicitly set in the FAT's server.xml such that FeatureReplacementAction does not replace it properly.";
+                    if (unexpectedFeatures.size() > 0) {
+                        String message = "Runtime features were not of the expected version for repeat action (Server: " + serverName + ", Action: " + action.getID() + ").\n";
+                        for (Map.Entry<String, String> entry : unexpectedFeatures.entrySet()) {
+                            message = message + "Expected: " + entry.getKey() + ", Actual: " + entry.getValue() + ".\n";
+                        }
+                        message = message
+                                  + "This is usually caused by a feature not being explicitly set in the FAT's server.xml such that FeatureReplacementAction does not replace it properly.";
 
-                    //if this is a local run then always throw an exception
-                    //if not local then check if the server is exempt
-                    //if not exempt then throw exception, otherwise just output a message
-                    //check for exempt servers should eventually be removed
-                    if (REPEAT_FEATURE_CHECK_ERROR) {
-                        if (FAT_TEST_LOCALRUN) {
-                            message = message + "\nYou should also ensure that the test server has been removed from LibertyServer.EXEMPT_SERVERS.";
-                            throw new Exception(message);
-                        } else if (!EXEMPT_SERVERS_SET.contains(serverName)) {
-                            throw new Exception(message);
+                        //if this is a local run then always throw an exception
+                        //if not local then check if the server is exempt
+                        //if not exempt then throw exception, otherwise just output a message
+                        //check for exempt servers should eventually be removed
+                        if (REPEAT_FEATURE_CHECK_ERROR) {
+                            if (FAT_TEST_LOCALRUN) {
+                                message = message + "\nYou should also ensure that the test server has been removed from LibertyServer.EXEMPT_SERVERS.";
+                                throw new Exception(message);
+                            } else if (!EXEMPT_SERVERS_SET.contains(serverName)) {
+                                throw new Exception(message);
+                            } else {
+                                Log.info(c, method, message);
+                            }
                         } else {
                             Log.info(c, method, message);
                         }
-                    } else {
-                        Log.info(c, method, message);
                     }
                 }
             }
@@ -5665,6 +5639,11 @@ public class LibertyServer implements LogMonitorClient {
             ServerConfigurationFactory.getInstance().marshal(serverConfig, os);
         }
 
+        if (LOG.isLoggable(Level.INFO) && logOnUpdate) {
+            LOG.info("Server configuration before update:");
+            logServerConfiguration(Level.INFO, false);
+        }
+
         // replace the file
         // This logic does not need to be time protected (as we do in method
         // replaceServerConfiguration) because of the "extra random text" logic
@@ -6241,22 +6220,23 @@ public class LibertyServer implements LogMonitorClient {
     private static final String INSTALL_FEATURE_MESSAGE_PREFIX = "CWWKF0012I: The server installed the following features:";
 
     /**
-     * Returns a set of the features which were installed at runtime startup, based on the messages.log.
-     * We only look at the first occurrence of the message. This method does not look for subsequent feature changes.
+     * Returns sets of the features which were installed at runtime startup, based on the CWWKF0012I message in messages.log.
+     * This message can occur multiple times, hence multiple sets
      *
      * e.g.
      * CWWKF0012I: The server installed the following features: [bells-1.0, cdi-4.0, componenttest-2.0, concurrent-3.0, jndi-1.0, mpConfig-3.1, mpContextPropagation-1.3,
      * mpFaultTolerance-4.0, servlet-6.0, timedexit-1.0].
      *
-     * @return           a set of the features installed at runtime
+     * @return           sets of the features installed at runtime
      * @throws Exception
      */
-    public Set<String> getInstalledFeatures() throws Exception {
-        Set<String> installedFeatures = new HashSet<>();
+    public List<Set<String>> getInstalledFeatures() throws Exception {
+        List<Set<String>> installedFeatures = new ArrayList<>();
 
         for (String line : findStringsInLogs(INSTALL_FEATURE_MESSAGE_PREFIX)) {
-            installedFeatures.addAll(getInstalledFeaturesFromLogMessage(line));
-            break; //only look at the first message
+            Set<String> installedFeatureSet = new HashSet<>();
+            installedFeatureSet.addAll(getInstalledFeaturesFromLogMessage(line));
+            installedFeatures.add(installedFeatureSet);
         }
 
         return installedFeatures;

@@ -64,6 +64,9 @@ public interface Primes {
     @Query("SELECT (num.name) FROM Prime As num")
     Page<String> all(Sort<Prime> sort, PageRequest pagination);
 
+    @Query("SELECT ID(THIS) WHERE ID(THIS) < ?1 ORDER BY ID(THIS) DESC")
+    List<Long> below(long exclusiveMax);
+
     @Query("SELECT binaryDigits WHERE numberId <= :max")
     @OrderBy(ID)
     LongStream binaryDigitsAsDecimal(long max);
@@ -100,6 +103,12 @@ public interface Primes {
 
     @Asynchronous
     CompletableFuture<Short> countByNumberIdBetweenAndEvenNot(long first, long last, boolean isOdd);
+
+    @Asynchronous
+    @Find
+    CompletableFuture<Page<Long>> divisibleByTwo(boolean even,
+                                                 PageRequest req,
+                                                 Order<Prime> order);
 
     @Find
     Stream<Prime> find(boolean even, int sumOfBits, Limit limit, Sort<?>... sorts);
@@ -216,6 +225,12 @@ public interface Primes {
                                                               Order<Prime> order,
                                                               Sort<?>... orderBy);
 
+    CursoredPage<Prime> findByRomanNumeralIgnoreCaseEndsWith(String prefix,
+                                                             PageRequest pageReq);
+
+    Page<Prime> findByRomanNumeralIgnoreCaseStartsWith(String prefix,
+                                                       PageRequest pageReq);
+
     @OrderBy(value = "sumOfBits", descending = true)
     @OrderBy("name")
     Page<Prime> findByRomanNumeralStartsWithAndNumberIdLessThan(String prefix, long max, PageRequest pagination);
@@ -254,7 +269,12 @@ public interface Primes {
     Page<String> lengthBasedQuery(PageRequest pageRequest);
 
     @OrderBy(ID)
-    @Query("SELECT ID(THIS) FROM Prime o WHERE (o.name = :numberName OR :numeral=o.romanNumeral OR o.hex =:hex OR ID(THIS)=:num)")
+    @Query("SELECT ID(THIS)" +
+           "  FROM Prime" +
+           " WHERE (name = :numberName" +
+           "     OR :numeral=romanNumeral" +
+           "     OR hex =:hex" +
+           "     OR ID(THIS)=:num)")
     long[] matchAny(long num, String numeral, String hex, String numberName);
 
     @OrderBy(ID)
@@ -270,9 +290,6 @@ public interface Primes {
                                                          @Param("numName") String numberName,
                                                          String numeral,
                                                          @Param("hexadecimal") String hex);
-
-    @Query("SELECT o.numberId FROM Prime o WHERE (o.name = ?1 OR o.numberId=:num)")
-    Collection<Long> matchAnyWithMixedUsageOfPositionalAndNamed(String name, long num);
 
     @Query("SELECT name WHERE numberId < 50 AND LEFT(name, LENGTH(:s)) = :s")
     @OrderBy("name")

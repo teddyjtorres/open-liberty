@@ -266,7 +266,7 @@ public interface ConfigurationProvider {
      *
      * @return
      */
-    public boolean enableHADBPeerLocking();
+    public boolean enableLogLocking();
 
     /**
      * Configures the length of time between heartbeats when the peer locking scheme is enabled for the Tran recovery logs that are stored in a database.
@@ -367,4 +367,11 @@ public interface ConfigurationProvider {
      * @return
      */
     public String getUserDir();
+
+    /**
+     * Whether methods annotated with @Transactional are allowed to throw undeclared checked exceptions.
+     *
+     * @return
+     */
+    public boolean isThrowCheckedExceptions();
 }

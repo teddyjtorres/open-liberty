@@ -50,6 +50,7 @@ public class DataFullTckLauncher {
     @AfterClass
     public static void tearDown() throws Exception {
         server.stopServer(
+                          "CWWKD1054E", // tested error path
                           "CWWKE0955E" //websphere.java.security java 18+
         );
     }
@@ -77,12 +78,13 @@ public class DataFullTckLauncher {
         additionalProps.put("jakarta.data.groupid", "jakarta.data");
         additionalProps.put("jakarta.data.tck.version", "1.0.1");
 
-        String bucketName = "io.openliberty.jakarta.data.1.0_fat_tck";
-        String testName = this.getClass() + ":launchDataTckFull";
-        Type type = Type.JAKARTA;
-        String specName = "Data (Full, Persistence)";
-        String relativeTckRunner = "publish/tckRunner/platform/";
-        TCKRunner.runTCK(server, bucketName, testName, type, specName, null, relativeTckRunner, additionalProps);
+        TCKRunner.build(server, Type.JAKARTA, "Data")
+                        .withPlatfromVersion("11")
+                        .withQualifiers("full", "persistence")
+                        .withRelativeTCKRunner("publish/tckRunner/platform/")
+                        .withAdditionalMvnProps(additionalProps)
+                        .withLogging(FATSuite.getLoggingConfig())
+                        .runTCK();
     }
 
     // Cannot test NoSQL database on Full profile since the persistence feature is automatically included
