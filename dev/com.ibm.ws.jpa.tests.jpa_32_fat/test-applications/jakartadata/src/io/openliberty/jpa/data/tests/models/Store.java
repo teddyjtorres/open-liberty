@@ -8,7 +8,6 @@
  * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
 package io.openliberty.jpa.data.tests.models;
-package io.openliberty.jpa.data.tests.models;
 
 import java.time.Instant;
 import java.time.ZonedDateTime;
