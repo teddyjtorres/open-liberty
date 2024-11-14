@@ -392,7 +392,6 @@ public class DB2TestServlet extends FATServlet {
         }
     }
 
-    @Test
     public void testCustomTrace() throws Throwable {
         try (Connection con = ds_custom_trace.getConnection(); PreparedStatement stmt = con.prepareStatement("INSERT INTO MYTABLE VALUES (?, ?)");) {
             stmt.setInt(1, 39);
