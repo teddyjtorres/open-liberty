@@ -172,7 +172,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
     
     @Test
     //Reference issue:https://github.com/OpenLiberty/open-liberty/issues/29459
-    public void testInsertSegment() throws Exception {
+    public void testOLGH29459() throws Exception {
         // Sample segment ID and points
         int x1 = 0, y1 = 0, x2 = 120, y2 = 209;
         
