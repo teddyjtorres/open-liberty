@@ -1360,9 +1360,8 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertEquals(1, count);
     }
 
-     @Test
-    // @Ignore
-    // Reference issue : https://github.com/OpenLiberty/open-liberty/issues/29781
+    @Test
+    @Ignore("Reference issue : https://github.com/OpenLiberty/open-liberty/issues/29781)
     public void testOLGH29781() throws Exception {
         ZoneId ET = ZoneId.of("America/New_York");
         Instant when = ZonedDateTime.of(2022, 4, 29, 12, 0, 0, 0, ET)
@@ -1390,7 +1389,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
 
         assertEquals(1, count);
     }
-    
+
     @Test
     // Reference issue : https://github.com/OpenLiberty/open-liberty/issues/28895
     public void testOLGH28895() throws Exception {
