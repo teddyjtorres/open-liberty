@@ -137,7 +137,7 @@ public class DDLGenTest extends FATServletClient {
                         stmt.executeUpdate("alter session set \"_ORACLE_SCRIPT\"=true");
                         stmt.executeUpdate("alter user " + testContainer.getUsername() + " quota unlimited on users");
                         stmt.executeUpdate("create user " + user + " identified by " + pass);
-                        stmt.executeUpdate("grant connect, create session to " + user);
+                        stmt.executeUpdate("grant connect, create session, create table to " + user);
                         stmt.executeUpdate("grant unlimited tablespace to " + user);
                     }
 
@@ -152,7 +152,7 @@ public class DDLGenTest extends FATServletClient {
                                            " grant all privileges on tables to " + user);
                         stmt.executeUpdate("alter default privileges in schema public " +
                                            " grant all privileges on tables to " + user);
-                        stmt.executeUpdate("grant usage on schema " + user + " to " + user);
+                        stmt.executeUpdate("grant all on schema " + user + " to " + user);
                     }
                     break;
                 case SQLServer: // Working - admin and user share dbo schema when none is defined
