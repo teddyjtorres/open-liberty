@@ -169,6 +169,52 @@ public class JakartaDataRecreateServlet extends FATServlet {
 
         assertEquals(character.getHexadecimal(), result);
     }
+    
+    @Test
+    //Reference issue:https://github.com/OpenLiberty/open-liberty/issues/29459
+    public void testInsertSegment() throws Exception {
+        // Sample segment ID and points
+        int x1 = 0, y1 = 0, x2 = 120, y2 = 209;
+        
+        // Create a new segment using the 'of' factory method
+        Segment segment = Segment.of(x1, y1, x2, y2);
+        
+        // Begin the transaction
+        tx.begin();
+
+        try {
+            // Persist the segment using EntityManager
+            em.persist(segment);
+
+            // Insert into the database using a native SQL query
+            em.createNativeQuery("INSERT INTO Segment (id, pointA_x, pointA_y, pointB_x, pointB_y) VALUES (?, ?, ?, ?, ?)")
+                .setParameter(1, segment.id)      // Segment ID
+                .setParameter(2, segment.pointA.x())  // Point A X
+                .setParameter(3, segment.pointA.y())  // Point A Y
+                .setParameter(4, segment.pointB.x())  // Point B X
+                .setParameter(5, segment.pointB.y())  // Point B Y
+                .executeUpdate();
+
+            // Commit the transaction
+            tx.commit();
+        } catch (Exception e) {
+            // If there's any exception, rollback the transaction
+            tx.rollback();
+            throw e;
+        }
+
+        // Optionally, you can query the inserted data to verify it was inserted correctly
+        Segment retrievedSegment = em.find(Segment.class, segment.id);
+        
+        // Assertions to validate the data
+        assertEquals(segment.id, retrievedSegment.id);
+        assertEquals(x1, retrievedSegment.pointA.x());
+        assertEquals(y1, retrievedSegment.pointA.y());
+        assertEquals(x2, retrievedSegment.pointB.x());
+        assertEquals(y2, retrievedSegment.pointB.y());
+    }
+
+
 
     @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28908
     public void testOLGH28908() throws Exception {
