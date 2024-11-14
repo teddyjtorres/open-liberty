@@ -50,7 +50,9 @@ public class DataFullTckLauncher {
     @AfterClass
     public static void tearDown() throws Exception {
         server.stopServer(
+                          "CWWKD0202E",
                           "CWWKD1054E", // tested error path
+                          "CWWKD1080E",
                           "CWWKE0955E" //websphere.java.security java 18+
         );
     }
