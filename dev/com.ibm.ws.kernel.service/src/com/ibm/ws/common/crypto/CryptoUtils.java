@@ -313,12 +313,30 @@ public class CryptoUtils {
     public static MessageDigest getMessageDigestForLTPA() {
         MessageDigest md1 = null;
         try {
-            if (fipsEnabled && isOpenJCEPlusFIPSAvailable()) {
-                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
-                                                OPENJCE_PLUS_FIPS_NAME);
-            } else if (fipsEnabled && isIBMJCEPlusFIPSAvailable()) {
-                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
-                                                IBMJCE_PLUS_FIPS_NAME);
+//            if (fipsEnabled && isOpenJCEPlusFIPSAvailable()) {
+//                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
+//                                                OPENJCE_PLUS_FIPS_NAME);
+//            } else if (fipsEnabled && isIBMJCEPlusFIPSAvailable()) {
+//                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
+//                                                IBMJCE_PLUS_FIPS_NAME);
+//            } else if (isOpenJCEPlusAvailable()) {
+//                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA,
+//                                                OPENJCE_PLUS_NAME);
+//            } else if (isIBMJCEAvailable()) {
+//                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA,
+//                                                IBMJCE_NAME);
+//            } else {
+//                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA);
+//            }
+
+            if (fipsEnabled) {
+                if (isSemeruFips()) {
+                    md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
+                                                    OPENJCE_PLUS_FIPS_NAME);
+                } else {
+                    md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
+                                                    IBMJCE_PLUS_FIPS_NAME);
+                }
             } else if (isOpenJCEPlusAvailable()) {
                 md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA,
                                                 OPENJCE_PLUS_NAME);

@@ -66,22 +66,31 @@ public class LTPAToken2 implements Token, Serializable {
 
     static {
         MessageDigest m1 = null, m2 = null;
-        try {
-            if (fipsEnabled && CryptoUtils.isOpenJCEPlusFIPSAvailable()) {
-                m1 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA256, CryptoUtils.OPENJCE_PLUS_FIPS_NAME);
-                m2 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA256, CryptoUtils.OPENJCE_PLUS_FIPS_NAME);
-            } else if (fipsEnabled && CryptoUtils.isIBMJCEPlusFIPSAvailable()) {
-                m1 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA256, CryptoUtils.IBMJCE_PLUS_FIPS_NAME);
-                m2 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA256, CryptoUtils.IBMJCE_PLUS_FIPS_NAME);
-            } else {
-                m1 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA);
-                m2 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA);
-            }
-        } catch (Exception e) {
-            if (TraceComponent.isAnyTracingEnabled() && tc.isEventEnabled()) {
-                Tr.event(tc, "Failed to initialize MessageDigest for SHA algorithm: " + e);
-            }
-        }
+//        try {
+//            if (fipsEnabled && CryptoUtils.isOpenJCEPlusFIPSAvailable()) {
+//                m1 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA256, CryptoUtils.OPENJCE_PLUS_FIPS_NAME);
+//                m2 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA256, CryptoUtils.OPENJCE_PLUS_FIPS_NAME);
+//            } else if (fipsEnabled && CryptoUtils.isIBMJCEPlusFIPSAvailable()) {
+//                m1 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA256, CryptoUtils.IBMJCE_PLUS_FIPS_NAME);
+//                m2 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA256, CryptoUtils.IBMJCE_PLUS_FIPS_NAME);
+//            } else if (CryptoUtils.isOpenJCEPlusAvailable()) {
+//                m1 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA, CryptoUtils.OPENJCE_PLUS_NAME);
+//                m2 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA, CryptoUtils.OPENJCE_PLUS_NAME);
+//            } else if (CryptoUtils.isIBMJCEAvailable()) {
+//                m1 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA, CryptoUtils.IBMJCE_NAME);
+//                m2 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA, CryptoUtils.IBMJCE_NAME);
+//            } else {
+//                m1 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA);
+//                m2 = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA);
+//            }
+//        } catch (Exception e) {
+//            if (TraceComponent.isAnyTracingEnabled() && tc.isEventEnabled()) {
+//                Tr.event(tc, "Error creating digest; " + e);
+//            }
+//        }
+        m1 = CryptoUtils.getMessageDigestForLTPA();
+        m2 = CryptoUtils.getMessageDigestForLTPA();
+
         md1JCE = m1;
         md2JCE = m2;
         lockObj1 = new Object();
