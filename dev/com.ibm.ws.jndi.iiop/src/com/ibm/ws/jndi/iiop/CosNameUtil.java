@@ -33,7 +33,7 @@ public enum CosNameUtil {
     private static final TraceComponent tc = Tr.register(CosNameUtil.class);
     private static final Pattern PERCENT_TRIPLET = Pattern.compile("%(?:[0-9a-f]{2}|[0-9A-F]{2})");
     private static final Pattern ILLEGAL_NAME = Pattern.compile("(?:[^/]\\./|\\.[^/]*\\.|([^/]\\.$))");
-    private static final BitSet ESCAPE_NOT_NEEDED;
+    private static final ImmutableBitSet ESCAPE_NOT_NEEDED;
     private static final Pattern ALL_LEGAL_CHARS;
 
     static {
@@ -45,7 +45,7 @@ public enum CosNameUtil {
         final BitSet escapeNotNeeded = new BitSet();
         for (char c : unescapedChars.toCharArray()) escapeNotNeeded.set(c);
 
-        ESCAPE_NOT_NEEDED = escapeNotNeeded;
+        ESCAPE_NOT_NEEDED = new ImmutableBitSet(escapeNotNeeded);
         ALL_LEGAL_CHARS = Pattern.compile("[" + unescapedChars + "]*");
     }
 
