@@ -3068,7 +3068,7 @@ public class LibertyServer implements LogMonitorClient {
                 useEnvVars.setProperty("WLP_USER_DIR", userDir);
             Log.finer(c, method, "Using additional env props: " + useEnvVars);
 
-            final ProgramOutput output = machine.execute(cmd, parameters, useEnvVars);
+            final ProgramOutput output = machine.execute(cmd, parameters, machine.getWorkDir(), useEnvVars, 300);
 
             String stdout = output.getStdout();
             Log.info(c, method, "Dump Server Response: " + stdout);
@@ -7432,7 +7432,7 @@ public class LibertyServer implements LogMonitorClient {
             useEnvVars.setProperty("WLP_USER_DIR", userDir);
         Log.info(c, method, "Using additional env props: " + useEnvVars);
 
-        ProgramOutput output = machine.execute(cmd, parms, useEnvVars);
+        ProgramOutput output = machine.execute(cmd, parms, machine.getWorkDir(), useEnvVars, 300);
         String stdout = output.getStdout();
         Log.info(c, method, "Server dump output: " + stdout);
         Log.info(c, method, "Return code from dump is: " + output.getReturnCode());
