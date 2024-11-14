@@ -12,6 +12,7 @@ package io.openliberty.jpa.data.tests.models;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Embedded;
+import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;
 
@@ -22,7 +23,7 @@ import jakarta.persistence.Id;
  * TODO: uncomment @Entity
  * TODO: remove constructor from Point
  */
-//@Entity
+@Entity
 public class Segment {
 
     @GeneratedValue
