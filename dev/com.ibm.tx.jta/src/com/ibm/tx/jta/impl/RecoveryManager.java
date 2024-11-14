@@ -19,6 +19,7 @@ import java.security.PrivilegedExceptionAction;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Set;
+import java.util.concurrent.Phaser;
 
 import javax.transaction.SystemException;
 import javax.transaction.xa.Xid;
@@ -78,11 +79,8 @@ public class RecoveryManager implements Runnable {
      * This attribute is used to block requests against RecoveryCoordinators or
      * CoordinatorResources before recovery has completed.
      */
-    protected final EventSemaphore _replayInProgress = new EventSemaphore();
-    protected boolean _replayCompleted;
-
-    protected final EventSemaphore _recoveryInProgress = new EventSemaphore();
-    protected boolean _recoveryCompleted;
+    protected final Phaser _replayInProgress = new Phaser(1);
+    protected final Phaser _recoveryInProgress = new Phaser(1);
 
     protected boolean _shutdownInProgress;
 
@@ -1325,11 +1323,11 @@ public class RecoveryManager implements Runnable {
         if (tc.isEntryEnabled())
             Tr.entry(tc, "waitForReplayCompletion", localRecovery);
 
-        if (!_replayCompleted) {
+        if (_replayInProgress.getPhase() == 0) {
             if (tc.isEventEnabled())
                 Tr.event(tc, "starting to wait for replay completion");
 
-            _replayInProgress.waitEvent();
+            _replayInProgress.awaitAdvance(0);
 
             if (tc.isEventEnabled())
                 Tr.event(tc, "completed wait for replay completion");
@@ -1346,8 +1344,7 @@ public class RecoveryManager implements Runnable {
         final FailureScopeLifeCycle fslc = makeFailureScopeActive(_failureScopeController.failureScope(), _failureScopeController.localFailureScope());
         _failureScopeController.setFailureScopeLifeCycle(fslc);
 
-        _replayCompleted = true;
-        _replayInProgress.post();
+        _replayInProgress.arrive();
 
         if (tc.isEntryEnabled())
             Tr.exit(tc, "replayComplete");
@@ -1364,11 +1361,11 @@ public class RecoveryManager implements Runnable {
         if (tc.isEntryEnabled())
             Tr.entry(tc, "waitForRecoveryCompletion", localRecovery);
 
-        if (!_recoveryCompleted) {
+        if (_recoveryInProgress.getPhase() == 0) {
             if (tc.isEventEnabled())
                 Tr.event(tc, "starting to wait for recovery completion");
 
-            _recoveryInProgress.waitEvent();
+            _recoveryInProgress.awaitAdvance(0);
 
             if (tc.isEventEnabled())
                 Tr.event(tc, "completed wait for recovery completion");
@@ -1386,10 +1383,7 @@ public class RecoveryManager implements Runnable {
         if (tc.isEntryEnabled())
             Tr.entry(tc, "recoveryComplete");
 
-        if (!_recoveryCompleted) {
-            _recoveryCompleted = true;
-            _recoveryInProgress.post();
-        }
+        _recoveryInProgress.arrive();
 
         // If the home server is shutting down and we are recovering a peer, then don't drive initialRecoveryComplete()
         boolean bypass = false;
@@ -1437,10 +1431,7 @@ public class RecoveryManager implements Runnable {
 
         replayComplete();
 
-        if (!_recoveryCompleted) {
-            _recoveryCompleted = true;
-            _recoveryInProgress.post();
-        }
+        _recoveryInProgress.arrive();
 
         if (_failureScopeController.localFailureScope()) {
             TMHelper.asynchRecoveryProcessingComplete(t);
@@ -1485,7 +1476,7 @@ public class RecoveryManager implements Runnable {
                 // Put out a message stating the we are stopping recovery processing. Since this method can
                 // be called a number of times in succession (to allow nested method calls to bail out by
                 // calling this method) we only put the message out the first time round.
-                if (!_recoveryCompleted) {
+                if (_recoveryInProgress.getPhase() == 0) {
                     if (tc.isEventEnabled())
                         Tr.event(tc, "Shutdown is in progress, stopping recovery processing");
                     recoveryComplete();
