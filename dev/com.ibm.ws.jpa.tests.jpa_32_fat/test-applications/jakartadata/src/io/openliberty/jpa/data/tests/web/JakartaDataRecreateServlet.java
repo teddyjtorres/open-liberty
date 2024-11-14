@@ -9,6 +9,7 @@
  *******************************************************************************/
 package io.openliberty.jpa.data.tests.web;
 
+import static componenttest.annotation.SkipIfSysProp.DB_DB2;
 import static componenttest.annotation.SkipIfSysProp.DB_Oracle;
 import static componenttest.annotation.SkipIfSysProp.DB_Postgres;
 import static componenttest.annotation.SkipIfSysProp.DB_SQLServer;
@@ -52,6 +53,7 @@ import io.openliberty.jpa.data.tests.models.City;
 import io.openliberty.jpa.data.tests.models.CityId;
 import io.openliberty.jpa.data.tests.models.Coordinate;
 import io.openliberty.jpa.data.tests.models.DemographicInfo;
+import io.openliberty.jpa.data.tests.models.DemographicInformation;
 import io.openliberty.jpa.data.tests.models.Item;
 import io.openliberty.jpa.data.tests.models.Line;
 import io.openliberty.jpa.data.tests.models.Line.Point;
@@ -106,8 +108,8 @@ public class JakartaDataRecreateServlet extends FATServlet {
         tx.commit();
         tx.begin();
         try {
-            em.createQuery("UPDATE Coordinate SET x = :newX, y = y / :yDivisor WHERE id = :id") // FAILURE PARSING QUERY
-                            // HERE
+            // FAILURE PARSING QUERY HERE
+            em.createQuery("UPDATE Coordinate SET x = :newX, y = y / :yDivisor WHERE id = :id")
                             .setParameter("newX", 11)
                             .setParameter("yDivisor", 5)
                             .setParameter("id", id)
@@ -135,8 +137,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertEquals(3f, result.y, 0.001);
     }
 
-    @Test
-    //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28913"
+    @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28913
     public void testOLGH28913() throws Exception {
         AsciiCharacter character = AsciiCharacter.of(80); // P
         String result;
@@ -169,8 +170,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertEquals(character.getHexadecimal(), result);
     }
 
-    @Test
-    //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28908"
+    @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28908
     public void testOLGH28908() throws Exception {
         Person p = new Person();
         p.firstName = "John";
@@ -214,8 +214,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertEquals(p.lastName, result.lastName);
     }
 
-    @Test
-    //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28874
+    @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28874
     public void testOLGH28874() throws Exception {
         NaturalNumber two = NaturalNumber.of(2);
         NaturalNumber three = NaturalNumber.of(3);
@@ -276,8 +275,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertEquals(2l, result2.getId(), 0.001f);
     }
 
-    @Test
-    // Resolved issue: https://github.com/OpenLiberty/open-liberty/issues/28920
+    @Test //Original issue: https://github.com/OpenLiberty/open-liberty/issues/28920
     @Ignore("Additional issue: https://github.com/OpenLiberty/open-liberty/issues/28874")
     public void testOLGH28920() throws Exception {
         Rebate r1 = Rebate.of(10.00, "testOLGH28920", LocalTime.now().minusHours(1), LocalDate.now(), Status.SUBMITTED,
@@ -329,8 +327,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertEquals(14.00, paidRebates.get(0).amount, 0.001);
     }
 
-    @Test
-    //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28909
+    @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28909
     public void testOLGH28909() throws Exception {
         deleteAllEntities(Box.class);
 
@@ -412,8 +409,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertEquals(55901, result.location.address.zip);
     }
 
-    @Test
-    // Reference issue:https://github.com/eclipse-ee4j/eclipselink/issues/2234
+    @Test //Reference issue: https://github.com/eclipse-ee4j/eclipselink/issues/2234
     public void testELGH2234() throws Exception {
 
         Product p = Product.of("testSnapshot", "product", 10.50f);
@@ -437,8 +433,8 @@ public class JakartaDataRecreateServlet extends FATServlet {
         }
     }
 
-    @Test
-    //Reference : https://github.com/OpenLiberty/open-liberty/issues/29457"
+    @Test //Original Issue: https://github.com/OpenLiberty/open-liberty/issues/29457"
+    @SkipIfSysProp(DB_Oracle) //Additional Issue: https://github.com/OpenLiberty/open-liberty/issues/29440
     public void testOLGH29457() throws Exception {
 
         // Create a DemographicInfo instance
@@ -476,7 +472,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
     }
 
     @Test
-    @Ignore("Reference : https://github.com/OpenLiberty/open-liberty/issues/29319")
+    @Ignore("Reference Issue: https://github.com/OpenLiberty/open-liberty/issues/29319")
     // This test fails with createNamedQuery. For recreating you can uncomment the
     // @NamedQuery annotation in Annuity.java
     public void testOLGH29319() throws Exception {
@@ -497,9 +493,8 @@ public class JakartaDataRecreateServlet extends FATServlet {
         }
     }
 
-    @Test
-    // Reference : https://github.com/OpenLiberty/open-liberty/issues/29319
-    // This test will be passing with createQueryMethod.
+    @Test // Reference Issue: https://github.com/OpenLiberty/open-liberty/issues/29319
+    // This test will be passing with createQuery method.
     public void testOLGH29319_2() throws Exception {
 
         Annuity annuity = Annuity.of("holder123", 2500.00);
@@ -584,7 +579,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
     }
 
     @Test
-    @SkipIfSysProp(DB_Oracle) // Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28545
+    @SkipIfSysProp(DB_Oracle) //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28545
     public void testOLGH28545_1() throws Exception {
         deleteAllEntities(Package.class); // Cleanup any left over entities
 
@@ -633,7 +628,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
     }
 
     @Test
-    @SkipIfSysProp(DB_Oracle) // Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28545
+    @SkipIfSysProp(DB_Oracle) //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28545
     public void testOLGH28545_2() throws Exception {
         deleteAllEntities(Package.class); // Cleanup any left over entities
 
@@ -683,9 +678,8 @@ public class JakartaDataRecreateServlet extends FATServlet {
 
     }
 
-    @Test
-    @SkipIfSysProp({ DB_Postgres, DB_Oracle }) // Reference issue:
-                                                     // https://github.com/OpenLiberty/open-liberty/issues/28545
+    @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28545
+    @SkipIfSysProp({ DB_Postgres, DB_Oracle })
     public void testOLGH28545_3() throws Exception {
         deleteAllEntities(Prime.class);
 
@@ -785,7 +779,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
     }
 
     @Test
-    @SkipIfSysProp(DB_Postgres) // Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28368
+    @SkipIfSysProp(DB_Postgres) //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28368
     public void testOLGH28368() throws Exception {
         PurchaseOrder order1 = PurchaseOrder.of("testOLGH28368-1", 12.55f);
         PurchaseOrder order2 = PurchaseOrder.of("testOLGH28368-2", 12.55f);
@@ -830,7 +824,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
         }
     }
 
-    @Test // Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28813
+    @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28813
     public void testOLGH28813() throws Exception {
         deleteAllEntities(DemographicInfo.class);
 
@@ -1085,9 +1079,8 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertNull("PointB was not null, instead: " + origin.pointB, origin.pointB);
     }
 
-    @Test
-    @SkipIfSysProp({ DB_Postgres, DB_SQLServer }) // Reference issue:
-                                                        // https://github.com/OpenLiberty/open-liberty/issues/28737
+    @Test // Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28737
+    @SkipIfSysProp({ DB_Postgres, DB_SQLServer })
     public void testOLGH28737() throws Exception {
         deleteAllEntities(Box.class);
 
@@ -1126,10 +1119,9 @@ public class JakartaDataRecreateServlet extends FATServlet {
         }
     }
 
-    @Test
+    @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28289
     @SkipIfSysProp({ DB_Oracle })
-    // Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28289
-    // DB2 issue resolved (https://github.com/eclipse-ee4j/eclipselink/issues/2282), Oracle now has issues too
+    // DB2 resolved (Oracle outstanding): https://github.com/eclipse-ee4j/eclipselink/issues/2282
     public void testOLGH28289() throws Exception {
         deleteAllEntities(Package.class);
 
@@ -1187,8 +1179,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertEquals(70077, tallToShort.get(1).id);
     }
 
-    @Test
-    // "Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28078
+    @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28078
     public void testOLGH28078() throws Exception {
         deleteAllEntities(Account.class);
 
@@ -1318,8 +1309,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertEquals(198, t1_1.perimeter);
     }
 
-    @Test
-    // Reference issue : https://github.com/OpenLiberty/open-liberty/issues/28898
+    @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28898
     public void testOLGH28898() throws Exception {
         Reciept r1 = Reciept.of(00012, "Billy", 12.5f);
         Reciept r2 = Reciept.of(00013, "Bobby", 9.75f);
@@ -1360,8 +1350,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertEquals(1, count);
     }
 
-    @Test
-    //Reference issue : https://github.com/OpenLiberty/open-liberty/issues/29781
+    @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/29781
     public void testOLGH29781() throws Exception {
         ZoneId ET = ZoneId.of("America/New_York");
         Instant when = ZonedDateTime.of(2022, 4, 29, 12, 0, 0, 0, ET)
@@ -1390,8 +1379,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertEquals(1, count);
     }
 
-    @Test
-    // Reference issue : https://github.com/OpenLiberty/open-liberty/issues/28895
+    @Test // Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28895
     public void testOLGH28895() throws Exception {
         Product p1 = Product.of("testOLGH28895-1", "Ball", 12.50f);
         Product p2 = Product.of("testOLGH28895-2", "Skate", 15.50f);
@@ -1429,9 +1417,8 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertEquals(1, count);
     }
 
-    @Test
-    @SkipIfSysProp({ DB_Postgres, DB_Oracle }) // Reference issue:
-                                                     // https://github.com/OpenLiberty/open-liberty/issues/29440
+    @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/29440
+    @SkipIfSysProp({ DB_Postgres, DB_Oracle })
     public void testOLGH29440() throws Exception {
         deleteAllEntities(DemographicInfo.class);
 
@@ -1481,6 +1468,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
     }
 
     @Test
+    @SkipIfSysProp(DB_DB2) //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/29443
     public void testOLGH29443() throws Exception {
         deleteAllEntities(DemographicInfo.class);
 
@@ -1515,13 +1503,58 @@ public class JakartaDataRecreateServlet extends FATServlet {
 
             try {
                 assertNotNull("Query should not have returned null after iteration " + i, results);
-                assertFalse("Query should not have returned an empty list after iteration " + i, results.isEmpty()); // Recreate
-                                                                                                                     // -
-                                                                                                                     // an
-                                                                                                                     // empty
-                                                                                                                     // list
-                                                                                                                     // is
-                                                                                                                     // returned
+                // Recreate - an empty list is returned
+                assertFalse("Query should not have returned an empty list after iteration " + i, results.isEmpty());
+                assertEquals("Query should not have returned more than one result after iteration " + i, 1,
+                             results.size());
+                assertEquals(US2022.numFullTimeWorkers, results.get(0));
+            } catch (AssertionError e) {
+                errors.add(e);
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            throw new AssertionError("Executing the same query returned incorrect results " + errors.size() + " out of 10 executions", errors.get(0));
+        }
+    }
+
+    @Test //Original issue: https://github.com/OpenLiberty/open-liberty/issues/29443
+    @Ignore("Additional Issue: ZonedDateTime stored as blob, cannot do comparison of blobs on most databases")
+    public void testOLGH29443ZonedDateTime() throws Exception {
+        deleteAllEntities(DemographicInformation.class);
+
+        ZoneId ET = ZoneId.of("America/New_York");
+        ZonedDateTime when = ZonedDateTime.of(2022, 4, 29, 12, 0, 0, 0, ET);
+
+        DemographicInformation US2022 = DemographicInformation.of(2022, 4, 29, 132250000, 6526909395140.41, 23847245116757.60);
+        DemographicInformation US2007 = DemographicInformation.of(2007, 4, 30, 121090000, 3833110332444.19, 5007058051986.64);
+
+        List<BigInteger> results;
+
+        tx.begin();
+        em.persist(US2022);
+        em.persist(US2007);
+        tx.commit();
+
+        List<Error> errors = new ArrayList<>();
+
+        Thread.sleep(Duration.ofSeconds(1).toMillis());
+
+        for (int i = 0; i < 10; i++) {
+            System.out.println("Executing SELECT query, iteration: " + i);
+
+            tx.begin();
+            results = em
+                            .createQuery("SELECT this.numFullTimeWorkers FROM DemographicInformation WHERE this.collectedOn=:when",
+                                         BigInteger.class)
+                            .setParameter("when", when)
+                            .getResultList();
+            tx.commit();
+
+            try {
+                assertNotNull("Query should not have returned null after iteration " + i, results);
+                // Recreate - an empty list is returned
+                assertFalse("Query should not have returned an empty list after iteration " + i, results.isEmpty());
                 assertEquals("Query should not have returned more than one result after iteration " + i, 1,
                              results.size());
                 assertEquals(US2022.numFullTimeWorkers, results.get(0));
@@ -1591,8 +1624,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
 
     }
 
-    @Test
-    //("Reference issue: https://github.com/OpenLiberty/open-liberty/issues/29460")
+    @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/29460
     public void testOLGH29460() throws Exception {
         // Setup test data using the factory method
         Participant p1 = Participant.of("John", "Doe", 1);
