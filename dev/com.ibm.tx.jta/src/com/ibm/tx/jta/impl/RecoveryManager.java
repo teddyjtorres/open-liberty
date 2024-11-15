@@ -79,8 +79,8 @@ public class RecoveryManager implements Runnable {
      * This attribute is used to block requests against RecoveryCoordinators or
      * CoordinatorResources before recovery has completed.
      */
-    protected final Phaser _replayInProgress = new Phaser(1);
-    protected final Phaser _recoveryInProgress = new Phaser(1);
+    private final Phaser _replayInProgress = new Phaser(1);
+    private final Phaser _recoveryInProgress = new Phaser(1);
 
     protected boolean _shutdownInProgress;
 
