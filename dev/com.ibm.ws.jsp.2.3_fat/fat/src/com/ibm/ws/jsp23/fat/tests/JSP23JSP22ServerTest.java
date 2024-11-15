@@ -71,7 +71,7 @@ public class JSP23JSP22ServerTest {
          * Calling the full version of the stopServer method in order to skip repeat feature set checking
          */
         if (server != null && server.isStarted()) {
-            server.stopServer(LibertyServer.IGNORE_STOPPED, LibertyServer.POST_ARCHIVES, LibertyServer.FORCE_STOP, LibertyServer.SKIP_ARCHIVES, true,
+            server.stopServer(LibertyServer.IGNORE_STOPPED, LibertyServer.POST_ARCHIVES, LibertyServer.FORCE_STOP, LibertyServer.SKIP_ARCHIVES, LibertyServer.SKIP_FEATURE_CHECK,
                               Arrays.asList(LibertyServer.LIBERTY_ERROR_REGEX));
         }
 

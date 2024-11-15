@@ -3140,12 +3140,12 @@ public class LibertyServer implements LogMonitorClient {
 
     public ProgramOutput stopServer(boolean postStopServerArchive, boolean forceStop, boolean skipArchives,
                                     List<String> failuresRegExps, String... ignoredFailuresRegExps) throws Exception {
-        return stopServer(!IGNORE_STOPPED, postStopServerArchive, forceStop, skipArchives, SKIP_FEATURE_CHECK,
+        return stopServer(!IGNORE_STOPPED, postStopServerArchive, forceStop, skipArchives, !SKIP_FEATURE_CHECK,
                           failuresRegExps, ignoredFailuresRegExps);
     }
 
     public ProgramOutput stopServerAlways(String... ignoredFailures) throws Exception {
-        return stopServer(IGNORE_STOPPED, POST_ARCHIVES, FORCE_STOP, SKIP_ARCHIVES, SKIP_FEATURE_CHECK,
+        return stopServer(IGNORE_STOPPED, POST_ARCHIVES, FORCE_STOP, SKIP_ARCHIVES, !SKIP_FEATURE_CHECK,
                           Collections.emptyList(), ignoredFailures);
     }
 
@@ -3153,7 +3153,7 @@ public class LibertyServer implements LogMonitorClient {
     public static final boolean FORCE_STOP = true;
     public static final boolean POST_ARCHIVES = true;
     public static final boolean SKIP_ARCHIVES = true;
-    public static final boolean SKIP_FEATURE_CHECK = false;
+    public static final boolean SKIP_FEATURE_CHECK = true;
 
     /**
      * Stops the server and checks for any warnings or errors that appeared in logs.
