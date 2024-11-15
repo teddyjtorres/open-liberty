@@ -270,7 +270,7 @@ public class ArtifactDownloaderUtils {
             } else if (repoResponseCode == 401 || repoResponseCode == 403) {
                 throw ExceptionUtils.createByKey("ERROR_INVALID_MAVEN_CREDENTIALS", repo);
             } else {
-                throw ExceptionUtils.createByKey("ERROR_FAILED_TO_CONNECT_MAVEN"); //503
+                throw ExceptionUtils.createByKey("ERROR_FAILED_TO_CONNECT_MAVEN", repo); //503
             }
         }
     }

@@ -96,7 +96,7 @@ public class ArtifactDownloader implements AutoCloseable {
         Set<String> missingCoords = new HashSet<>();
 
         if (!testConnection(repository)) {
-            throw ExceptionUtils.createByKey("ERROR_FAILED_TO_CONNECT_MAVEN");
+            throw ExceptionUtils.createByKey("ERROR_FAILED_TO_CONNECT_MAVEN", repository.getRepositoryUrl());
         }
 
         updateProgress(progressBar.getMethodIncrement("establishConnection"));
@@ -221,7 +221,7 @@ public class ArtifactDownloader implements AutoCloseable {
         try {
             if (individualDownload) {
                 if (!testConnection(repository)) {
-                    throw ExceptionUtils.createByKey("ERROR_FAILED_TO_CONNECT_MAVEN");
+                    throw ExceptionUtils.createByKey("ERROR_FAILED_TO_CONNECT_MAVEN", repository.getRepositoryUrl());
                 }
 
                 if (ArtifactDownloaderUtils.fileIsMissing(urlLocation, envMap, repository)) {
