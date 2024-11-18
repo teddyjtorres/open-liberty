@@ -100,9 +100,9 @@ public class RecoveryManager implements Runnable {
     protected byte[] _ourApplId;
     protected int _ourEpoch;
 
-    protected byte[] _recoveredApplId;
-    protected int _recoveredEpoch;
-    protected String _recoveredServerName;
+    private byte[] _recoveredApplId;
+    private int _recoveredEpoch;
+    private String _recoveredServerName;
 
     private int _partnerEntryLowWatermark = -1; /* @MD18134A */
     private int _partnerEntryNextId = -1; /* @MD18134A */
