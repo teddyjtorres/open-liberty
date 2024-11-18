@@ -8,6 +8,17 @@
  * SPDX-License-Identifier: BSD-3-Clause
  */
 
+/*******************************************************************************
+ * Copyright (c) 2024 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ *******************************************************************************/
+
 package com.sun.xml.messaging.saaj.soap.impl;
 
 import static com.sun.xml.messaging.saaj.soap.SOAPDocumentImpl.SAAJ_NODE;
@@ -757,9 +768,12 @@ public class ElementImpl implements SOAPElement, SOAPBodyElement {
     public SOAPElement addNamespaceDeclaration(String prefix, String uri) throws SOAPException {
         if (prefix.length() > 0) {
             setAttributeNS(XMLNS_URI, "xmlns:" + prefix, uri);
-        } else {
+        } else if (isDefaultNamespace(uri)) { //Liberty change
             setAttributeNS(XMLNS_URI, "xmlns", uri);
+        } else {
+            log.warning("~not setting any namespace!"); //Liberty change
         }
+
         //Fix for CR:6474641
         //tryToFindEncodingStyleAttributeName();
         return this;

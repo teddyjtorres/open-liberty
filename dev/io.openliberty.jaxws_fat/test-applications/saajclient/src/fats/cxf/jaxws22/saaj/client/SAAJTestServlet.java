@@ -12,20 +12,12 @@
 package fats.cxf.jaxws22.saaj.client;
 
 import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
-import java.net.URL;
-import java.util.logging.Logger;
-import java.util.regex.Pattern;
 
 import javax.servlet.annotation.WebServlet;
 import javax.xml.soap.MessageFactory;
-import javax.xml.soap.MimeHeaders;
 import javax.xml.soap.SOAPBody;
-import javax.xml.soap.SOAPConnection;
-import javax.xml.soap.SOAPConnectionFactory;
 import javax.xml.soap.SOAPConstants;
 import javax.xml.soap.SOAPElement;
 import javax.xml.soap.SOAPEnvelope;
