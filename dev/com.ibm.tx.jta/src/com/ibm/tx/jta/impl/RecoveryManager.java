@@ -157,7 +157,7 @@ public class RecoveryManager implements Runnable {
 
     protected final Object _recoveryMonitor = new Object();
 
-    protected boolean _cleanRemoteShutdown;
+    private boolean _cleanRemoteShutdown;
 
     private boolean _retainHomeLogs = false;
     private boolean _retainPeerLogs = false;
