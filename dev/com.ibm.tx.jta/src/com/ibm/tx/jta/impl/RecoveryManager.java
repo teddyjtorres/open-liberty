@@ -139,8 +139,8 @@ public class RecoveryManager implements Runnable {
     protected static String _loggedClassPath; // classpath read from the log at startup
 
     // Server States logged for serviceability
-    public static final int STARTING = 1;
-    public static final int STOPPING = 3;
+    private static final int STARTING = 1;
+    private static final int STOPPING = 3;
 
     protected FailureScopeController _failureScopeController;
 
