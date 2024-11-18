@@ -86,7 +86,7 @@ public class SAAJTestServlet extends FATServlet {
         String soapMessageString = new String(byteOut.toByteArray());
 
         // Check if duplicated namespace SAAJ bug is recessed
-        assertTrue("Duplicated namespace in SOAP Body!", validateMessageString(soapMessageString));
+        assertFalse("Duplicated namespace in SOAP Body!", validateMessageString(soapMessageString));
 
     }
 
