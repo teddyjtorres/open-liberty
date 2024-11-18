@@ -68,6 +68,7 @@ import io.openliberty.jpa.data.tests.models.Rebate;
 import io.openliberty.jpa.data.tests.models.Rebate.Status;
 import io.openliberty.jpa.data.tests.models.Reciept;
 import io.openliberty.jpa.data.tests.models.Segment;
+import io.openliberty.jpa.data.tests.models.Store;
 import io.openliberty.jpa.data.tests.models.Triangle;
 import jakarta.annotation.Resource;
 import jakarta.persistence.EntityManager;
@@ -1355,6 +1356,36 @@ public class JakartaDataRecreateServlet extends FATServlet {
              * Query: DeleteAllQuery(referenceClass=Reciept
              * jpql="DELETE FROM Reciept WHERE this.total < :max")
              */
+            throw e;
+        }
+
+        assertEquals(1, count);
+    }
+
+    @Test
+    //Reference issue : https://github.com/OpenLiberty/open-liberty/issues/29781
+    public void testOLGH29781() throws Exception {
+        ZoneId ET = ZoneId.of("America/New_York");
+        Instant when = ZonedDateTime.of(2022, 4, 29, 12, 0, 0, 0, ET)
+                .toInstant();
+        Store s1 = Store.of(2022, 4, 29, "Billy", 12L);
+        Store s2 = Store.of(2024, 5, 12, "Bobby", 9L);
+        
+        int count;
+
+        tx.begin();
+        em.persist(s1);
+        em.persist(s2);
+        tx.commit();
+
+        tx.begin();
+        try {
+            count = em.createQuery("DELETE FROM Store WHERE this.time>:when")
+                    .setParameter("when", when)
+                    .executeUpdate();
+            tx.commit();
+        } catch (Exception e) {
+            tx.rollback();
             throw e;
         }
 
