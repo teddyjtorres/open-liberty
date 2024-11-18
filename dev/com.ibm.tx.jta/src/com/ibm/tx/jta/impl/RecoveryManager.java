@@ -114,14 +114,13 @@ public class RecoveryManager implements Runnable {
     // The following relate to the service data recoverable unit in the partner log
     // This is reserved and holds the server state, classpath, servername, applid and epoch.
     //
-    protected RecoverableUnit _partnerServiceData;
-    protected RecoverableUnitSection _stateSection;
-    protected RecoverableUnitSection _classpathSection;
-    protected RecoverableUnitSection _partnerServerSection;
-    protected RecoverableUnitSection _partnerApplIdSection;
-    protected RecoverableUnitSection _partnerEpochSection;
-    protected RecoverableUnitSection _partnerLowWatermarkSection; /* @MD18134A */
-    protected RecoverableUnitSection _partnerNextIdSection; /* @MD18134A */
+    private RecoverableUnit _partnerServiceData;
+    private RecoverableUnitSection _stateSection;
+    private RecoverableUnitSection _partnerServerSection;
+    private RecoverableUnitSection _partnerApplIdSection;
+    private RecoverableUnitSection _partnerEpochSection;
+    private RecoverableUnitSection _partnerLowWatermarkSection; /* @MD18134A */
+    private RecoverableUnitSection _partnerNextIdSection; /* @MD18134A */
 
     //
     // The following relate to the service data recoverable unit in the transaction log
