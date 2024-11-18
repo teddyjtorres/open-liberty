@@ -297,7 +297,7 @@ public class ConfigAdminHealthCheckTest {
         }
 
         log("testReadinessEndpointOnServerStart", "Waiting for Application to start.");
-        String line = server1.waitForStringInLog("Application MultiWarApps started", 110000);
+        String line = server1.waitForStringInLog("Application MultiWarApps started", 30000);
         log("testReadinessEndpointOnServerStart", "Application started. Line Found : " + line);
         assertNotNull("The CWWKZ0001I Application started message did not appear in messages.log", line);
 

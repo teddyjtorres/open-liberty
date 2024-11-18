@@ -13,7 +13,6 @@
 	
 	<logging traceSpecification="*=info:HEALTH=all:logservice=all=enabled:io.openliberty.org.eclipse.microprofile.health.3.1.*=all=enabled"/>
 
-	<application location="DelayedHealthCheckApp.war"/>
     <webContainer deferServletLoad="false"/> 
 	
 </server>
