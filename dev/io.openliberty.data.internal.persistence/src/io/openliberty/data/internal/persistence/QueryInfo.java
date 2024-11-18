@@ -1163,14 +1163,6 @@ public class QueryInfo {
                 results.add(findAndUpdateOne(arg, em));
             }
         }
-
-        if (results.isEmpty())
-            throw exc(IllegalArgumentException.class,
-                      "CWWKD1092.lifecycle.arg.empty",
-                      method.getName(),
-                      repositoryInterface.getName(),
-                      method.getGenericParameterTypes()[0].getTypeName());
-
         em.flush();
 
         Class<?> returnType = method.getReturnType();
@@ -2464,23 +2456,15 @@ public class QueryInfo {
                     // id(this)
                     attributeName = entityInfo.attributeNames.get(By.ID);
                     if (attributeName == null && failIfNotFound)
-                        throw exc(UnsupportedOperationException.class,
-                                  "CWWKD1093.fn.not.applicable",
-                                  name,
-                                  entityInfo.getType().getName(),
-                                  method.getName(),
-                                  repositoryInterface.getName(),
-                                  "@Id");
+                        throw new MappingException("Entity class " + entityInfo.getType().getName() +
+                                                   " does not have a property named " + name +
+                                                   " or which is designated as the @Id."); // TODO NLS
                 } else if (len == 13 && name.regionMatches(true, 0, "version", 0, 7)) {
                     // version(this)
                     if (entityInfo.versionAttributeName == null && failIfNotFound)
-                        throw exc(UnsupportedOperationException.class,
-                                  "CWWKD1093.fn.not.applicable",
-                                  name,
-                                  entityInfo.getType().getName(),
-                                  method.getName(),
-                                  repositoryInterface.getName(),
-                                  "@Version");
+                        throw new MappingException("Entity class " + entityInfo.getType().getName() +
+                                                   " does not have a property named " + name +
+                                                   " or which is designated as the @Version."); // TODO NLS
                     else
                         attributeName = entityInfo.versionAttributeName;
                 } else {
@@ -2495,10 +2479,10 @@ public class QueryInfo {
             else
                 throw exc(MappingException.class,
                           "CWWKD1010.unknown.entity.prop",
-                          name,
-                          entityInfo.getType().getName(),
                           method.getName(),
                           repositoryInterface.getName(),
+                          name,
+                          entityInfo.getType().getName(),
                           entityInfo.attributeTypes.keySet());
         } else {
             String lowerName = name.toLowerCase();
@@ -2520,23 +2504,15 @@ public class QueryInfo {
                         lowerName = lowerName.replace("_", "");
                         attributeName = entityInfo.attributeNames.get(lowerName);
                         if (attributeName == null && failIfNotFound) {
-                            if (Util.hasOperationAnno(method))
-                                throw exc(MappingException.class,
-                                          "CWWKD1010.unknown.entity.prop",
-                                          name,
-                                          entityInfo.getType().getName(),
-                                          method.getName(),
-                                          repositoryInterface.getName(),
-                                          entityInfo.attributeTypes.keySet());
-                            else
-                                throw exc(MappingException.class,
-                                          "CWWKD1091.method.name.parse.err",
-                                          name,
-                                          entityInfo.getType().getName(),
-                                          method.getName(),
-                                          repositoryInterface.getName(),
-                                          Util.OP_ANNOS,
-                                          entityInfo.attributeTypes.keySet());
+                            // TODO If attempting to parse Query by Method Name without a By keyword, then the message
+                            // should also include the possibility that repository method is missing an annotation.
+                            throw exc(MappingException.class,
+                                      "CWWKD1010.unknown.entity.prop",
+                                      method.getName(),
+                                      repositoryInterface.getName(),
+                                      name,
+                                      entityInfo.getType().getName(),
+                                      entityInfo.attributeTypes.keySet());
                         }
                     }
                 }
@@ -3525,12 +3501,11 @@ public class QueryInfo {
         ArrayList<Object> results;
 
         boolean hasSingularEntityParam = false;
-        int entityCount = 0;
         if (entityParamType.isArray()) {
             int length = Array.getLength(arg);
             results = resultVoid ? null : new ArrayList<>(length);
-            for (; entityCount < length; entityCount++) {
-                Object entity = toEntity(Array.get(arg, entityCount));
+            for (int i = 0; i < length; i++) {
+                Object entity = toEntity(Array.get(arg, i));
                 em.persist(entity);
                 if (results != null)
                     results.add(entity);
@@ -3544,7 +3519,6 @@ public class QueryInfo {
             if (arg instanceof Iterable) {
                 results = resultVoid ? null : new ArrayList<>();
                 for (Object e : ((Iterable<?>) arg)) {
-                    entityCount++;
                     Object entity = toEntity(e);
                     em.persist(entity);
                     if (results != null)
@@ -3552,7 +3526,6 @@ public class QueryInfo {
                 }
                 em.flush();
             } else {
-                entityCount = 1;
                 hasSingularEntityParam = true;
                 results = resultVoid ? null : new ArrayList<>(1);
                 Object entity = toEntity(arg);
@@ -3562,13 +3535,6 @@ public class QueryInfo {
                     results.add(entity);
             }
         }
-
-        if (entityCount == 0)
-            throw exc(IllegalArgumentException.class,
-                      "CWWKD1092.lifecycle.arg.empty",
-                      method.getName(),
-                      repositoryInterface.getName(),
-                      method.getGenericParameterTypes()[0].getTypeName());
 
         Class<?> returnType = method.getReturnType();
         Object returnValue;
@@ -4032,12 +3998,11 @@ public class QueryInfo {
         List<Object> results;
 
         boolean hasSingularEntityParam = false;
-        int entityCount = 0;
         if (entityParamType.isArray()) {
             results = new ArrayList<>();
             int length = Array.getLength(arg);
-            for (; entityCount < length; entityCount++)
-                results.add(em.merge(toEntity(Array.get(arg, entityCount))));
+            for (int i = 0; i < length; i++)
+                results.add(em.merge(toEntity(Array.get(arg, i))));
             em.flush();
         } else {
             arg = arg instanceof Stream //
@@ -4046,13 +4011,10 @@ public class QueryInfo {
 
             if (Iterable.class.isAssignableFrom(entityParamType)) {
                 results = new ArrayList<>();
-                for (Object e : ((Iterable<?>) arg)) {
-                    entityCount++;
+                for (Object e : ((Iterable<?>) arg))
                     results.add(em.merge(toEntity(e)));
-                }
                 em.flush();
             } else {
-                entityCount = 1;
                 hasSingularEntityParam = true;
                 results = resultVoid ? null : new ArrayList<>(1);
                 Object entity = em.merge(toEntity(arg));
@@ -4061,13 +4023,6 @@ public class QueryInfo {
                 em.flush();
             }
         }
-
-        if (entityCount == 0)
-            throw exc(IllegalArgumentException.class,
-                      "CWWKD1092.lifecycle.arg.empty",
-                      method.getName(),
-                      repositoryInterface.getName(),
-                      method.getGenericParameterTypes()[0].getTypeName());
 
         Class<?> returnType = method.getReturnType();
         Object returnValue;
