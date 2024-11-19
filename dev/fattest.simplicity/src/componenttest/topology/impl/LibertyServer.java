@@ -1818,16 +1818,42 @@ public class LibertyServer implements LogMonitorClient {
         Log.finer(c, method, "Starting Server with command: " + cmd);
 
         // if (isFIPS140_3EnabledAndSupported()) {
-        //     // Swap the ltpaFIPS.keys into ltpa.keys
-        //     Log.info(c, "startServerWithArgs", "FIPS 140-3 global build properties is set for server " + getServerName()
-        //                                    + " swapping ltpaFIPS.keys into ltpa.keys");
-        //     File ltpaFIPSKeys = new File(serverRoot + File.separator + "resources" + File.separator + "security" + File.separator + "ltpaFIPS.keys");
-        //     File ltpaKeys = new File(serverRoot + File.separator + "resources" + File.separator + "security" + File.separator + "ltpa.keys");
-        //     if (ltpaFIPSKeys.exists()) {
-        //         ltpaFIPSKeys.renameTo(ltpaKeys);
+        //     if (serverRoot == null) {
+        //         Log.info(this.getClass(), "startServerWithArgs", "Server root directory is null.");
         //     }
-        //     // Print out content of ltpa.keys
-        //     Log.info(c, "startServerWithArgs", "Content of ltpa.keys: " + FileUtils.readFileToString(ltpaKeys));
+        
+        //     // Define the paths
+        //     String securityDir = serverRoot + File.separator + "resources" + File.separator + "security";
+        //     File ltpaFIPSKeys = new File(securityDir, "ltpaFIPS.keys");
+        //     File ltpaKeys = new File(securityDir, "ltpa.keys");
+        
+        //     // Swap the ltpaFIPS.keys into ltpa.keys
+        //     Log.info(this.getClass(), "startServerWithArgs", "FIPS 140-3 global build properties are set for server " + getServerName()
+        //                                        + ", swapping ltpaFIPS.keys into ltpa.keys");
+        
+        //     if (ltpaFIPSKeys.exists()) {
+        //         // Check if ltpa.keys already exists
+        //         if (ltpaKeys.exists()) {
+        //             if (!ltpaKeys.delete()) {
+        //                 Log.info(this.getClass(), "startServerWithArgs", "Failed to delete existing ltpa.keys. Rename cannot proceed.");
+        //             }
+        //         }
+        
+        //         // Rename ltpaFIPS.keys to ltpa.keys
+        //         if (!ltpaFIPSKeys.renameTo(ltpaKeys)) {
+        //             Log.info(this.getClass(), "startServerWithArgs", "Failed to rename ltpaFIPS.keys to ltpa.keys.");
+        //         }
+        //     } else {
+        //         Log.info(this.getClass(), "startServerWithArgs", "ltpaFIPS.keys does not exist. Skipping rename.");
+        //     }
+        
+        //     // Print out the content of ltpa.keys
+        //     try {
+        //         String content = FileUtils.readFile(ltpaKeys.getAbsolutePath());
+        //         Log.info(this.getClass(), "printLtpaKeys", "Content of ltpa.keys: " + content);
+        //     } catch (Exception e) {
+        //         Log.info(this.getClass(), "printLtpaKeys",  "Failed to read ltpa.keys: " + e.getMessage());
+        //     }
         // }
 
         // Create a marker file to indicate that we're trying to start a server
