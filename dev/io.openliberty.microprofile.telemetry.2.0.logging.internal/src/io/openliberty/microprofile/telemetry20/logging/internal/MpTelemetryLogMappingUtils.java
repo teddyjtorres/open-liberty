@@ -9,6 +9,9 @@
  *******************************************************************************/
 package io.openliberty.microprofile.telemetry20.logging.internal;
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -41,6 +44,8 @@ public class MpTelemetryLogMappingUtils {
 
     private static final TraceComponent tc = Tr.register(MpTelemetryLogMappingUtils.class, "TELEMETRY",
                                                          "io.openliberty.microprofile.telemetry.internal.common.resources.MPTelemetry");
+
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
 
     /**
      * Get the event type from the Liberty log source.
@@ -253,14 +258,25 @@ public class MpTelemetryLogMappingUtils {
             if (kvp != null) {
                 if (!kvp.isList()) {
                     key = kvp.getKey();
+                    /*
+                     * Explicitly parse the audit_eventName, audit_eventTime, sequenceNumber, and threadID.
+                     *
+                     * Set the audit_eventTime as the Timestamp in the LogRecordBuilder, since it accurately represents when the audit event occurred.
+                     *
+                     * The rest are generic audit event fields.
+                     */
+                    if (key.equals(LogFieldConstants.IBM_DATETIME) || key.equals("loggingEventTime") || AuditData.getDatetimeKey(0).equals(key)) {
+                        // Omit the mapping of ibm_dateTime, since we are mapping the audit_eventTime to the LogRecordBuilder Timestamp instead.
+                        continue;
+                    }
+
                     if (key.equals(MpTelemetryLogFieldConstants.AUDIT_EVENT_NAME)) {
                         // Explicitly parse the eventName to map it to the body in the LogRecordBuilder and as well as in the AttributeBuilder.
                         builder.setBody(kvp.getStringValue());
-                        attributes.put(SemanticAttributes.EVENT_NAME, kvp.getStringValue());
-                    } else if (key.equals(LogFieldConstants.IBM_DATETIME) || key.equals(MpTelemetryLogFieldConstants.LOGGING_EVENT_TIME)
-                               || AuditData.getDatetimeKey(0).equals(key)) {
-                        // Get Timestamp as a Long value and set it in the LogRecordBuilder
-                        builder.setTimestamp(kvp.getLongValue(), TimeUnit.MILLISECONDS);
+                        attributes.put(MpTelemetryAuditEventMappingUtils.getOTelMappedAuditEventKeyName(key), kvp.getStringValue());
+                    } else if (key.equals(MpTelemetryLogFieldConstants.AUDIT_EVENT_TIME)) {
+                        // Format the dateTime string into an Instant and set it in the LogRecordBuilder
+                        builder.setTimestamp(formatDateTime(kvp.getStringValue()));
                     } else if (key.equals(LogFieldConstants.IBM_SEQUENCE) || key.equals(MpTelemetryLogFieldConstants.LOGGING_SEQUENCE_NUMBER)
                                || AuditData.getSequenceKey(0).equals(key)) {
                         // Explicitly get the ibm_sequence and set it in the AttributeBuilder.
@@ -269,8 +285,8 @@ public class MpTelemetryLogMappingUtils {
                         // Add Thread information to Attributes Builder
                         attributes.put(SemanticAttributes.THREAD_ID, kvp.getIntValue());
                     } else {
-                        // Format and map the audit event fields accordingly
-                        attributes.put(MpTelemetryLogFieldConstants.IO_OPENLIBERTY_TAG + MpTelemetryLogFieldConstants.AUDIT_TYPE_PREFIX_TAG + key, kvp.getStringValue());
+                        // Format and map the other audit event fields accordingly.
+                        attributes.put(MpTelemetryAuditEventMappingUtils.getOTelMappedAuditEventKeyName(key), kvp.getStringValue());
                     }
                 }
             }
@@ -358,6 +374,15 @@ public class MpTelemetryLogMappingUtils {
             }
         }
         return sb.toString();
+    }
+
+    /*
+     * Formats the given date and time String, into an Instant instance.
+     */
+    private static Instant formatDateTime(String dateTime) {
+        TemporalAccessor tempAccessor = FORMATTER.parse(dateTime);
+        Instant instant = Instant.from(tempAccessor);
+        return instant;
     }
 
 }
