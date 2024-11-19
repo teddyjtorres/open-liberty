@@ -1312,6 +1312,62 @@ public class DeliveryDelayServlet extends HttpServlet {
     	return;
     }
     
+    // New consolidated simplified API persistent test receiver method
+    private boolean testPersistentMessageSimplifiedAPI_receive(ConnectionFactory cf,
+			Destination persistentMessageDestination,
+			Destination nonpersistentMessageDestination,
+			String identifier)
+			throws Exception {
+    	
+    	boolean pubSub = persistentMessageDestination instanceof Topic;
+    	boolean testPassed = true;
+    	
+        String subscriber1Name = "durPersMsg1_" + identifier;
+        String subscriber2Name = "durPersMsg2_" + identifier;
+    	
+    	JMSConsumer jmsConsumer1 = null, jmsConsumer2 = null;
+    	
+    	try (JMSContext jmsContext = cf.createContext()) {
+    		
+    		if (pubSub) {
+    		    jmsConsumer1 = jmsContext.createDurableConsumer((Topic) persistentMessageDestination, subscriber1Name);
+    		    jmsConsumer2 = jmsContext.createDurableConsumer((Topic) nonpersistentMessageDestination, subscriber2Name);
+    		}
+    		else {
+    	        jmsConsumer1 = jmsContext.createConsumer(persistentMessageDestination);
+    	        jmsConsumer2 = jmsContext.createConsumer(nonpersistentMessageDestination);
+    		}
+    		
+    		// Try to receive a message from each destination. Wait for twice the default deliveryDelay time if required
+    		// Only the persistentMessageDestination should receive something
+    		
+            TextMessage recMsg1 = (TextMessage) jmsConsumer1.receive(defaultTestDeliveryDelay * 2);
+            TextMessage recMsg2 = (TextMessage) jmsConsumer2.receive(defaultTestDeliveryDelay * 2);
+
+            // and check whether we got the expected results
+            if ( ((recMsg1 == null) || // If we failed to get a persistent message
+                    (recMsg1.getText() == null) || // or the message had no payload...
+                    !recMsg1.getText().equals("PersistentMessage_" + identifier)) || // ...or the payload wasn't what we expected (implying it's a message from some other test or something)
+                   (recMsg2 != null) ) { // or we received a message from the nonpersistentMessageDestination (as the message there should not have persisted over the server restart)
+                  testPassed = false; // ...then we need to mark the test as failed.
+              }
+            
+            // tidy up
+            jmsConsumer1.close();
+            jmsConsumer2.close();
+            
+            if (pubSub) {
+                jmsContext.unsubscribe(subscriber1Name);
+                jmsContext.unsubscribe(subscriber2Name);
+            }
+
+    	}
+    	
+        return testPassed;
+    }
+    
+    
+    
     private String testPersistentQueueMessageIdentifier = "testPersistentQueueMessage";
 
     public void testPersistentMessage(
