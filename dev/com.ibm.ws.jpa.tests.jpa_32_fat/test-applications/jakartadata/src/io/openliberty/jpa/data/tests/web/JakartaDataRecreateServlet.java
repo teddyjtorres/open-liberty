@@ -171,14 +171,14 @@ public class JakartaDataRecreateServlet extends FATServlet {
     }
     
     @Test
-    @Ignore("Reference issue:https://github.com/OpenLiberty/open-liberty/issues/29459")
+   // @Ignore("Reference issue:https://github.com/OpenLiberty/open-liberty/issues/29459")
     public void testOLGH29459() throws Exception {
         // Sample segment ID and points
         int x1 = 0, y1 = 0, x2 = 120, y2 = 209;
         
         // Create a new segment using the 'of' factory method
         Segment segment = Segment.of(x1, y1, x2, y2);
-        
+
         // Begin the transaction
         tx.begin();
 
@@ -186,9 +186,9 @@ public class JakartaDataRecreateServlet extends FATServlet {
             // Persist the segment using EntityManager
             em.persist(segment);
 
-            // Insert into the database using a native SQL query
+            // Insert into the database using a native SQL query (with incremented ID)
             em.createNativeQuery("INSERT INTO Segment (id, pointA_x, pointA_y, pointB_x, pointB_y) VALUES (?, ?, ?, ?, ?)")
-                .setParameter(1, segment.id)      // Segment ID
+                .setParameter(1, segment.id + 1)      // Incremented Segment ID (avoiding conflict)
                 .setParameter(2, segment.pointA.x())  // Point A X
                 .setParameter(3, segment.pointA.y())  // Point A Y
                 .setParameter(4, segment.pointB.x())  // Point B X
@@ -204,16 +204,23 @@ public class JakartaDataRecreateServlet extends FATServlet {
         }
 
         // Optionally, you can query the inserted data to verify it was inserted correctly
-        Segment retrievedSegment = em.find(Segment.class, segment.id);
-        
-        // Assertions to validate the data
-        assertEquals(segment.id, retrievedSegment.id);
-        assertEquals(x1, retrievedSegment.pointA.x());
-        assertEquals(y1, retrievedSegment.pointA.y());
-        assertEquals(x2, retrievedSegment.pointB.x());
-        assertEquals(y2, retrievedSegment.pointB.y());
-    }
+        Segment retrievedSegment1 = em.find(Segment.class, segment.id);
+        Segment retrievedSegment2 = em.find(Segment.class, segment.id + 1); // Retrieve the second segment with incremented ID
 
+        // Assertions for the first segment
+        assertEquals(segment.id, retrievedSegment1.id);
+        assertEquals(x1, retrievedSegment1.pointA.x());
+        assertEquals(y1, retrievedSegment1.pointA.y());
+        assertEquals(x2, retrievedSegment1.pointB.x());
+        assertEquals(y2, retrievedSegment1.pointB.y());
+
+        // Assertions for the second segment (inserted with incremented ID)
+        assertEquals(Long.valueOf(segment.id + 1), Long.valueOf(retrievedSegment2.id));
+        assertEquals(x1, retrievedSegment2.pointA.x());
+        assertEquals(y1, retrievedSegment2.pointA.y());
+        assertEquals(x2, retrievedSegment2.pointB.x());
+        assertEquals(y2, retrievedSegment2.pointB.y());
+    }
 
 
     @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28908
