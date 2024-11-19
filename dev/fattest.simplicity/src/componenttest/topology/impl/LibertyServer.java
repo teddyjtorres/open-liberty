@@ -3092,7 +3092,7 @@ public class LibertyServer implements LogMonitorClient {
                 useEnvVars.setProperty("WLP_USER_DIR", userDir);
             Log.finer(c, method, "Using additional env props: " + useEnvVars);
 
-            final ProgramOutput output = machine.execute(cmd, parameters, useEnvVars);
+            final ProgramOutput output = machine.execute(cmd, parameters, machine.getWorkDir(), useEnvVars, 300);
 
             String stdout = output.getStdout();
             Log.info(c, method, "Dump Server Response: " + stdout);
@@ -3164,12 +3164,12 @@ public class LibertyServer implements LogMonitorClient {
 
     public ProgramOutput stopServer(boolean postStopServerArchive, boolean forceStop, boolean skipArchives,
                                     List<String> failuresRegExps, String... ignoredFailuresRegExps) throws Exception {
-        return stopServer(!IGNORE_STOPPED, postStopServerArchive, forceStop, skipArchives,
+        return stopServer(!IGNORE_STOPPED, postStopServerArchive, forceStop, skipArchives, !SKIP_FEATURE_CHECK,
                           failuresRegExps, ignoredFailuresRegExps);
     }
 
     public ProgramOutput stopServerAlways(String... ignoredFailures) throws Exception {
-        return stopServer(IGNORE_STOPPED, POST_ARCHIVES, FORCE_STOP, SKIP_ARCHIVES,
+        return stopServer(IGNORE_STOPPED, POST_ARCHIVES, FORCE_STOP, SKIP_ARCHIVES, !SKIP_FEATURE_CHECK,
                           Collections.emptyList(), ignoredFailures);
     }
 
@@ -3177,6 +3177,7 @@ public class LibertyServer implements LogMonitorClient {
     public static final boolean FORCE_STOP = true;
     public static final boolean POST_ARCHIVES = true;
     public static final boolean SKIP_ARCHIVES = true;
+    public static final boolean SKIP_FEATURE_CHECK = true;
 
     /**
      * Stops the server and checks for any warnings or errors that appeared in logs.
@@ -3188,6 +3189,7 @@ public class LibertyServer implements LogMonitorClient {
      * @param  forceStop              Force the server to stop, skipping the quiesce (default/usual value should be false)
      * @param  skipArchives           Skip postStopServer collection of archives (WARs, EARs, JARs, etc.)
      *                                    Only used if postStopServerArchive is true
+     * @param  skipFeatureCheck       Skip repeat feature set checking
      * @param  ignoredFailuresRegExps A list of reg expressions corresponding to warnings or errors that should be ignored.
      *                                    If ignoredFailuresRegExps is null, logs will not be checked for warnings/errors
      * @param  failuresRegExps        A list of reg expressions corresponding to warnings or errors that should be treated
@@ -3196,7 +3198,7 @@ public class LibertyServer implements LogMonitorClient {
      * @throws Exception              if the stop operation fails or there are warnings/errors found in server
      *                                    logs that were not in the list of ignored warnings/errors.
      */
-    public ProgramOutput stopServer(boolean ignoreStopped, boolean postStopServerArchive, boolean forceStop, boolean skipArchives,
+    public ProgramOutput stopServer(boolean ignoreStopped, boolean postStopServerArchive, boolean forceStop, boolean skipArchives, boolean skipFeatureCheck,
                                     List<String> failuresRegExps, String... ignoredFailuresRegExps) throws Exception {
         final String method = "stopServer";
         Log.info(c, method, "<<< STOPPING SERVER: " + getServerName());
@@ -3322,7 +3324,9 @@ public class LibertyServer implements LogMonitorClient {
 
             isTidy = true;
 
-            checkServerRepeatFeatures();
+            if (!skipFeatureCheck) {
+                checkServerRepeatFeatures();
+            }
             checkLogsForErrorsAndWarnings(failuresRegExps, ignoredFailuresRegExps);
 
             if (doCheckpoint() && checkpointInfo.isAssertNoAppRestartOnRestore() &&
@@ -3511,8 +3515,9 @@ public class LibertyServer implements LogMonitorClient {
             throw ex;
     }
 
-    //servers which are exempt from checking repeat features
-    //this list should eventually be removed once the tests are fixed
+    //servers which are exempt from checking repeat features in automated builds
+    //the vast majority of servers should eventually be removed once the tests are fixed
+    //the test will still fail when run locally
     private static final String[] EXEMPT_SERVERS = {
                                                      "cdi20EEServer", //com.ibm.ws.cdi.1.0_fat_EE
 
@@ -3534,8 +3539,6 @@ public class LibertyServer implements LogMonitorClient {
                                                      "com.ibm.ws.jpa.fat.emlocking", //com.ibm.ws.jpa.tests.jpa_fat
                                                      "ConcurrentEnhancementVerification", //com.ibm.ws.jpa.tests.jpa_fat
                                                      "com.ibm.ws.jpa.fat.ejbpassivation", //com.ibm.ws.jpa.tests.jpa_fat
-
-                                                     "jsp23jsp22Server", //com.ibm.ws.jsp.2.3_fat
 
                                                      "ApplicationProcessorServer", //io.openliberty.microprofile.openapi.2.0.internal_fat
                                                      "OpenAPITestServer", //io.openliberty.microprofile.openapi.2.0.internal_fat
@@ -3641,10 +3644,12 @@ public class LibertyServer implements LogMonitorClient {
                             if (FAT_TEST_LOCALRUN) {
                                 message = message + "\nYou should also ensure that the test server has been removed from LibertyServer.EXEMPT_SERVERS.";
                                 throw new Exception(message);
-                            } else if (!EXEMPT_SERVERS_SET.contains(serverName)) {
-                                throw new Exception(message);
                             } else {
-                                Log.info(c, method, message);
+                                if (!EXEMPT_SERVERS_SET.contains(serverName)) {
+                                    throw new Exception(message);
+                                } else {
+                                    Log.info(c, method, message);
+                                }
                             }
                         } else {
                             Log.info(c, method, message);
@@ -7456,7 +7461,7 @@ public class LibertyServer implements LogMonitorClient {
             useEnvVars.setProperty("WLP_USER_DIR", userDir);
         Log.info(c, method, "Using additional env props: " + useEnvVars);
 
-        ProgramOutput output = machine.execute(cmd, parms, useEnvVars);
+        ProgramOutput output = machine.execute(cmd, parms, machine.getWorkDir(), useEnvVars, 300);
         String stdout = output.getStdout();
         Log.info(c, method, "Server dump output: " + stdout);
         Log.info(c, method, "Return code from dump is: " + output.getReturnCode());
