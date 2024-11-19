@@ -82,9 +82,9 @@ public class RecoveryManager implements Runnable {
     private final Phaser _replayInProgress = new Phaser(1);
     private final Phaser _recoveryInProgress = new Phaser(1);
 
-    protected boolean _shutdownInProgress;
+    private boolean _shutdownInProgress;
 
-    protected final RecoveryAgent _agent;
+    private final RecoveryAgent _agent;
     protected RecoveryLog _tranLog; // 169107
     protected RecoveryLog _xaLog; // 169107
     protected final RecoveryLog _recoverXaLog; //@MD18134A
