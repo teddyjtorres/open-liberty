@@ -214,6 +214,7 @@ public class LTPAKeyInfoManager {
         //Check to see if the LTPA key import file exists, create the keys and file if not
         WsResource ltpaKeyFileResource = null;
 
+        // NEED TO REMOVE
         if (fipsEnabled){
             ltpaKeyFileResource = getLTPAKeyFileResource(locService, keyImportFile.substring(0, keyImportFile.length() - 5) + "FIPS" + keyImportFile.substring(keyImportFile.length() - 5));
             System.out.println("FIPS Keys found: " + keyImportFile.substring(0, keyImportFile.length() - 5) + "FIPS" + keyImportFile.substring(keyImportFile.length() - 5));

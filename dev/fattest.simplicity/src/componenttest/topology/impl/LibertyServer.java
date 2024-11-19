@@ -1817,6 +1817,19 @@ public class LibertyServer implements LogMonitorClient {
 
         Log.finer(c, method, "Starting Server with command: " + cmd);
 
+        // if (isFIPS140_3EnabledAndSupported()) {
+        //     // Swap the ltpaFIPS.keys into ltpa.keys
+        //     Log.info(c, "startServerWithArgs", "FIPS 140-3 global build properties is set for server " + getServerName()
+        //                                    + " swapping ltpaFIPS.keys into ltpa.keys");
+        //     File ltpaFIPSKeys = new File(serverRoot + File.separator + "resources" + File.separator + "security" + File.separator + "ltpaFIPS.keys");
+        //     File ltpaKeys = new File(serverRoot + File.separator + "resources" + File.separator + "security" + File.separator + "ltpa.keys");
+        //     if (ltpaFIPSKeys.exists()) {
+        //         ltpaFIPSKeys.renameTo(ltpaKeys);
+        //     }
+        //     // Print out content of ltpa.keys
+        //     Log.info(c, "startServerWithArgs", "Content of ltpa.keys: " + FileUtils.readFileToString(ltpaKeys));
+        // }
+
         // Create a marker file to indicate that we're trying to start a server
         createServerMarkerFile();
 
