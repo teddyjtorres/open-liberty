@@ -1467,6 +1467,121 @@ public class DeliveryDelayServlet extends HttpServlet {
 
 
     // Old tests for classic API
+    // The new consolidated versions use the JMS1.1 unified domain objects instead of the older JMS1.02 domain-specific objects.
+    
+    
+    // New consolidated classic API persistent test sender method
+    private boolean testPersistentMessageClassicAPI_send(ConnectionFactory cf,
+			Destination persistentMessageDestination,
+			Destination nonpersistentMessageDestination,
+			String identifier)
+			throws Exception {
+    	
+    	// If we are sending pub/sub messages then we need to ensure there are durable subscribers that can receive the messages.
+    	MessageConsumer consumer1 = null, consumer2 = null;
+
+    	boolean pubSub = persistentMessageDestination instanceof Topic;
+    	boolean testPassed = true;
+    	
+        String subscriber1Name = "durPersMsg1_" + identifier;
+        String subscriber2Name = "durPersMsg2_" + identifier;
+
+        Connection connection = cf.createConnection();
+        connection.start();
+        
+        Session session = connection.createSession(Session.AUTO_ACKNOWLEDGE);
+        
+        MessageProducer producer1 = session.createProducer(persistentMessageDestination);
+        MessageProducer producer2 = session.createProducer(nonpersistentMessageDestination);
+
+        if (pubSub) {
+        	consumer1 = session.createDurableConsumer((Topic)persistentMessageDestination, subscriber1Name);
+           	consumer2 = session.createDurableConsumer((Topic)nonpersistentMessageDestination, subscriber2Name);
+        }
+        else {
+        	emptyQueue(cf, (Queue)persistentMessageDestination);
+        	emptyQueue(cf, (Queue)nonpersistentMessageDestination);
+        }
+
+        producer1.setDeliveryMode(DeliveryMode.PERSISTENT);
+        producer1.setDeliveryDelay(defaultTestDeliveryDelay);
+        TextMessage msg1 = session.createTextMessage("PersistentMessage_" + identifier);
+        producer1.send(msg1);
+
+        producer2.setDeliveryDelay(defaultTestDeliveryDelay);
+        producer2.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
+        TextMessage msg2 = session.createTextMessage("NonPersistentMessage_" + identifier);
+        producer2.send(msg2);
+
+
+        // If we're running in the pub/sub domain then close the subscribers (the subscriptions will remain open
+        if (pubSub) {
+        	consumer1.close();
+        	consumer2.close();
+        }
+        
+        session.close();
+        connection.close();
+        
+        return testPassed;
+    }
+    
+    // New consolidated classic API persistent test receiver method
+    private boolean testPersistentMessageClassicAPI_receive(ConnectionFactory cf,
+			Destination persistentMessageDestination,
+			Destination nonpersistentMessageDestination,
+			String identifier)
+			throws Exception {
+    	
+    	boolean pubSub = persistentMessageDestination instanceof Topic;
+    	boolean testPassed = true;
+    	
+        String subscriber1Name = "durPersMsg1_" + identifier;
+        String subscriber2Name = "durPersMsg2_" + identifier;
+        
+        MessageConsumer consumer1 = null, consumer2 = null;
+        
+        
+        Connection connection = cf.createConnection();
+        connection.start();
+        
+        Session session = connection.createSession(Session.AUTO_ACKNOWLEDGE);
+        
+        if (pubSub) {
+		    consumer1 = session.createDurableConsumer((Topic) persistentMessageDestination, subscriber1Name);
+		    consumer2 = session.createDurableConsumer((Topic) nonpersistentMessageDestination, subscriber2Name);
+		}
+		else {
+			consumer1 = session.createConsumer(persistentMessageDestination);
+			consumer2 = session.createConsumer(nonpersistentMessageDestination);
+		}
+        
+		// Try to receive a message from each destination. Wait for twice the default deliveryDelay time if required
+		// Only the persistentMessageDestination should receive something
+		
+        TextMessage recMsg1 = (TextMessage) consumer1.receive(defaultTestDeliveryDelay * 2);
+        TextMessage recMsg2 = (TextMessage) consumer2.receive(defaultTestDeliveryDelay * 2);
+        
+        // and check whether we got the expected results
+        if ( ((recMsg1 == null) || // If we failed to get a persistent message
+                (recMsg1.getText() == null) || // or the message had no payload...
+                !recMsg1.getText().equals("PersistentMessage_" + identifier)) || // ...or the payload wasn't what we expected (implying it's a message from some other test or something)
+               (recMsg2 != null) ) { // or we received a message from the nonpersistentMessageDestination (as the message there should not have persisted over the server restart)
+              testPassed = false; // ...then we need to mark the test as failed.
+          }
+
+        // Tidy up
+        consumer1.close();
+        consumer2.close();
+        
+        if (pubSub) {
+        	session.unsubscribe(subscriber1Name);
+        	session.unsubscribe(subscriber2Name);
+        }
+        
+        return testPassed;
+    }
+    
     
     public void testPersistentMessageClassicApi(
             HttpServletRequest request, HttpServletResponse response) throws Exception {
