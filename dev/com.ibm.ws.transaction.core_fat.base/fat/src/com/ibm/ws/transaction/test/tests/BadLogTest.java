@@ -16,7 +16,6 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 
-import com.ibm.websphere.simplicity.OperatingSystem;
 import com.ibm.websphere.simplicity.ShrinkHelper;
 import com.ibm.websphere.simplicity.config.ServerConfiguration;
 import com.ibm.websphere.simplicity.config.Transaction;
@@ -43,14 +42,21 @@ public class BadLogTest extends FATServletClient {
 
         ShrinkHelper.defaultApp(server, APP_NAME, "servlets.*");
 
-        // Tran log dir config is an unwritable location on windows.
-        // If we are not on windows we need to set it to an similarly unwritable location.
-        final ServerConfiguration serverConfig = server.getServerConfiguration();
-        final Transaction tranConfig = serverConfig.getTransaction();
+        // Tranlog dir config is an unwritable location on Windows & OS/400.
+        // If we are not on one of those, we need to set it to an similarly unwritable location.
 
-        if (OperatingSystem.WINDOWS != server.getMachine().getOperatingSystem()) {
-            tranConfig.setTransactionLogDirectory("/bin");
-            server.updateServerConfiguration(serverConfig);
+        switch (server.getMachine().getOperatingSystem()) {
+            case WINDOWS:
+            case ISERIES:
+                break;
+
+            default:
+                final ServerConfiguration serverConfig = server.getServerConfiguration();
+                final Transaction tranConfig = serverConfig.getTransaction();
+
+                tranConfig.setTransactionLogDirectory("/bin");
+                server.updateServerConfiguration(serverConfig);
+                break;
         }
 
         FATUtils.startServers(server);
@@ -61,4 +67,3 @@ public class BadLogTest extends FATServletClient {
         FATUtils.stopServers(server);
     }
 }
-
