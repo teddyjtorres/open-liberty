@@ -305,7 +305,7 @@ public class OpenTelemetryLogHandler implements SynchronousHandler {
             return CollectorConstants.TRACE_SOURCE;
         else if (source.equalsIgnoreCase(CollectorConstants.FFDC_CONFIG_VAL))
             return CollectorConstants.FFDC_SOURCE;
-        else if (source.equalsIgnoreCase(CollectorConstants.AUDIT_CONFIG_VAL))
+        else if (MpTelemetryLogMappingUtils.isBetaModeCheck() && source.equalsIgnoreCase(CollectorConstants.AUDIT_CONFIG_VAL))
             return CollectorConstants.AUDIT_LOG_SOURCE;
 
         return "";
@@ -324,7 +324,7 @@ public class OpenTelemetryLogHandler implements SynchronousHandler {
             return CollectorConstants.TRACE_SOURCE;
         } else if (sourceName.equals(CollectorConstants.FFDC_SOURCE)) {
             return CollectorConstants.FFDC_SOURCE;
-        } else if (sourceName.contains(CollectorConstants.AUDIT_LOG_SOURCE)) {
+        } else if (MpTelemetryLogMappingUtils.isBetaModeCheck() && sourceName.contains(CollectorConstants.AUDIT_LOG_SOURCE)) {
             return CollectorConstants.AUDIT_LOG_SOURCE;
         } else {
             return "";
