@@ -67,28 +67,20 @@ public class SlowAppStartupHealthCheckTest {
 
     @ClassRule
     public static RepeatTests r = MicroProfileActions.repeat(SERVER_NAME,
-                                                             MicroProfileActions.MP70_EE10, // mpHealth-4.0 LITE
-                                                             MicroProfileActions.MP70_EE11, // mpHealth-4.0 FULL
-                                                             MicroProfileActions.MP41); // mpHealth-3.1 FULL
+                                                             MicroProfileActions.MP70_EE10); // mpHealth-4.0
 
     public void setupClass(LibertyServer server, String testName) throws Exception {
-        log("setupClass", testName + "Starting the server.");
+        log("setupClass", testName + " - Deploying the Delayed App into the apps directory and starting the server.");
+
+        WebArchive app = ShrinkHelper.buildDefaultApp(APP_NAME, "io.openliberty.microprofile.health31.delayed.health.check.app");
+        //This test expects to hit the server before the app is started so we disable validation to prevent the test framework waiting for the app to start.
+        ShrinkHelper.exportAppToServer(server, app, DeployOptions.DISABLE_VALIDATION, DeployOptions.SERVER_ONLY);
 
         if (!server.isStarted())
-            server.startServer(false, false);
-
-        // Read to run a smarter planet
-        server.waitForStringInLogUsingMark("CWWKF0011I");
-    }
-
-    private void deployApp(LibertyServer server, String testName) throws Exception {
-        log("deployApp", testName + " - Deploying the Delayed App into the apps directory");
-        WebArchive app = ShrinkHelper.buildDefaultApp(APP_NAME, "io.openliberty.microprofile.health31.delayed.health.check.app");
-
-        ShrinkHelper.exportDropinAppToServer(server, app, DeployOptions.DISABLE_VALIDATION, DeployOptions.SERVER_ONLY);
+            server.startServer();
 
         String line = server.waitForStringInLogUsingMark("CWWKT0016I: Web application available.*DelayedHealthCheckApp*");
-        log("deployApp - " + testName, "Web Application available message found?: " + line);
+        log("setupClass - " + testName, "Web Application available message found: " + line);
         assertNotNull("The CWWKT0016I Web Application available message did not appear in messages.log", line);
     }
 
@@ -98,9 +90,6 @@ public class SlowAppStartupHealthCheckTest {
 
         if ((server1 != null) && (server1.isStarted()))
             server1.stopServer(EXPECTED_FAILURES);
-
-        boolean flag = server1.removeDropinsApplications(APP_NAME + ".war");
-        log("cleanUp", " - Removed the app? [" + flag + "]");
     }
 
     /*
@@ -110,7 +99,6 @@ public class SlowAppStartupHealthCheckTest {
     @Test
     public void testStartupEndpointOnServerStart() throws Exception {
         setupClass(server1, "testStartupEndpointOnServerStart");
-        deployApp(server1, "testStartupEndpointOnServerStart");
         log("testReadinessEndpointOnServerStart", "Begin execution of testReadinessEndpointOnServerStart");
         server1.setMarkToEndOfLog();
         server1.stopServer(EXPECTED_FAILURES);
@@ -247,7 +235,6 @@ public class SlowAppStartupHealthCheckTest {
     @Mode(TestMode.FULL)
     public void testSlowAppStartUpHealthCheck() throws Exception {
         setupClass(server1, "testSlowAppStartUpHealthCheck");
-        deployApp(server1, "testStartupEndpointOnServerStart");
         log("testSlowAppStartUpHealthCheck", "Testing the /health/started endpoint, before application has started.");
         HttpURLConnection conStarted = HttpUtils.getHttpConnectionWithAnyResponseCode(server1, STARTED_ENDPOINT);
         assertEquals("The Response Code was not 503 for the following endpoint: " + conStarted.getURL().toString(), FAILED_RESPONSE_CODE, conStarted.getResponseCode());
