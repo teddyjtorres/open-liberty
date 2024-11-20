@@ -311,6 +311,11 @@ public class DelayFullTest {
         restartServers();
     }
 
+    // Tests that test the persistence of delivery delay messages over a server restart
+    // Each test calls a sender method in the servlet that sends 2 message, 1 persistent and 1 nonpersistent.
+    // Then the servers are restarted and the servlet is called to attempt to receive the messages.
+    // Where possible, these are amalgamated to call multiple sender and the associated receiver methods around a single server restart to reduce the number of restarts that are needed.
+    
     @Test
     public void testPersistentMessageStore_B() throws Exception {
         runInServlet("testPersistentMessage");
@@ -322,16 +327,6 @@ public class DelayFullTest {
     }
 
     @Test
-    public void testPersistentMessageStore_Tcp() throws Exception {
-        runInServlet("testPersistentMessage_Tcp");
-
-        restartServers();
-
-        boolean testResult = runInServlet("testPersistentMessageReceive_Tcp");
-        assertTrue("testPersistentMessageStore_Tcp failed", testResult);
-    }
-
-    @Test
     public void testPersistentMessageStoreTopic_B() throws Exception {
         runInServlet("testPersistentMessageTopic");
 
@@ -339,6 +334,16 @@ public class DelayFullTest {
 
         boolean testResult = runInServlet("testPersistentMessageReceiveTopic");
         assertTrue("testPersistentMessageStoreTopic_B failed", testResult);
+    }
+
+    @Test
+    public void testPersistentMessageStore_Tcp() throws Exception {
+        runInServlet("testPersistentMessage_Tcp");
+
+        restartServers();
+
+        boolean testResult = runInServlet("testPersistentMessageReceive_Tcp");
+        assertTrue("testPersistentMessageStore_Tcp failed", testResult);
     }
 
     @Test
