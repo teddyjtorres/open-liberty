@@ -87,6 +87,7 @@
 							     which needs to be discovered in some tests, and ignored in other tests  -->
 							<forkCount>1</forkCount>
 							<reuseForks>false</reuseForks>
+							<forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
 							<dependenciesToScan>jakarta.json:jakarta.json-tck-tests</dependenciesToScan>
 							<systemPropertyVariables>
 								<jimage.dir>${project.build.directory}/jdk11-bundle</jimage.dir>
@@ -132,6 +133,7 @@
 							     which needs to be discovered in some tests, and ignored in other tests  -->
 							<forkCount>1</forkCount>
 							<reuseForks>false</reuseForks>
+							<forkNode implementation="org.apache.maven.plugin.surefire.extensions.SurefireForkNodeFactory"/>
 							<dependenciesToScan>jakarta.json:jakarta.json-tck-tests-pluggability</dependenciesToScan>
 							<excludes>
 								<exclude>${exclude.tests}</exclude>
