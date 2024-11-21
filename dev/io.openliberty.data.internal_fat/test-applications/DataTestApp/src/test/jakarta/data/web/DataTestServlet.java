@@ -94,6 +94,7 @@ import org.junit.Test;
 import componenttest.annotation.AllowedFFDC;
 import componenttest.annotation.SkipIfSysProp;
 import componenttest.app.FATServlet;
+import test.jakarta.data.web.Animal.ScientificName;
 import test.jakarta.data.web.Residence.Occupant;
 
 @DataSourceDefinition(name = "java:app/jdbc/DerbyDataSource",
@@ -105,6 +106,9 @@ import test.jakarta.data.web.Residence.Occupant;
 @WebServlet("/*")
 public class DataTestServlet extends FATServlet {
     private final long TIMEOUT_MINUTES = 2;
+
+    @Inject
+    Animals animals;
 
     @Inject
     Apartments apartments;
@@ -1877,6 +1881,74 @@ public class DataTestServlet extends FATServlet {
         deleted = packages.destroy(Limit.of(4), sort);
         assertEquals("Deleted " + Arrays.toString(deleted), 1, deleted.length);
         assertEquals(remaining.iterator().next(), Integer.valueOf(((Package) deleted[0]).id));
+    }
+
+    /**
+     * Find a record entity based on its embedded id, which is also a record.
+     * This test covers finding and returning an entity in addition to
+     * finding an entity to save/update/delete.
+     */
+    @Test
+    public void testFindByEmbeddedId() {
+        List<Animal> found = animals.findAll().toList();
+        if (!found.isEmpty())
+            animals.deleteAll(found);
+
+        Animal redFox = animals.insert(Animal.of("red fox", "Vulpes", "vulpes"));
+        Animal grayFox = animals.insert(Animal.of("gray fox", "Urocyon", "cinereoargenteus"));
+        Animal foxSquirrel = animals.insert(Animal.of("Fox squirrel", "Sciurus", "niger"));
+        Animal graySquirrel = animals.insert(Animal.of("gray squirrel", "Sciurus", "carolinensis"));
+        Animal redSquirrel = animals.insert(Animal.of("red squirrel", "Tamiasciurus", "hudsonicus"));
+
+        assertEquals("red fox", redFox.commonName());
+        assertEquals("Vulpes", redFox.id().genus());
+        assertEquals("vulpes", redFox.id().species());
+        assertEquals(1, redFox.version());
+
+        assertEquals("Fox squirrel", foxSquirrel.commonName());
+        assertEquals("Sciurus", foxSquirrel.id().genus());
+        assertEquals("niger", foxSquirrel.id().species());
+        assertEquals(1, foxSquirrel.version());
+
+        // TODO enable once #29460 is fixed
+        //ScientificName grayFoxId = new ScientificName("Urocyon", "cinereoargenteus");
+        //grayFox = animals.findById(grayFoxId).orElseThrow();
+        //assertEquals("gray fox", grayFox.commonName());
+        //assertEquals("Urocyon", grayFox.id().genus());
+        //assertEquals("cinereoargenteus", grayFox.id().species());
+
+        //ScientificName graySquirrelId = new ScientificName("Sciurus", "carolinensis");
+        //graySquirrel = animals.findById(graySquirrelId).orElseThrow();
+        //assertEquals("gray squirrel", graySquirrel.commonName());
+        //assertEquals("Sciurus", graySquirrel.id().genus());
+        //assertEquals("carolinensis", graySquirrel.id().species());
+
+        //foxSquirrel = foxSquirrel.withCommonName("FOX SQUIRREL");
+        //foxSquirrel = animals.save(foxSquirrel);
+        //assertEquals("FOX SQUIRREL", foxSquirrel.commonName());
+        //assertEquals("Sciurus", foxSquirrel.id().genus());
+        //assertEquals("niger", foxSquirrel.id().species());
+        //assertEquals(2, foxSquirrel.version());
+
+        //foxSquirrel = foxSquirrel.withCommonName("fox squirrel");
+        //foxSquirrel = animals.update(foxSquirrel);
+        //assertEquals("fox squirrel", foxSquirrel.commonName());
+        //assertEquals("Sciurus", foxSquirrel.id().genus());
+        //assertEquals("niger", foxSquirrel.id().species());
+        //assertEquals(3, foxSquirrel.version());
+
+        animals.deleteById(new ScientificName("Sciurus", "niger"));
+
+        assertEquals(4L, animals.countByIdNotNull());
+
+        animals.delete(redSquirrel);
+
+        assertEquals(false, animals.existsById(redSquirrel.id()));
+
+        //found = animals.findAll().toList(); TODO replace next line
+        found = List.of(redFox, grayFox, graySquirrel);
+        assertEquals(found.toString(), 3, found.size());
+        animals.deleteAll(found);
     }
 
     /**
