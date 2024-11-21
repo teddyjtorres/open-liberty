@@ -25,7 +25,7 @@ public class LogPolice {
 
     private static final long MB = 1024000L;
     // TODO: Start out with 4GB cap on trace in LITE mode, incrementally constrict this down to ~300MB trace allowed per bucket
-    private static final long MAX_ALLOWED_TRACE = MB * Integer.getInteger("fat.test.max.allowed.trace.mb", 6000); //6GB max (for now), override w/ system prop
+    private static final long MAX_ALLOWED_TRACE = MB * Integer.getInteger("fat.test.max.allowed.trace.mb", 4000); // 4GB max (for now), override w/ system prop
     private static long usedTrace = 0;
     private static long effectiveMaxTrace = effectiveMaxTrace(MAX_ALLOWED_TRACE);
 
