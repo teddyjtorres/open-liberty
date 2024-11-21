@@ -760,6 +760,45 @@ public class LibertyClient {
 
         Log.info(c, method, "Starting Client with command: " + cmd);
 
+        if (isFIPS140_3EnabledAndSupported()) {
+            if (clientRoot == null) {
+                Log.info(this.getClass(), "startClientWithArgs", "Client root directory is null.");
+            }
+        
+            // Define the paths
+            String securityDir = clientRoot + File.separator + "resources" + File.separator + "security";
+            File ltpaFIPSKeys = new File(securityDir, "ltpaFIPS.keys");
+            File ltpaKeys = new File(securityDir, "ltpa.keys");
+        
+            // Swap the ltpaFIPS.keys into ltpa.keys
+            Log.info(this.getClass(), "startClientWithArgs", "FIPS 140-3 global build properties are set for Client " + getClientName()
+                                               + ", swapping ltpaFIPS.keys into ltpa.keys");
+        
+            if (ltpaFIPSKeys.exists()) {
+                // Check if ltpa.keys already exists
+                if (ltpaKeys.exists()) {
+                    if (!ltpaKeys.delete()) {
+                        Log.info(this.getClass(), "startClientWithArgs", "Failed to delete existing ltpa.keys. Rename cannot proceed.");
+                    }
+                }
+        
+                // Rename ltpaFIPS.keys to ltpa.keys
+                if (!ltpaFIPSKeys.renameTo(ltpaKeys)) {
+                    Log.info(this.getClass(), "startClientWithArgs", "Failed to rename ltpaFIPS.keys to ltpa.keys.");
+                }
+            } else {
+                Log.info(this.getClass(), "startClientWithArgs", "ltpaFIPS.keys does not exist. Skipping rename.");
+            }
+        
+            // Print out the content of ltpa.keys
+            try {
+                String content = FileUtils.readFile(ltpaKeys.getAbsolutePath());
+                Log.info(this.getClass(), "printLtpaKeys", "Content of ltpa.keys: " + content);
+            } catch (Exception e) {
+                Log.info(this.getClass(), "printLtpaKeys",  "Failed to read ltpa.keys: " + e.getMessage());
+            }
+        }
+
         ProgramOutput output;
         if (executeAsync) {
             if (!(machine instanceof LocalMachine)) {

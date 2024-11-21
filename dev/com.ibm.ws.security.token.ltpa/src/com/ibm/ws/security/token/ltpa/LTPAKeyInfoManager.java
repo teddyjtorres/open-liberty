@@ -34,7 +34,6 @@ import com.ibm.ws.security.token.ltpa.internal.LTPAKeyFileCreatorImpl;
 import com.ibm.wsspi.kernel.service.location.WsLocationAdmin;
 import com.ibm.wsspi.kernel.service.location.WsResource;
 import com.ibm.wsspi.kernel.service.utils.TimestampUtils;
-import com.ibm.ws.common.crypto.CryptoUtils;
 
 /**
  * Load or create an LTPA keys file, something that looks like this:
@@ -81,8 +80,6 @@ public class LTPAKeyInfoManager {
     private final Map<String, String> realmCache = new Hashtable<String, String>();
 
     private static List<LTPAValidationKeysInfo> ltpaValidationKeysInfos = new ArrayList<LTPAValidationKeysInfo>();
-
-    private static final boolean fipsEnabled = CryptoUtils.isFIPSEnabled();
 
     /**
      * Load the contents of the properties file.
@@ -212,17 +209,7 @@ public class LTPAKeyInfoManager {
         }
         Properties props = null;
         //Check to see if the LTPA key import file exists, create the keys and file if not
-        WsResource ltpaKeyFileResource = null;
-
-        // NEED TO REMOVE
-        if (fipsEnabled){
-            ltpaKeyFileResource = getLTPAKeyFileResource(locService, keyImportFile.substring(0, keyImportFile.length() - 5) + "FIPS" + keyImportFile.substring(keyImportFile.length() - 5));
-            System.out.println("FIPS Keys found: " + keyImportFile.substring(0, keyImportFile.length() - 5) + "FIPS" + keyImportFile.substring(keyImportFile.length() - 5));
-        }
-
-        if (ltpaKeyFileResource == null){
-            ltpaKeyFileResource = getLTPAKeyFileResource(locService, keyImportFile);
-        }
+        WsResource ltpaKeyFileResource = getLTPAKeyFileResource(locService, keyImportFile);
 
         if (ltpaKeyFileResource != null) {
             props = loadPropertiesFile(ltpaKeyFileResource);
