@@ -54,7 +54,7 @@ import io.openliberty.microprofile.telemetry.internal.tests.MetricsApiOtelCollec
                 TracingNotEnabledTest.class,
                 JvmMetricsOtelCollectorTest.class,
                 MetricsApiOtelCollectorTest.class,
-                ZipkinOtelCollectorTest.class, 
+                ZipkinOtelCollectorTest.class,
                 ZipkinTest.class,
 
 })

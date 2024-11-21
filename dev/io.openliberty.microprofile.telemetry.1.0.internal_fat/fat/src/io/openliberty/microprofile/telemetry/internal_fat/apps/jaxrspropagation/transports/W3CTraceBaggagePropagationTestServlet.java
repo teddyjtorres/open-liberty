@@ -19,6 +19,10 @@ import static org.junit.Assert.assertThat;
 import java.net.URISyntaxException;
 import java.util.List;
 
+import javax.inject.Inject;
+import javax.servlet.annotation.WebServlet;
+import javax.servlet.http.HttpServletRequest;
+
 import org.eclipse.microprofile.rest.client.RestClientBuilder;
 import org.junit.Test;
 
@@ -33,9 +37,6 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
 import io.opentelemetry.sdk.trace.data.SpanData;
-import javax.inject.Inject;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServletRequest;
 
 @SuppressWarnings("serial")
 @WebServlet("/testW3cTraceBaggagePropagation")
