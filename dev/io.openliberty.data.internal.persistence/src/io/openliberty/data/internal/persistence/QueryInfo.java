@@ -2610,6 +2610,7 @@ public class QueryInfo {
      * @param startAt starting position in the query language string.
      * @return position of the text ignoring case if it is the next non-whitespace characters. Otherwise -1;
      */
+    @Trivial
     private static int indexOfAfterWhitespace(String text, String ql, int startAt) {
         int length = ql.length();
         while (startAt < length && Character.isWhitespace(ql.charAt(startAt)))
@@ -3175,13 +3176,16 @@ public class QueryInfo {
             if (countPages) {
                 // TODO count query cannot always be accurately inferred if Query value is JPQL
                 StringBuilder c = new StringBuilder("SELECT COUNT(");
-                if (selectLen <= 0
-                    || ql.substring(select0, select0 + selectLen).indexOf(',') >= 0) // comma delimited multiple return values
+                if (selectLen <= 0) {
                     c.append(entityVar);
-                else // allows for COUNT(DISTINCT o.name)
-                    appendWithIdentifierName(ql, select0, select0 + selectLen,
-                                             entityVar_.length() == 0 ? "this." : entityVar_,
-                                             c);
+                } else {
+                    String selection = ql.substring(select0, select0 + selectLen);
+                    if (selection.indexOf(',') > 0)
+                        // comma delimited multiple return values
+                        c.append(entityVar);
+                    else
+                        c.append(selection);
+                }
 
                 c.append(") FROM");
                 if (from0 >= 0) {
