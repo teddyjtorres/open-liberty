@@ -12,7 +12,7 @@
         <feature>servlet-4.0</feature>
     </featureManager>
 	
-	<logging traceSpecification="*=info:HEALTH=all:logservice=all=enabled:io.openliberty.org.eclipse.microprofile.health.3.1.*=all=enabled"/>
+    <logging traceSpecification="*=info:HEALTH=all:logservice=all=enabled:io.openliberty.org.eclipse.microprofile.health.3.1.*=all=enabled"/>
 
     <webContainer deferServletLoad="false"/> 
 	

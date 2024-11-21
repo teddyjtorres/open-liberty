@@ -90,7 +90,6 @@ public class DefaultOverallStartupStatusUpAppStartupFastTest {
         log("deployApp", testName + " - Deploying the Delayed App into the apps directory");
         WebArchive app = ShrinkHelper.buildDefaultApp(APP_NAME, "io.openliberty.microprofile.health31.delayed.health.check.fast.app");
 
-        //ShrinkHelper.exportAppToServer(server, app, DeployOptions.DISABLE_VALIDATION, DeployOptions.SERVER_ONLY);
         ShrinkHelper.exportDropinAppToServer(server, app, DeployOptions.DISABLE_VALIDATION, DeployOptions.SERVER_ONLY);
 
         String line = server.waitForStringInLogUsingMark("CWWKT0016I: Web application available.*" + APP_NAME + "*");
