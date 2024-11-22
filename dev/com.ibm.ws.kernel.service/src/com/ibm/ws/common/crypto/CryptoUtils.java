@@ -255,15 +255,7 @@ public class CryptoUtils {
 
     public static String getProvider() {
         String provider = null;
-//        if (fipsEnabled && isOpenJCEPlusFIPSAvailable()) {
-//            provider = OPENJCE_PLUS_FIPS_NAME;
-//        } else if (fipsEnabled && isIBMJCEPlusFIPSAvailable()) {
-//            provider = IBMJCE_PLUS_FIPS_NAME;
-//        } else if (isZOSandRunningJava11orHigher() && isOpenJCEPlusAvailable()) {
-//            provider = OPENJCE_PLUS_NAME;
-//        } else if (isIBMJCEAvailable()) {
-//            provider = IBMJCE_NAME;
-//        }
+
         if (fipsEnabled) {
             //Do not check the provider available or not. Later on when we use the provider, the JDK will handle it.
             if (isSemeruFips()) {
@@ -313,22 +305,6 @@ public class CryptoUtils {
     public static MessageDigest getMessageDigestForLTPA() {
         MessageDigest md1 = null;
         try {
-//            if (fipsEnabled && isOpenJCEPlusFIPSAvailable()) {
-//                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
-//                                                OPENJCE_PLUS_FIPS_NAME);
-//            } else if (fipsEnabled && isIBMJCEPlusFIPSAvailable()) {
-//                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
-//                                                IBMJCE_PLUS_FIPS_NAME);
-//            } else if (isOpenJCEPlusAvailable()) {
-//                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA,
-//                                                OPENJCE_PLUS_NAME);
-//            } else if (isIBMJCEAvailable()) {
-//                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA,
-//                                                IBMJCE_NAME);
-//            } else {
-//                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA);
-//            }
-
             if (fipsEnabled) {
                 if (isSemeruFips()) {
                     md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
@@ -343,7 +319,9 @@ public class CryptoUtils {
             } else if (isIBMJCEAvailable()) {
                 md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA,
                                                 IBMJCE_NAME);
-            } else {
+            } 
+            
+            if (md1 == null) {
                 md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA);
             }
 
@@ -401,8 +379,7 @@ public class CryptoUtils {
         if (!ProductInfo.getBetaEdition()) {
             return false;
         } else {
-            // Running beta exception, issue message if we haven't already issued one for
-            // this class
+            // Running beta exception, issue message if we haven't already issued one for this class
             if (!issuedBetaMessage) {
                 Tr.info(tc, "BETA: A beta method has been invoked for the class CryptoUtils for the first time.");
                 issuedBetaMessage = !issuedBetaMessage;
