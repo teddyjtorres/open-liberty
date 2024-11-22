@@ -121,8 +121,8 @@ public class ReroutePeerRecoveryTest extends MultiRecoveryTest {
 	@Before
 	public void before() throws Exception {
 		Log.info(ReroutePeerRecoveryTest.class, "before", "");
+		WSATTest.deleteStateFiles(server3, server5);
 		FATUtils.startServers(runner, server1, server2, server3, server4, server5, server6);
-		WSATTest.callClearResourcesServlet(recoveryServer, server3, server5);
 		server3.setTraceMarkToEndOfDefaultTrace();
 		server5.setTraceMarkToEndOfDefaultTrace();
 	}
