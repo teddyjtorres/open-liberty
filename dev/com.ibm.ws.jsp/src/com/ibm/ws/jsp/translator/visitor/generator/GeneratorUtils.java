@@ -630,7 +630,7 @@ public class GeneratorUtils {
     }
 
    /*
-    *  Refectored in PH62212. Any clean up at the end of the jsp service method should invoked here.
+    *  Refactored in PH62212. Any clean up at the end of the jsp service method should be invoked here.
     */
     public static void generate_finalCleanUp_method(JavaCodeWriter writer, JspOptions jspOptions) {
         writer.println("public void _jsp_performFinalCleanUp(java.util.ArrayList _jspTagList, PageContext pageContext) {");
