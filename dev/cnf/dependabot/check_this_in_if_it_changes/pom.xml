@@ -3214,7 +3214,7 @@
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>org.eclipse.persistence.core</artifactId>
-      <version>5.0.0-B03</version>
+      <version>5.0.0-B04</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
