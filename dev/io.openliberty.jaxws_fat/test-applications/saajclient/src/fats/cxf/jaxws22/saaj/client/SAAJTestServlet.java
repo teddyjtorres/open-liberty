@@ -51,14 +51,9 @@ public class SAAJTestServlet extends FATServlet {
 
         // Set the SOAP version
         SOAPEnvelope envelope = soapPart.getEnvelope();
-        envelope.addNamespaceDeclaration("s", "http://www.w3.org/2003/05/soap-envelope");
-        envelope.addNamespaceDeclaration("t", "http://www.example.org/types");
 
         // Create a SOAP body
         SOAPBody soapBody = envelope.getBody();
-        SOAPElement soapBodyElement = soapBody.addChildElement("echo", "t", "http://www.example.org/types");
-        SOAPElement soapBodyText = soapBodyElement.addChildElement("text", "t", "http://www.example.org/types");
-        soapBodyText.addTextNode("Hello, world!");
 
         SOAPFactory SOAP_FACTORY = null;
         // Check if SAAJ meta-factory is successfully created
@@ -69,8 +64,6 @@ public class SAAJTestServlet extends FATServlet {
             return;
         }
         SOAPElement getEchoElement = SOAP_FACTORY.createElement("getEcho", "ns0", "http://objects.get.echo.io");
-        SOAPElement echoElement = SOAP_FACTORY.createElement("echo", null, "");
-        getEchoElement.addChildElement(echoElement);
         soapBody.addChildElement(getEchoElement);
 
         ByteArrayOutputStream byteOut = new ByteArrayOutputStream();

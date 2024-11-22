@@ -173,7 +173,7 @@ public class ElementImpl implements SOAPElement, SOAPBodyElement {
     public ElementImpl(SOAPDocumentImpl ownerDoc, Element domElement) {
         this.element = domElement;
         this.soapDocument = ownerDoc;
-        this.elementQName = new QName(domElement.getNamespaceURI(), domElement.getLocalName());
+        this.elementQName = new QName(domElement.getNamespaceURI(), domElement.getLocalName(), (domElement.getPrefix() != null ? domElement.getPrefix() : "")); //Liberty change
         soapDocument.register(this);
         NamedNodeMap attributes = domElement.getAttributes();
         for (int i = attributes.getLength() - 1; i >= 0; i--) {
@@ -768,12 +768,9 @@ public class ElementImpl implements SOAPElement, SOAPBodyElement {
     public SOAPElement addNamespaceDeclaration(String prefix, String uri) throws SOAPException {
         if (prefix.length() > 0) {
             setAttributeNS(XMLNS_URI, "xmlns:" + prefix, uri);
-        } else if (isDefaultNamespace(uri)) { //Liberty change
-            setAttributeNS(XMLNS_URI, "xmlns", uri);
         } else {
-            log.warning("~not setting any namespace!"); //Liberty change
+            setAttributeNS(XMLNS_URI, "xmlns", uri);
         }
-
         //Fix for CR:6474641
         //tryToFindEncodingStyleAttributeName();
         return this;
