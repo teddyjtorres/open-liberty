@@ -535,7 +535,7 @@ public class SearchExpressionHandlerImpl extends SearchExpressionHandler
             // we need to do the search backward using findComponent.
             if (target == null 
                     && searchExpressionContext.getSource() == previous 
-                    && (topExpression.indexOf(separatorChar) == -1) )
+                    && (topExpression.indexOf(separatorChar + "@") == -1) ) // updated for MYFACES-4695
             {
                 UIComponent baseNC = previous.getNamingContainer();
                 if (baseNC != null && baseNC.getParent() != null)
