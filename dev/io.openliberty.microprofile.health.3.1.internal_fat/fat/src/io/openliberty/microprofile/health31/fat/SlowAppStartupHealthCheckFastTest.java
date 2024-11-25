@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021, 2024 IBM Corporation and others.
+ * Copyright (c) 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -47,11 +47,11 @@ import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.HttpUtils;
 
 @RunWith(FATRunner.class)
-public class SlowAppStartupHealthCheckTest {
+public class SlowAppStartupHealthCheckFastTest {
 
     private static final String[] EXPECTED_FAILURES = { "CWWKE1102W", "CWWKE1105W", "CWMMH0052W", "CWMMH0054W", "SRVE0302E" };
 
-    public static final String APP_NAME = "DelayedHealthCheckApp";
+    public static final String APP_NAME = "DelayedHealthCheckAppFast";
     private static final String MESSAGE_LOG = "logs/messages.log";
 
     private final String STARTED_ENDPOINT = "/health/started";
@@ -59,28 +59,36 @@ public class SlowAppStartupHealthCheckTest {
     private final int SUCCESS_RESPONSE_CODE = 200;
     private final int FAILED_RESPONSE_CODE = 503; // Response when port is open but Application is not started
 
-    private final String APP_ENDPOINT = "/DelayedHealthCheckApp/DelayedServlet";
-    final static String SERVER_NAME = "SlowAppStartupHealthCheck";
+    private final String APP_ENDPOINT = "/" + APP_NAME + "/DelayedServlet";
+    final static String SERVER_NAME = "SlowAppStartupHealthCheckFast";
 
     @Server(SERVER_NAME)
     public static LibertyServer server1;
 
     @ClassRule
     public static RepeatTests r = MicroProfileActions.repeat(SERVER_NAME,
-                                                             MicroProfileActions.MP70_EE10); // mpHealth-4.0
+                                                             MicroProfileActions.MP70_EE10, // mpHealth-4.0 LITE
+                                                             MicroProfileActions.MP70_EE11, // mpHealth-4.0 FULL
+                                                             MicroProfileActions.MP41); // mpHealth-3.1 FULL
 
     public void setupClass(LibertyServer server, String testName) throws Exception {
-        log("setupClass", testName + " - Deploying the Delayed App into the apps directory and starting the server.");
-
-        WebArchive app = ShrinkHelper.buildDefaultApp(APP_NAME, "io.openliberty.microprofile.health31.delayed.health.check.app");
-        //This test expects to hit the server before the app is started so we disable validation to prevent the test framework waiting for the app to start.
-        ShrinkHelper.exportAppToServer(server, app, DeployOptions.DISABLE_VALIDATION, DeployOptions.SERVER_ONLY);
+        log("setupClass", testName + "Starting the server.");
 
         if (!server.isStarted())
-            server.startServer();
+            server.startServer(false, false);
 
-        String line = server.waitForStringInLogUsingMark("CWWKT0016I: Web application available.*DelayedHealthCheckApp*");
-        log("setupClass - " + testName, "Web Application available message found: " + line);
+        // Read to run a smarter planet
+        server.waitForStringInLogUsingMark("CWWKF0011I");
+    }
+
+    private void deployApp(LibertyServer server, String testName) throws Exception {
+        log("deployApp", testName + " - Deploying the Delayed App into the apps directory");
+        WebArchive app = ShrinkHelper.buildDefaultApp(APP_NAME, "io.openliberty.microprofile.health31.delayed.health.check.fast.app");
+
+        ShrinkHelper.exportDropinAppToServer(server, app, DeployOptions.DISABLE_VALIDATION, DeployOptions.SERVER_ONLY);
+
+        String line = server.waitForStringInLogUsingMark("CWWKT0016I: Web application available.*" + APP_NAME + "*");
+        log("deployApp - " + testName, "Web Application available message found?: " + line);
         assertNotNull("The CWWKT0016I Web Application available message did not appear in messages.log", line);
     }
 
@@ -90,6 +98,9 @@ public class SlowAppStartupHealthCheckTest {
 
         if ((server1 != null) && (server1.isStarted()))
             server1.stopServer(EXPECTED_FAILURES);
+
+        boolean flag = server1.removeDropinsApplications(APP_NAME + ".war");
+        log("cleanUp", " - Removed the app? [" + flag + "]");
     }
 
     /*
@@ -99,6 +110,7 @@ public class SlowAppStartupHealthCheckTest {
     @Test
     public void testStartupEndpointOnServerStart() throws Exception {
         setupClass(server1, "testStartupEndpointOnServerStart");
+        deployApp(server1, "testStartupEndpointOnServerStart");
         log("testReadinessEndpointOnServerStart", "Begin execution of testReadinessEndpointOnServerStart");
         server1.setMarkToEndOfLog();
         server1.stopServer(EXPECTED_FAILURES);
@@ -193,10 +205,10 @@ public class SlowAppStartupHealthCheckTest {
                             repeat = false;
                             startServerThread.join();
                         } else if (System.currentTimeMillis() - start_time > time_out) {
-                            List<String> lines = server1.findStringsInFileInLibertyServerRoot("(CWWKZ0001I: Application DelayedHealthCheckApp started)+", MESSAGE_LOG);
+                            List<String> lines = server1.findStringsInFileInLibertyServerRoot("(CWWKZ0001I: Application " + APP_NAME + " started)+", MESSAGE_LOG);
                             if (lines.size() == 0) {
                                 log("testStartupEndpointOnServerStart", "Waiting for Application to start.");
-                                String line = server1.waitForStringInLog("(CWWKZ0001I: Application DelayedHealthCheckApp started)+", time_out);
+                                String line = server1.waitForStringInLog("(CWWKZ0001I: Application " + APP_NAME + " started)+", time_out);
                                 log("testStartupEndpointOnServerStart", "Application started. Line Found : " + line);
                                 assertNotNull("The CWWKZ0001I Application started message did not appear in messages.log", line);
                             } else {
@@ -215,7 +227,7 @@ public class SlowAppStartupHealthCheckTest {
         }
 
         log("testStartupEndpointOnServerStart", "Waiting for Application to start message, after Health check reports 200.");
-        String line = server1.waitForStringInLog("(CWWKZ0001I: Application DelayedHealthCheckApp started)+", 60000);
+        String line = server1.waitForStringInLog("(CWWKZ0001I: Application " + APP_NAME + " started)+", 60000);
         assertNotNull("The CWWKZ0001I Application started message did not appear in messages.log", line);
         log("testSlowAppStartUpHealthCheck", "Application Started message found: " + line);
 
@@ -235,6 +247,7 @@ public class SlowAppStartupHealthCheckTest {
     @Mode(TestMode.FULL)
     public void testSlowAppStartUpHealthCheck() throws Exception {
         setupClass(server1, "testSlowAppStartUpHealthCheck");
+        deployApp(server1, "testStartupEndpointOnServerStart");
         log("testSlowAppStartUpHealthCheck", "Testing the /health/started endpoint, before application has started.");
         HttpURLConnection conStarted = HttpUtils.getHttpConnectionWithAnyResponseCode(server1, STARTED_ENDPOINT);
         assertEquals("The Response Code was not 503 for the following endpoint: " + conStarted.getURL().toString(), FAILED_RESPONSE_CODE, conStarted.getResponseCode());
@@ -247,7 +260,7 @@ public class SlowAppStartupHealthCheckTest {
         List<String> lines = server1.findStringsInFileInLibertyServerRoot("CWMMH0054W:", MESSAGE_LOG);
         assertEquals("The CWMMH0054W warning did not appear in messages.log", 1, lines.size());
 
-        String line = server1.waitForStringInLogUsingMark("(CWWKZ0001I: Application DelayedHealthCheckApp started)+", 60000);
+        String line = server1.waitForStringInLogUsingMark("(CWWKZ0001I: Application " + APP_NAME + " started)+", 60000);
         log("testSlowAppStartUpHealthCheck", "Application Started message found: " + line);
         assertNotNull("The CWWKZ0001I Application started message did not appear in messages.log", line);
 
@@ -280,6 +293,6 @@ public class SlowAppStartupHealthCheckTest {
      * Helper for simple logging.
      */
     private static void log(String method, String msg) {
-        Log.info(SlowAppStartupHealthCheckTest.class, method, msg);
+        Log.info(SlowAppStartupHealthCheckFastTest.class, method, msg);
     }
 }

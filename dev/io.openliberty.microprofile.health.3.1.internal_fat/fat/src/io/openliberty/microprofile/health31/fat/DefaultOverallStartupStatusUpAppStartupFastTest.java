@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021, 2024 IBM Corporation and others.
+ * Copyright (c) 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -42,11 +42,16 @@ import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.HttpUtils;
 
 @RunWith(FATRunner.class)
-public class DefaultOverallStartupStatusUpAppStartupTest {
+/*
+ * This is similar to DefaultOverallStartupStatusUpAppStartupTest. But is "faster'.
+ * this mocks a late startup by allowing server to start first and then deploying the app into
+ * the dropins.
+ */
+public class DefaultOverallStartupStatusUpAppStartupFastTest {
 
     private static final String[] EXPECTED_FAILURES = { "CWWKE1102W", "CWWKE1105W", "CWMMH0052W", "CWMMH0054W", "SRVE0302E" };
 
-    public static final String APP_NAME = "DelayedHealthCheckApp";
+    public static final String APP_NAME = "DelayedHealthCheckAppFast";
     private static final String MESSAGE_LOG = "logs/messages.log";
 
     private final String HEALTH_ENDPOINT = "/health";
@@ -55,9 +60,9 @@ public class DefaultOverallStartupStatusUpAppStartupTest {
     private final int SUCCESS_RESPONSE_CODE = 200;
     private final int FAILED_RESPONSE_CODE = 503; // Response when port is open but Application has not started yet.
 
-    final static String SERVER_NAME = "DefaultStartupOverallStatusHealthCheck";
+    final static String SERVER_NAME = "DefaultStartupOverallStatusHealthCheckFast";
 
-    final static String INVALID_SERVER_NAME = "InvalidDefaultStartupOverallStatusProperty";
+    final static String INVALID_SERVER_NAME = "InvalidDefaultStartupOverallStatusPropertyFast";
 
     @Server(SERVER_NAME)
     public static LibertyServer server1;
@@ -67,19 +72,28 @@ public class DefaultOverallStartupStatusUpAppStartupTest {
 
     @ClassRule
     public static RepeatTests r = MicroProfileActions.repeat(FeatureReplacementAction.ALL_SERVERS,
-                                                             MicroProfileActions.MP70_EE10); // mpHealth-4.0 LITE
+                                                             MicroProfileActions.MP70_EE10, // mpHealth-4.0 LITE
+                                                             MicroProfileActions.MP70_EE11, // mpHealth-4.0 FULL
+                                                             MicroProfileActions.MP41); // mpHealth-3.1 FULL
 
     public void setupClass(LibertyServer server, String testName) throws Exception {
-        log("setupClass", testName + " - Deploying the Delayed App into the apps directory and starting the server.");
-
-        WebArchive app = ShrinkHelper.buildDefaultApp(APP_NAME, "io.openliberty.microprofile.health31.delayed.health.check.app");
-        ShrinkHelper.exportAppToServer(server, app, DeployOptions.DISABLE_VALIDATION, DeployOptions.SERVER_ONLY);
+        log("setupClass", testName + "Starting the server.");
 
         if (!server.isStarted())
             server.startServer(false, false);
 
-        String line = server.waitForStringInLog("CWWKT0016I: Web application available.*DelayedHealthCheckApp*");
-        log("setupClass - " + testName, "Web Application available message found: " + line);
+        // Read to run a smarter planet
+        server.waitForStringInLogUsingMark("CWWKF0011I");
+    }
+
+    private void deployApp(LibertyServer server, String testName) throws Exception {
+        log("deployApp", testName + " - Deploying the Delayed App into the apps directory");
+        WebArchive app = ShrinkHelper.buildDefaultApp(APP_NAME, "io.openliberty.microprofile.health31.delayed.health.check.fast.app");
+
+        ShrinkHelper.exportDropinAppToServer(server, app, DeployOptions.DISABLE_VALIDATION, DeployOptions.SERVER_ONLY);
+
+        String line = server.waitForStringInLogUsingMark("CWWKT0016I: Web application available.*" + APP_NAME + "*");
+        log("deployApp - " + testName, "Web Application available message found?: " + line);
         assertNotNull("The CWWKT0016I Web Application available message did not appear in messages.log", line);
     }
 
@@ -100,6 +114,7 @@ public class DefaultOverallStartupStatusUpAppStartupTest {
     @Test
     public void testDefaultStartupOverallStatusUpAtStartUpSingleApp() throws Exception {
         setupClass(server1, "testDefaultStartupOverallStatusUpAtStartUpSingleApp");
+        deployApp(server1, "testDefaultStartupOverallStatusUpAtStartUpSingleApp");
         log("testDefaultStartupOverallStatusUpAtStartUpSingleApp", "Testing the /health/started endpoint, before application has started.");
         HttpURLConnection conStarted = HttpUtils.getHttpConnectionWithAnyResponseCode(server1, STARTED_ENDPOINT);
         assertEquals("The Response Code was not 200 for the following endpoint: " + conStarted.getURL().toString(), SUCCESS_RESPONSE_CODE, conStarted.getResponseCode());
@@ -114,12 +129,10 @@ public class DefaultOverallStartupStatusUpAppStartupTest {
         assertTrue("The JSON response was not empty.", checks.isEmpty());
         assertEquals("The status of the Startup health check was not UP.", jsonResponse.getString("status"), "UP");
 
-        server1.setMarkToEndOfLog();
-
         List<String> lines = server1.findStringsInFileInLibertyServerRoot("CWMMH0054W:", MESSAGE_LOG);
         assertEquals("The CWMMH0054W warning should not appear in messages.log", 0, lines.size());
 
-        String line = server1.waitForStringInLogUsingMark("(CWWKZ0001I: Application DelayedHealthCheckApp started)+", 90000);
+        String line = server1.waitForStringInLogUsingMark("(CWWKZ0001I: Application " + APP_NAME + " started)+", 30000);
         log("testDefaultStartupOverallStatusUpAtStartUpSingleApp", "Application Started message found: " + line);
         assertNotNull("The CWWKZ0001I Application started message did not appear in messages.log", line);
 
@@ -141,6 +154,7 @@ public class DefaultOverallStartupStatusUpAppStartupTest {
     @Mode(TestMode.FULL)
     public void testInvalidDefaultStartupOverallStatusProperty() throws Exception {
         setupClass(server2, "testInvalidDefaultStartupOverallStatusProperty");
+        deployApp(server2, "testInvalidDefaultStartupOverallStatusProperty");
         log("testInvalidDefaultStartupOverallStatusProperty", "Testing the /health/started endpoint, before application has started.");
         HttpURLConnection conStarted = HttpUtils.getHttpConnectionWithAnyResponseCode(server2, STARTED_ENDPOINT);
         assertEquals("The Response Code was not 503 for the following endpoint: " + conStarted.getURL().toString(), FAILED_RESPONSE_CODE, conStarted.getResponseCode());
@@ -159,7 +173,7 @@ public class DefaultOverallStartupStatusUpAppStartupTest {
         List<String> lines = server2.findStringsInFileInLibertyServerRoot("CWMMH0054W:", MESSAGE_LOG);
         assertEquals("The CWMMH0054W warning did not appear in messages.log", 1, lines.size());
 
-        String line = server2.waitForStringInLogUsingMark("(CWWKZ0001I: Application DelayedHealthCheckApp started)+", 90000);
+        String line = server2.waitForStringInLogUsingMark("(CWWKZ0001I: Application " + APP_NAME + " started)+", 90000);
         log("testInvalidDefaultStartupOverallStatusProperty", "Application Started message found: " + line);
         assertNotNull("The CWWKZ0001I Application started message did not appear in messages.log", line);
 
@@ -190,6 +204,6 @@ public class DefaultOverallStartupStatusUpAppStartupTest {
      * Helper for simple logging.
      */
     private static void log(String method, String msg) {
-        Log.info(DefaultOverallStartupStatusUpAppStartupTest.class, method, msg);
+        Log.info(DefaultOverallStartupStatusUpAppStartupFastTest.class, method, msg);
     }
 }

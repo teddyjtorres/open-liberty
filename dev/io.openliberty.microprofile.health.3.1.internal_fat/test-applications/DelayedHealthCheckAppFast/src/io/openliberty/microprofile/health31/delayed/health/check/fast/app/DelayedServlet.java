@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2021, 2024 IBM Corporation and others.
+ * Copyright (c) 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -10,7 +10,7 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-package io.openliberty.microprofile.health31.delayed.health.check.app;
+package io.openliberty.microprofile.health31.delayed.health.check.fast.app;
 
 import java.io.IOException;
 
@@ -30,16 +30,14 @@ public class DelayedServlet extends HttpServlet {
      */
     public DelayedServlet() {
         super();
-        // TODO Auto-generated constructor stub
     }
 
     @Override
     public void init() {
-        System.out.println("Entering init function - Starting Thread.sleep for 95 seconds.");
+        System.out.println("Entering init function - Starting Thread.sleep for 15 seconds.");
         try {
-            Thread.sleep(95000); // 95 seconds = 95000 ms
+            Thread.sleep(15000); // 15 seconds = 15000 ms
         } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
             e.printStackTrace();
         }
         System.out.println("Exiting init function - Thread.sleep completed.");
