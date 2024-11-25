@@ -180,6 +180,18 @@ public class QueryInfo {
     int jpqlParamCount;
 
     /**
+     * Names of named parameters in query language, ordered according to the
+     * position in which each appears as a repository method parameter.
+     * Repository method parameters identify the name with the
+     * <code>Param</code> annotation if present, or otherwise by the
+     * name of the parameter (if the -parameters compiler option is enabled).
+     * The empty set value is used when the field has not been initialized yet
+     * or the query has no parameters or has positional parameters (?1, ?2, ...)
+     * rather than named parameters.
+     */
+    private Set<String> jpqlParamNames = Collections.emptySet();
+
+    /**
      * Value from findFirst#By, or 1 for findFirstBy, otherwise 0.
      */
     int maxResults;
@@ -194,18 +206,6 @@ public class QueryInfo {
      * Null if the query return type limits to single results.
      */
     final Class<?> multiType;
-
-    /**
-     * Names of named parameters in query language, ordered according to the
-     * position in which each appears as a repository method parameter.
-     * Repository method parameters identify the name with the
-     * <code>Param</code> annotation if present, or otherwise by the
-     * name of the parameter (if the -parameters compiler option is enabled).
-     * The empty set value is used when the field has not been initialized yet
-     * or the query has no parameters or has positional parameters (?1, ?2, ...)
-     * rather than named parameters.
-     */
-    private Set<String> paramNames = Collections.emptySet();
 
     /**
      * The interface that is annotated with @Repository.
@@ -1055,7 +1055,7 @@ public class QueryInfo {
     private UnsupportedOperationException excMixedQLParamTypes(int methodNPCount) {
         String firstNamedParam = null;
         StringBuilder allNamedParams = new StringBuilder().append('(');
-        for (String name : paramNames) {
+        for (String name : jpqlParamNames) {
             if (firstNamedParam == null)
                 firstNamedParam = name;
             else
@@ -1661,7 +1661,7 @@ public class QueryInfo {
      */
     void generateCursorQueries(StringBuilder q, StringBuilder fwd, StringBuilder prev) {
         int numSorts = sorts.size();
-        String paramPrefix = paramNames.isEmpty() ? "?" : ":cursor";
+        String paramPrefix = jpqlParamNames.isEmpty() ? "?" : ":cursor";
         StringBuilder a = fwd == null ? null : new StringBuilder(200).append(hasWhere ? " AND (" : " WHERE (");
         StringBuilder b = prev == null ? null : new StringBuilder(200).append(hasWhere ? " AND (" : " WHERE (");
         String o_ = entityVar_;
@@ -3313,9 +3313,9 @@ public class QueryInfo {
                 paramName = params[i].getName();
             }
             if (paramName != null) {
-                if (paramNames.isEmpty())
-                    paramNames = new LinkedHashSet<>();
-                boolean isDuplicate = !paramNames.add(paramName);
+                if (jpqlParamNames.isEmpty())
+                    jpqlParamNames = new LinkedHashSet<>();
+                boolean isDuplicate = !jpqlParamNames.add(paramName);
                 if (qlParamNames.contains(paramName)) {
                     if (isDuplicate) // duplicate of a valid name
                         throw exc(MappingException.class,
@@ -3336,16 +3336,16 @@ public class QueryInfo {
             if (SORT_PARAM_TYPES.contains(params[i].getType()))
                 initDynamicSortPosition(i);
 
-        int paramNamesCount = paramNames.size();
+        int paramNamesCount = jpqlParamNames.size();
         if (hasExtraParam || qlParamNameCount != paramNamesCount) {
             // Does the method supply all named parameters that the query needs?
             LinkedHashSet<String> lacking = new LinkedHashSet<>(qlParamNames);
-            lacking.removeAll(paramNames);
+            lacking.removeAll(jpqlParamNames);
             if (!lacking.isEmpty())
                 throw excLackingMethodArgNamedParams(lacking);
 
             // Does the method supply any named parameters not needed by the query?
-            Set<String> extras = new LinkedHashSet<>(paramNames);
+            Set<String> extras = new LinkedHashSet<>(jpqlParamNames);
             extras.removeAll(qlParamNames);
             if (!extras.isEmpty())
                 throw excExtraMethodArgNamedParams(extras, qlParamNames);
@@ -3590,15 +3590,16 @@ public class QueryInfo {
                     else if (results.isEmpty())
                         returnValue = null;
                     else
-                        // TODO temporarily reusing this message, which is somewhat close.
-                        // Need a more specific one, possibly resuing parts of CWWKD1054,
-                        // but without the Find suggestions
                         throw exc(ClassCastException.class,
-                                  "CWWKD1046.result.convert.err",
-                                  entityInfo.getType().getSimpleName() + "[]",
+                                  "CWWKD1094.return.mismatch",
                                   method.getName(),
                                   repositoryInterface.getName(),
-                                  method.getGenericReturnType().getTypeName());
+                                  method.getGenericReturnType().getTypeName(),
+                                  results.size(),
+                                  "@Insert",
+                                  lifeCycleReturnTypes(entityInfo.getType().getName(),
+                                                       hasSingularEntityParam,
+                                                       false));
                 else if (multiType.isInstance(results))
                     returnValue = results;
                 else if (Stream.class.equals(multiType))
@@ -4088,15 +4089,16 @@ public class QueryInfo {
                     else if (results.isEmpty())
                         returnValue = null;
                     else
-                        // TODO temporarily reusing this message, which is somewhat close.
-                        // Need a more specific one, possibly resuing parts of CWWKD1054,
-                        // but without the Find suggestions
                         throw exc(ClassCastException.class,
-                                  "CWWKD1046.result.convert.err",
-                                  entityInfo.getType().getSimpleName() + "[]",
+                                  "CWWKD1094.return.mismatch",
                                   method.getName(),
                                   repositoryInterface.getName(),
-                                  method.getGenericReturnType().getTypeName());
+                                  method.getGenericReturnType().getTypeName(),
+                                  results.size(),
+                                  "@Save",
+                                  lifeCycleReturnTypes(entityInfo.getType().getName(),
+                                                       hasSingularEntityParam,
+                                                       false));
                 else if (multiType.isInstance(results))
                     returnValue = results;
                 else if (Stream.class.equals(multiType))
@@ -4277,7 +4279,7 @@ public class QueryInfo {
                       jpqlParamCount,
                       jpql);
 
-        Iterator<String> namedParams = paramNames.iterator();
+        Iterator<String> namedParams = jpqlParamNames.iterator();
         for (int i = 0, p = 0; i < jpqlParamCount; i++) {
             Object arg = args[i];
 
@@ -4317,7 +4319,7 @@ public class QueryInfo {
      */
     void setParametersFromCursor(jakarta.persistence.Query query, PageRequest.Cursor cursor) throws Exception {
         int paramNum = jpqlParamCount; // position before that of first cursor element
-        if (paramNames.isEmpty()) // positional parameters
+        if (jpqlParamNames.isEmpty()) // positional parameters
             for (int i = 0; i < cursor.size(); i++) {
                 Object value = cursor.get(i);
                 if (entityInfo.idClassAttributeAccessors != null && entityInfo.idType.isInstance(value)) {
@@ -4581,7 +4583,7 @@ public class QueryInfo {
         if (jpql != null)
             b.append(jpql);
         if (jpqlParamCount > 0)
-            b.append(" [").append(jpqlParamCount).append(paramNames.isEmpty() ? //
+            b.append(" [").append(jpqlParamCount).append(jpqlParamNames.isEmpty() ? //
                             " positional params]" : //
                             " named params]");
         return b.toString();
@@ -4795,7 +4797,7 @@ public class QueryInfo {
         q.jpqlDelete = jpqlDelete;
         q.maxResults = maxResults;
         q.jpqlParamCount = jpqlParamCount;
-        q.paramNames = paramNames;
+        q.jpqlParamNames = jpqlParamNames;
         q.sorts = sorts;
         q.type = type;
         q.validateParams = validateParams;
