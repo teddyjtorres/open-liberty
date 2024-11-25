@@ -27,7 +27,7 @@ public class MpTelemetryAuditEventMappingUtils {
      */
     private final static String[][] AUDIT_EVENT_TABLE = {
                                                           { MpTelemetryLogFieldConstants.AUDIT_EVENT_NAME, "event_name" },
-                                                          { MpTelemetryLogFieldConstants.AUDIT_EVENT_SEQUENCE_NUMBER, "event.sequence_number" } };
+                                                          { MpTelemetryLogFieldConstants.AUDIT_EVENT_SEQUENCE_NUMBER, "event_sequence_number" } };
 
     private final static String[][] AUDIT_OBSERVER_TABLE = {
                                                              { MpTelemetryLogFieldConstants.AUDIT_OBSERVER_TYPEURI, "observer.type_uri" }
