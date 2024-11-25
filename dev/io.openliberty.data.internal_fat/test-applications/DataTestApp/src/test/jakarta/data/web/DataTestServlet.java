@@ -748,6 +748,75 @@ public class DataTestServlet extends FATServlet {
     }
 
     /**
+     * Tests a repository method that returns pages of a DISTINCT single value
+     * that can sometimes be null. Verify that the count of pages and total
+     * elements is correct.
+     */
+    @Test
+    public void testCountPagesWithDistinctValues() {
+        Page<String> page1 = primes.romanNumeralsDistinct(30L, 49L,
+                                                          4000L, 4009L,
+                                                          PageRequest.ofSize(3));
+
+        assertEquals(2, page1.totalPages());
+
+        // page1.totalElements();
+        // The above returns 5 instead of 6 because COUNT omits the
+        // NULL value that comes from (DISTINCT romanNumeral) when
+        // invoking SELECT COUNT(DISTINCT romanNumeral)
+
+        assertEquals(List.of("XXXI", "XXXVII", "XLI"),
+                     page1.content());
+
+        Page<String> page2 = primes.romanNumeralsDistinct(30L, 49L,
+                                                          4000L, 4009L,
+                                                          page1.nextPageRequest());
+
+        assertEquals(2, page2.totalPages());
+
+        assertEquals(Arrays.asList("XLIII", "XLVII", null),
+                     page2.content());
+    }
+
+    /**
+     * Tests a repository method that returns pages of a single value that can
+     * sometimes be null. Verify that the count of pages and total elements is
+     * correct.
+     */
+    @Test
+    public void testCountPagesWithNullValues() {
+        Page<String> page1 = primes.romanNumerals(30L, 49L,
+                                                  4000L, 4009L,
+                                                  PageRequest.ofSize(3));
+
+        assertEquals(8, page1.totalElements());
+        assertEquals(3, page1.totalPages());
+
+        assertEquals(List.of("XXXI", "XXXVII", "XLI"),
+                     page1.content());
+
+        Page<String> page2 = primes.romanNumerals(30L, 49L,
+                                                  4000L, 4009L,
+                                                  page1.nextPageRequest());
+
+        assertEquals(8, page2.totalElements());
+        assertEquals(3, page2.totalPages());
+
+        assertEquals(Arrays.asList("XLIII", "XLVII", null),
+                     page2.content());
+
+        Page<String> page3 = primes.romanNumerals(30L, 49L,
+                                                  4000L, 4009L,
+                                                  page2.nextPageRequest());
+
+        assertEquals(8, page3.totalElements());
+        assertEquals(3, page3.totalPages());
+
+        assertEquals(Arrays.asList(null, null),
+                     page3.content());
+    }
+
+    /**
      * Repository method that uses cursor-based pagination but does not specify
      * any sort criteria, which should default to ascending by Id.
      */
