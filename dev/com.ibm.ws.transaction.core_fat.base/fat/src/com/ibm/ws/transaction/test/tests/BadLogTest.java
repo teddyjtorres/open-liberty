@@ -19,6 +19,7 @@ import org.junit.runner.RunWith;
 import com.ibm.websphere.simplicity.ShrinkHelper;
 import com.ibm.websphere.simplicity.config.ServerConfiguration;
 import com.ibm.websphere.simplicity.config.Transaction;
+import com.ibm.websphere.simplicity.log.Log;
 import com.ibm.ws.transaction.fat.util.FATUtils;
 
 import componenttest.annotation.Server;
@@ -38,7 +39,10 @@ public class BadLogTest extends FATServletClient {
     public static LibertyServer server;
 
     @BeforeClass
-    public static void setUp() throws Exception {
+    public static void beforeClass() throws Exception {
+
+        System.getenv().entrySet().stream().forEach(e -> Log.info(SimpleTest.class, "beforeClass", "Env: " + e.getKey() + " -> " + e.getValue()));
+        System.getProperties().entrySet().stream().forEach(e -> Log.info(SimpleTest.class, "beforeClass", "Prop: " + e.getKey() + " -> " + e.getValue()));
 
         ShrinkHelper.defaultApp(server, APP_NAME, "servlets.*");
 
