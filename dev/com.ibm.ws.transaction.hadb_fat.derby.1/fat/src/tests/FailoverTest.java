@@ -20,7 +20,6 @@ import java.util.List;
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Test;
 import org.testcontainers.containers.JdbcDatabaseContainer;
 
 import com.ibm.tx.jta.ut.util.HADBTestControl;
@@ -68,14 +67,9 @@ public class FailoverTest extends TxFATServletClient {
         FailoverTest.commonCleanup(this.getClass().getName());
     }
 
-    @Test
+    @Before
     public void assertHealthy() {
         TxTestContainerSuite.assertHealthy();
-    }
-
-    @Before
-    public void assumeHealthy() {
-        TxTestContainerSuite.assumeHealthy();
     }
 
     public void runInServletAndCheck(LibertyServer server, String path, String method) throws Exception {
