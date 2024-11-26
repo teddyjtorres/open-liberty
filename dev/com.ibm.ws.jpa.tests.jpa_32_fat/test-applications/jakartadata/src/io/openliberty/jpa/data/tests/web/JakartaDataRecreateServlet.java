@@ -173,39 +173,50 @@ public class JakartaDataRecreateServlet extends FATServlet {
     @Test
     @Ignore("Reference issue:https://github.com/OpenLiberty/open-liberty/issues/29459")
     public void testOLGH29459() throws Exception {
-        // Sample segment ID and points
         int x1 = 0, y1 = 0, x2 = 120, y2 = 209;
-        
-        // Create a new segment using the 'of' factory method
         Segment segment = Segment.of(x1, y1, x2, y2);
-
-        // Begin the transaction
-        tx.begin();
-
-        try {
-            // Persist the segment using EntityManager
-            em.persist(segment);
-
-            // Insert into the database using a native SQL query (with incremented ID)
-            em.createNativeQuery("INSERT INTO Segment (id, pointA_x, pointA_y, pointB_x, pointB_y) VALUES (?, ?, ?, ?, ?)")
-                .setParameter(1, segment.id + 1)      // Incremented Segment ID (avoiding conflict)
-                .setParameter(2, segment.pointA.x())  // Point A X
-                .setParameter(3, segment.pointA.y())  // Point A Y
-                .setParameter(4, segment.pointB.x())  // Point B X
-                .setParameter(5, segment.pointB.y())  // Point B Y
-                .executeUpdate();
-
-            // Commit the transaction
-            tx.commit();
-        } catch (Exception e) {
-            // If there's any exception, rollback the transaction
-            tx.rollback();
-            throw e;
+        List<Exception> exceptions = new ArrayList<>();
+        
+        if (tx.getStatus() != jakarta.transaction.Status.STATUS_ACTIVE) {
+            tx.begin();  
         }
 
-        // Optionally, you can query the inserted data to verify it was inserted correctly
+        try {           
+            em.persist(segment);            
+            tx.commit();
+        } catch (Exception e) {            
+            if (tx.getStatus() == jakarta.transaction.Status.STATUS_ACTIVE) {
+                tx.rollback();
+            }
+            exceptions.add(e);
+        }
+
+        if (tx.getStatus() != jakarta.transaction.Status.STATUS_ACTIVE) {
+            tx.begin();  
+        }
+
+        try {
+            em.createNativeQuery("INSERT INTO Segment (id, pointA_x, pointA_y, pointB_x, pointB_y) VALUES (?, ?, ?, ?, ?)")
+                .setParameter(1, segment.id + 1)      
+                .setParameter(2, segment.pointA.x())  
+                .setParameter(3, segment.pointA.y())  
+                .setParameter(4, segment.pointB.x())  
+                .setParameter(5, segment.pointB.y())  
+                .executeUpdate();
+            tx.commit();
+        } catch (Exception e) {            
+            if (tx.getStatus() == jakarta.transaction.Status.STATUS_ACTIVE) {
+                tx.rollback();
+            }
+            exceptions.add(e);
+        }
+       
+        if (!exceptions.isEmpty()) {           
+            throw exceptions.get(0);
+        }
+
         Segment retrievedSegment1 = em.find(Segment.class, segment.id);
-        Segment retrievedSegment2 = em.find(Segment.class, segment.id + 1); // Retrieve the second segment with incremented ID
+        Segment retrievedSegment2 = em.find(Segment.class, segment.id + 1); 
 
         // Assertions for the first segment
         assertEquals(segment.id, retrievedSegment1.id);
