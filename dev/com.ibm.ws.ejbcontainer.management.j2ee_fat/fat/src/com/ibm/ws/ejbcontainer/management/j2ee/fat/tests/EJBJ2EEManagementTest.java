@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2024 IBM Corporation and others.
+ * Copyright (c) 2015, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -27,6 +27,7 @@ import org.jboss.shrinkwrap.api.spec.JavaArchive;
 import org.junit.Assert;
 import org.junit.ClassRule;
 import org.junit.Test;
+import org.junit.rules.RuleChain;
 import org.junit.runner.RunWith;
 
 import com.ibm.websphere.simplicity.ShrinkHelper;
@@ -38,7 +39,10 @@ import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.rules.repeater.CheckpointRule;
 import componenttest.rules.repeater.CheckpointRule.ServerMode;
+import componenttest.rules.repeater.EE7FeatureReplacementAction;
 import componenttest.rules.repeater.EmptyAction;
+import componenttest.rules.repeater.FeatureReplacementAction;
+import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 
 @RunWith(FATRunner.class)
@@ -53,14 +57,19 @@ public class EJBJ2EEManagementTest {
     @Server("com.ibm.ws.ejbcontainer.management.j2ee.fat")
     public static LibertyServer server;
 
-    /**
-     * @ClassRule
-     *            public static RepeatTests r =
-     *            RepeatTests.with(FeatureReplacementAction.EE7_FEATURES().fullFATOnly().forServers("com.ibm.ws.ejbcontainer.management.j2ee.fat")).andWith(FeatureReplacementAction.EE8_FEATURES().forServers("com.ibm.ws.ejbcontainer.management.j2ee.fat"));
-     **/
+    public static RepeatTests r = RepeatTests //
+                    .with(FeatureReplacementAction.EE7_FEATURES().fullFATOnly().forServers("com.ibm.ws.ejbcontainer.management.j2ee.fat")) //
+                    .andWith(FeatureReplacementAction.EE8_FEATURES().forServers("com.ibm.ws.ejbcontainer.management.j2ee.fat"));
+
+    public static CheckpointRule checkpointRule = new CheckpointRule() //
+                    .setConsoleLogName(EJBJ2EEManagementTest.class.getSimpleName() + ".log") //
+                    .addUnsupportedRepeatIDs(EE7FeatureReplacementAction.ID, EmptyAction.ID) //
+                    .setServerSetup(EJBJ2EEManagementTest::serverSetUp)//
+                    .setServerStart(EJBJ2EEManagementTest::serverStart)//
+                    .setServerTearDown(EJBJ2EEManagementTest::serverTearDown)//
+                    .setAssertNoAppRestartOnRestore(false);
     @ClassRule
-    public static CheckpointRule checkpointRule = new CheckpointRule().setConsoleLogName(EJBJ2EEManagementTest.class.getSimpleName()
-                                                                                         + ".log").addUnsupportedRepeatIDs(EmptyAction.ID).setServerSetup(EJBJ2EEManagementTest::serverSetUp).setServerStart(EJBJ2EEManagementTest::serverStart).setServerTearDown(EJBJ2EEManagementTest::serverTearDown);
+    public static RuleChain chain = RuleChain.outerRule(r).around(checkpointRule);
 
     private static JMXConnector jmxConnector;
     private static MBeanServerConnection mbsc;
