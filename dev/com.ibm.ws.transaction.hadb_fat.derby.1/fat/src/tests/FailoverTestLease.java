@@ -18,6 +18,7 @@ import java.util.List;
 
 import org.junit.After;
 import org.junit.AfterClass;
+import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -27,6 +28,7 @@ import com.ibm.tx.jta.ut.util.HADBTestConstants.HADBTestType;
 import com.ibm.tx.jta.ut.util.HADBTestControl;
 import com.ibm.ws.transaction.fat.util.FATUtils;
 import com.ibm.ws.transaction.fat.util.SetupRunner;
+import com.ibm.ws.transaction.fat.util.TxTestContainerSuite;
 
 import componenttest.annotation.AllowedFFDC;
 import componenttest.annotation.Server;
@@ -183,6 +185,17 @@ public class FailoverTestLease extends FATServletClient {
         FailoverTest.commonCleanup(this.getClass().getName());
         serversToStop = null;
         FATSuite.dropTables("WAS_LEASES_LOG");
+    }
+
+    // Should go away when this extends FailoverTest
+    @Before
+    public void assumeHealthy() {
+        TxTestContainerSuite.assumeHealthy();
+    }
+
+    @Test
+    public void assertHealthy() {
+        TxTestContainerSuite.assertHealthy();
     }
 
     /**
