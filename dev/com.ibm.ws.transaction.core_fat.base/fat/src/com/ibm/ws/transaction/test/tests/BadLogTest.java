@@ -19,16 +19,18 @@ import org.junit.runner.RunWith;
 import com.ibm.websphere.simplicity.ShrinkHelper;
 import com.ibm.websphere.simplicity.config.ServerConfiguration;
 import com.ibm.websphere.simplicity.config.Transaction;
-import com.ibm.websphere.simplicity.log.Log;
 import com.ibm.ws.transaction.fat.util.FATUtils;
 
 import componenttest.annotation.Server;
+import componenttest.annotation.SkipIfSysProp;
 import componenttest.annotation.TestServlet;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
 import servlets.BadLogServlet;
 
+// Skip on IBMI as test servers run with elevated permissions and, consequently, can write anywhere
+@SkipIfSysProp(SkipIfSysProp.OS_IBMI)
 @RunWith(FATRunner.class)
 public class BadLogTest extends FATServletClient {
 
@@ -41,24 +43,23 @@ public class BadLogTest extends FATServletClient {
     @BeforeClass
     public static void beforeClass() throws Exception {
 
-        System.getenv().entrySet().stream().forEach(e -> Log.info(SimpleTest.class, "beforeClass", "Env: " + e.getKey() + " -> " + e.getValue()));
-        System.getProperties().entrySet().stream().forEach(e -> Log.info(SimpleTest.class, "beforeClass", "Prop: " + e.getKey() + " -> " + e.getValue()));
+//        System.getenv().entrySet().stream().forEach(e -> Log.info(SimpleTest.class, "beforeClass", "Env: " + e.getKey() + " -> " + e.getValue()));
+//        System.getProperties().entrySet().stream().forEach(e -> Log.info(SimpleTest.class, "beforeClass", "Prop: " + e.getKey() + " -> " + e.getValue()));
 
         ShrinkHelper.defaultApp(server, APP_NAME, "servlets.*");
 
-        // Tranlog dir config is an unwritable location on Windows & OS/400.
-        // If we are not on one of those, we need to set it to an similarly unwritable location.
-
+        // Plan is to configure an unwritable tranlog location.
+        // server.xml is configured so for Windows. Need to change it for other OSes.
         switch (server.getMachine().getOperatingSystem()) {
             case WINDOWS:
-            case ISERIES:
                 break;
 
             default:
                 final ServerConfiguration serverConfig = server.getServerConfiguration();
                 final Transaction tranConfig = serverConfig.getTransaction();
 
-                tranConfig.setTransactionLogDirectory("/bin");
+                // Configure at an unwritable place
+                tranConfig.setTransactionLogDirectory("/QOpenSys"); // Means something to iSeries (when it runs with reasonable permissions)
                 server.updateServerConfiguration(serverConfig);
                 break;
         }
