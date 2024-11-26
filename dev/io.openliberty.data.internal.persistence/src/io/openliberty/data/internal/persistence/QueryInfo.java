@@ -2610,11 +2610,64 @@ public class QueryInfo {
      * @param startAt starting position in the query language string.
      * @return position of the text ignoring case if it is the next non-whitespace characters. Otherwise -1;
      */
+    @Trivial
     private static int indexOfAfterWhitespace(String text, String ql, int startAt) {
         int length = ql.length();
         while (startAt < length && Character.isWhitespace(ql.charAt(startAt)))
             startAt++;
         return ql.regionMatches(true, startAt, text, 0, 2) ? startAt : -1;
+    }
+
+    /**
+     * Infer the selection value to use for a COUNT query.
+     * Typically, the best we can do is to use the entity identifier variable,
+     * For example, COUNT(o). This works for:
+     *
+     * <pre>
+     * SELECT o ...
+     * SELECT o.col1 ...
+     * SELECT o.col1, o.col2 ...
+     * SELECT NEW org.example.ClassName(o.col1, o.col2) ...
+     * </pre>
+     *
+     * It should be noted we cannot use COUNT(o.col1) because it does not count
+     * null values, making it inconsistent with the number of values returned by
+     * SELECT o.col1.
+     *
+     * One place where COUNT(o) does not work is when selecting DISTINCT values.
+     *
+     * <pre>
+     * SELECT DISTINCT o.col1 ...
+     * </pre>
+     *
+     * In this case, the total number of matching entities would be incorrect.
+     * Instead, we want the number of distinct values. This will work well if there
+     * are no NULL values. But when there are NULL values, COUNT will omit then,
+     * but the SELECT DISTINCT query will includes one NULL value in its results,
+     * making the COUNT one less than it should be. It is unclear what to do
+     * about this, except to point out that Jakarta Data is only required to
+     * support JDQL and can choose to support as much of JPQL as it wishes, so here
+     * we have the limitation that we are only supporting JPQL DISTINCT for
+     * Page.totalElements and Page.totalPages when the results have no NULL values.
+     *
+     * @param ql        the query.
+     * @param select0   position after SELECT, if present.
+     * @param selectLen length of the text in the SELECT clause after SELECT,
+     *                      if present, otherwise -1.
+     * @return selection to use for a SELECT COUNT( {selection} ) query.
+     */
+    private String inferCountFromSelect(String ql, int select0, int selectLen) {
+        // Look for DISTINCT in the selections
+        for (int i = select0; i < select0 + selectLen - 9; i++) {
+            char ch = ql.charAt(i);
+            if ((ch == 'D' || ch == 'd') &&
+                (i == select0 || !Character.isJavaIdentifierPart(ql.charAt(i - 1))) &&
+                !Character.isJavaIdentifierPart(ql.charAt(i - 1)) &&
+                ql.regionMatches(true, i + 1, "ISTINCT", 0, 7))
+                return ql.substring(select0, select0 + selectLen);
+        }
+
+        return entityVar;
     }
 
     /**
@@ -3175,13 +3228,7 @@ public class QueryInfo {
             if (countPages) {
                 // TODO count query cannot always be accurately inferred if Query value is JPQL
                 StringBuilder c = new StringBuilder("SELECT COUNT(");
-                if (selectLen <= 0
-                    || ql.substring(select0, select0 + selectLen).indexOf(',') >= 0) // comma delimited multiple return values
-                    c.append(entityVar);
-                else // allows for COUNT(DISTINCT o.name)
-                    appendWithIdentifierName(ql, select0, select0 + selectLen,
-                                             entityVar_.length() == 0 ? "this." : entityVar_,
-                                             c);
+                c.append(inferCountFromSelect(ql, select0, selectLen));
 
                 c.append(") FROM");
                 if (from0 >= 0) {
