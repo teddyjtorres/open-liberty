@@ -1823,36 +1823,52 @@ public class LibertyServer implements LogMonitorClient {
             }
         
             // Define the paths
-            String securityDir = serverRoot + File.separator + "resources" + File.separator + "security";
-            File ltpaFIPSKeys = new File(securityDir, "ltpaFIPS.keys");
-            File ltpaKeys = new File(securityDir, "ltpa.keys");
-        
-            // Swap the ltpaFIPS.keys into ltpa.keys
-            Log.info(this.getClass(), "startServerWithArgs", "FIPS 140-3 global build properties are set for server " + getServerName()
-                                               + ", swapping ltpaFIPS.keys into ltpa.keys");
-        
-            if (ltpaFIPSKeys.exists()) {
-                // Check if ltpa.keys already exists
-                if (ltpaKeys.exists()) {
+            String serverSecurityDir = serverRoot + File.separator + "resources" + File.separator + "security";
+            File ltpaFIPSKeys = new File(serverSecurityDir, "ltpaFIPS.keys");
+            File ltpaKeys = new File(serverSecurityDir, "ltpa.keys");
+            
+            if (ltpaKeys.exists()) {
+                // Swap the ltpaFIPS.keys into ltpa.keys
+                Log.info(this.getClass(), "startServerWithArgs", "FIPS 140-3 global build properties are set for server " + getServerName()
+                                                + ", swapping ltpaFIPS.keys into ltpa.keys");
+
+                // if (ltpaFIPSKeys.exists()) {
+                //     ltpaFIPSKeys.delete();
+                // }
+            
+                // if (!ltpaFIPSKeys.exists()) {
+                //     try {
+                //         // If client does not have ltpaFIPS.keys, copy it from build/libs/resources/security/ltpaFIPS.keys
+                //         String buildDirAbsolutePath = System.getProperty("test.buildDir");
+                //         Log.info(this.getClass(), "startServerWithArgs", "buildDirAbsolutePath: " + buildDirAbsolutePath);
+                //         String sourcePath = buildDirAbsolutePath + "/libs/resources/security";
+                //         Log.info(this.getClass(), "startServerWithArgs", "sourcePath: " + sourcePath);
+                //         copyFileToAbsolutePathInLibertyServer(sourcePath, serverRoot + "/resources/security", "ltpaFIPS.keys"); 
+                //     } catch (Exception e) {
+                //         Log.info(this.getClass(), "startServerWithArgs", "Failed to get resource path: " + e.getMessage());
+                //     }
+                // }
+
+                if (ltpaFIPSKeys.exists()) {
                     if (!ltpaKeys.delete()) {
                         Log.info(this.getClass(), "startServerWithArgs", "Failed to delete existing ltpa.keys. Rename cannot proceed.");
                     }
+            
+                    // Rename ltpaFIPS.keys to ltpa.keys
+                    if (!ltpaFIPSKeys.renameTo(ltpaKeys)) {
+                        Log.info(this.getClass(), "startServerWithArgs", "Failed to rename ltpaFIPS.keys to ltpa.keys.");
+                    }
                 }
         
-                // Rename ltpaFIPS.keys to ltpa.keys
-                if (!ltpaFIPSKeys.renameTo(ltpaKeys)) {
-                    Log.info(this.getClass(), "startServerWithArgs", "Failed to rename ltpaFIPS.keys to ltpa.keys.");
+                // Print out the content of ltpa.keys
+                try {
+                    String content = FileUtils.readFile(ltpaKeys.getAbsolutePath());
+                    Log.info(this.getClass(), "printLtpaKeys", "Content of ltpa.keys: " + content);
+                } catch (Exception e) {
+                    Log.info(this.getClass(), "printLtpaKeys",  "Failed to read ltpa.keys: " + e.getMessage());
                 }
             } else {
-                Log.info(this.getClass(), "startServerWithArgs", "ltpaFIPS.keys does not exist. Skipping rename.");
-            }
-        
-            // Print out the content of ltpa.keys
-            try {
-                String content = FileUtils.readFile(ltpaKeys.getAbsolutePath());
-                Log.info(this.getClass(), "printLtpaKeys", "Content of ltpa.keys: " + content);
-            } catch (Exception e) {
-                Log.info(this.getClass(), "printLtpaKeys",  "Failed to read ltpa.keys: " + e.getMessage());
+                Log.info(this.getClass(), "startServerWithArgs", "No existing ltpa.keys found for server " + getServerName());
             }
         } 
 
