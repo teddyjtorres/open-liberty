@@ -51,6 +51,13 @@ public class FileBean implements Serializable {
         return file;
     }
 
+    public long getFileSize(){
+        if(this.file == null){
+            return 0L;
+        }
+        return this.file.getSize();
+    }
+
     public void setFile(Part file) {
         this.file = file;
     }

@@ -194,6 +194,10 @@ public class JSF22InputFileTests {
         //Ensure the correct content type is used. 
         assertNotNull("The 'multipart/form-data; boundary=' content type was not found!", jsfTestServer2.waitForStringInTraceUsingMark(".*multipart/form-data; boundary=.*"));
 
+        Log.info(c, name.getMethodName(), page.getPageSource());
+
+        page.waitForCondition(driver -> page.isInPage("File Size: 12"));
+
         page.findElement(By.id("form1:uploadButton")).click();
 
         Log.info(c, name.getMethodName(), page.getPageSource());

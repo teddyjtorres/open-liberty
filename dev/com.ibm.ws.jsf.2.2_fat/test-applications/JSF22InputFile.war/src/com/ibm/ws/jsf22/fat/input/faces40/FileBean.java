@@ -58,4 +58,12 @@ public class FileBean implements Serializable {
     public String getFileContents() {
         return fileContents;
     }
+
+    public long getFileSize(){
+        if(this.file == null){
+            System.out.println("0L");
+            return 0L;
+        }
+        return this.file.getSize();
+    }
 }
