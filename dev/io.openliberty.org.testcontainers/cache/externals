@@ -26,8 +26,8 @@ kyleaure/postgres-krb5:1.0
 kyleaure/postgres-ssl:1.0
 kyleaure/postgres-test-table:3.0
 kyleaure/sqlserver-ssl:2019-CU18-ubuntu-20.04
-letsencrypt/pebble-challtestsrv:latest
-letsencrypt/pebble:latest
+letsencrypt/pebble-challtestsrv:v2.3.1
+letsencrypt/pebble:v2.3.1
 mariadb:10.3
 mcr.microsoft.com/mssql/server:2019-CU28-ubuntu-20.04
 mongo:6.0.6

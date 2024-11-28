@@ -12,9 +12,6 @@
  *******************************************************************************/
 package componenttest.containers;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProviderStrategy;
 import org.testcontainers.utility.DockerImageName;
@@ -38,28 +35,9 @@ public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
     private static final String forceExternal = "fat.test.artifactory.force.external.repo";
 
     /**
-     * Artifactory keeps a cache of docker images from DockerHub within
-     * this organization specifically for the Liberty builds.
+     * A local cache of images in Artifactory used by Open Liberty and WebSphere Liberty
      */
-    private static final String mirror = "wasliberty-docker-remote";
-
-    /**
-     * TODO remove this temp mirror and either build these images at runtime
-     * or pull from a self hosted docker repository
-     *
-     * Artifactory keeps a set of community docker images that have been removed
-     * from DockerHub within this organization specifically for the Liberty builds.
-     */
-    private static final String tempMirror = "wasliberty-infrastructure-docker";
-
-    /**
-     * TODO remove this temp repository list and either build these images at runtime
-     * or pull from a self hosted docker repository
-     *
-     * Artifactory keeps a set of community docker images that have been removed
-     * from DockerHub with this set of repository names.
-     */
-    private static final List<String> tempRepositories = Arrays.asList("kyleaure/");
+    private static final String cache = "wasliberty-infrastructure-docker";
 
     private static final boolean mockBehavior = System.getenv().containsKey("MOCK_ARTIFACTORY_BEHAVIOR")
                                                 && System.getenv().get("MOCK_ARTIFACTORY_BEHAVIOR").equalsIgnoreCase("true");
@@ -104,7 +82,7 @@ public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
 
             // Priority 4: Always use Artifactory if using remote docker host.
             if (DockerClientFactory.instance().isUsing(EnvironmentAndSystemPropertyClientProviderStrategy.class)) {
-                result = DockerImageName.parse(whichMirror(original) + '/' + original.asCanonicalNameString())
+                result = DockerImageName.parse(cache + '/' + original.asCanonicalNameString())
                                 .withRegistry(ArtifactoryRegistry.instance().getRegistry())
                                 .asCompatibleSubstituteFor(original);
                 needsArtifactory = true;
@@ -122,7 +100,7 @@ public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
 
             // Priority 6: If Artifactory registry is available use it to avoid rate limits on other registries
             if (ArtifactoryRegistry.instance().isArtifactoryAvailable()) {
-                result = DockerImageName.parse(whichMirror(original) + '/' + original.asCanonicalNameString())
+                result = DockerImageName.parse(cache + '/' + original.asCanonicalNameString())
                                 .withRegistry(ArtifactoryRegistry.instance().getRegistry())
                                 .asCompatibleSubstituteFor(original);
                 needsArtifactory = true;
@@ -132,7 +110,7 @@ public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
 
             // Priority 7: If we need to mock this behavior for image name generation
             if (mockBehavior) {
-                result = DockerImageName.parse(whichMirror(original) + '/' + original.asCanonicalNameString())
+                result = DockerImageName.parse(cache + '/' + original.asCanonicalNameString())
                                 .withRegistry(ArtifactoryRegistry.instance().getRegistry())
                                 .asCompatibleSubstituteFor(original);
                 needsArtifactory = true;
@@ -194,20 +172,4 @@ public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
         }
         return isSynthetic || isCommittedImage;
     }
-
-    /**
-     * Determine which internal mirror a docker image should belong to
-     */
-    private static String whichMirror(DockerImageName dockerImage) {
-        for (String tempRepository : tempRepositories) {
-            if (dockerImage.getRepository().startsWith(tempRepository)) {
-                Log.info(c, "whichMirror", "Using mirror " + tempMirror + " for docker image " + dockerImage.asCanonicalNameString());
-                return tempMirror;
-            }
-        }
-
-        Log.info(c, "whichMirror", "Using mirror " + mirror + " for docker image " + dockerImage.asCanonicalNameString());
-        return mirror;
-    }
-
 }
