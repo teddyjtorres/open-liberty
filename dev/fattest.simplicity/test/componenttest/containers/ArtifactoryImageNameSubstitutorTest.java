@@ -211,7 +211,7 @@ public class ArtifactoryImageNameSubstitutorTest {
         setArtifactoryRegistryAvailable(true);
 
         input = DockerImageName.parse("openliberty:1.0.0");
-        expected = DockerImageName.parse("example.com/wasliberty-docker-remote/openliberty:1.0.0");
+        expected = DockerImageName.parse("example.com/wasliberty-infrastructure-docker/openliberty:1.0.0");
         assertEquals(expected, new ArtifactoryImageNameSubstitutor().apply(input));
 
         //No force, no Artifactory, default behavior
