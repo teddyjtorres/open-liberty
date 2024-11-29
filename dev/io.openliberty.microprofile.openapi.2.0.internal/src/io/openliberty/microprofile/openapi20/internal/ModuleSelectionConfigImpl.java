@@ -16,13 +16,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.microprofile.config.Config;
 import org.eclipse.microprofile.config.ConfigProvider;
@@ -302,6 +305,23 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
                 return appName + "/" + moduleName;
             }
         }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(appName, moduleName);
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj)
+                return true;
+            if (obj == null)
+                return false;
+            if (getClass() != obj.getClass())
+                return false;
+            ModuleName other = (ModuleName) obj;
+            return Objects.equals(appName, other.appName) && Objects.equals(moduleName, other.moduleName);
+        }
     }
 
     @Override
@@ -329,13 +349,14 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
      *
      * @param nameList the comma separated list
      * @param configKey the name of the config property holding the list (used for reporting errors)
+     * @param warningMode whether to warn if there are errors parsing the module names
      * @return the list of parsed names
      */
-    private static List<ModuleName> parseModuleNames(String nameList, String configKey) {
+    private static List<ModuleName> parseModuleNames(String nameList, String configKey, WarningMode warningMode) {
         List<ModuleName> result = new ArrayList<>();
 
         for (String configValuePart : nameList.split(",")) {
-            Optional<ModuleName> processedName = parseModuleName(configValuePart, configKey);
+            Optional<ModuleName> processedName = parseModuleName(configValuePart, configKey, warningMode);
             processedName.ifPresent(result::add);
         }
 
@@ -353,13 +374,16 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
      *
      * @param name the name to parse
      * @param configKey the name of the config property holding the list (used for reporting errors)
+     * @param warningMode whether to warn if there are errors parsing the module name
      * @return the parsed name or an empty {@code Optional} if it did not fit the format.
      */
-    private static Optional<ModuleName> parseModuleName(String name, String configKey) {
+    private static Optional<ModuleName> parseModuleName(String name, String configKey, WarningMode warningMode) {
         Matcher m = CONFIG_VALUE_NAME_REFERENCE.matcher(name);
 
         if (!m.matches()) {
-            Tr.warning(tc, MessageConstants.OPENAPI_MERGE_INVALID_NAME_CWWKO1666W, configKey, name);
+            if (warningMode == WarningMode.LOG_WARNINGS) {
+                Tr.warning(tc, MessageConstants.OPENAPI_MERGE_INVALID_NAME_CWWKO1666W, configKey, name);
+            }
             return Optional.empty();
         }
 
@@ -379,12 +403,188 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
     private ConfigValues getConfigValues() {
         synchronized (this) {
             if (configValues == null) {
-                configValues = new ConfigValues();
+                configValues = readConfigValues();
             }
             return configValues;
         }
     }
 
+    private ConfigValues readConfigValues() {
+        Config mpConfig = ConfigProvider.getConfig(ModuleSelectionConfigImpl.class.getClassLoader());
+        Optional<ConfigValues> fromServerXml = readFromServerXml();
+        if (fromServerXml.isPresent()) {
+            Optional<ConfigValues> fromMpConfig = readFromMpConfig(mpConfig, WarningMode.SUPPRESS_WARNINGS);
+            if (fromMpConfig.isPresent()) {
+                warnMpConfigIgnored(fromServerXml.get(), fromMpConfig.get(), mpConfig);
+            }
+        }
+
+        return fromServerXml.orElseGet(() -> readFromMpConfig(mpConfig, WarningMode.LOG_WARNINGS).orElse(getDefaultConfig()));
+    }
+
+    /**
+     * Get the default {@link ConfigValues} object to be used if there's no configuration in server.xml or MP Config
+     *
+     * @return the default configuration values
+     */
+    private ConfigValues getDefaultConfig() {
+        if (getDefaultInclusion() == DefaultInclusion.ALL) {
+            return new ConfigValues(true, false, false, Collections.emptyList(), Collections.emptyList());
+        } else {
+            return new ConfigValues(false, true, false, Collections.emptyList(), Collections.emptyList());
+        }
+    }
+
+    /**
+     * Warn that certain MP Config properties are being ignored because config is provided in server.xml.
+     * <p>
+     * This method is only called if we've managed to read config values from MP Config.
+     *
+     * @param fromServerXml the config values read from server.xml
+     * @param fromMpConfig the config values read from MP Config
+     * @param mpConfig the config for MP Config
+     */
+    private void warnMpConfigIgnored(ConfigValues fromServerXml, ConfigValues fromMpConfig, Config mpConfig) {
+        Stream<String> propertiesInUse = Stream.of(Constants.MERGE_INCLUDE_CONFIG,
+                                                   Constants.MERGE_EXCLUDE_CONFIG)
+                                               .filter(prop -> mpConfig.getOptionalValue(prop, String.class).isPresent());
+        if (fromServerXml.equivalentTo(fromMpConfig)) {
+            propertiesInUse.forEach(prop -> Tr.info(tc, MessageConstants.OPENAPI_MP_CONFIG_REDUNDANT_CWWKO1685I, prop));
+        } else {
+            propertiesInUse.forEach(prop -> Tr.warning(tc, MessageConstants.OPENAPI_MP_CONFIG_CONFLICTS_CWWKO1686W, prop));
+        }
+    }
+
+    /**
+     * Read the config values from server.xml
+     *
+     * @return the read config values, or an empty {@code Optional} if there's no module inclusion configuration in server.xml
+     */
+    private Optional<ConfigValues> readFromServerXml() {
+        OpenAPIServerXMLConfig configFromServerXML = configFromServerXMLProvider.getConfiguration();
+        if (!configFromServerXML.wasAnyConfigFound()) {
+            return Optional.empty();
+        }
+
+        final boolean isAll;
+        final boolean isFirst;
+        final List<ModuleName> included;
+        final List<ModuleName> excluded;
+
+        if (configFromServerXML.getConfigMode().isPresent()) {
+            ConfigMode configMode = configFromServerXML.getConfigMode().get();
+            included = Collections.emptyList();
+            if (configMode == OpenAPIServerXMLConfig.ConfigMode.All) {
+                isAll = true;
+                isFirst = false;
+            } else if (configMode == OpenAPIServerXMLConfig.ConfigMode.First) {
+                isAll = false;
+                isFirst = true;
+            } else if (configMode == OpenAPIServerXMLConfig.ConfigMode.None) {
+                isAll = false;
+                isFirst = false;
+            } else {
+                throw new IllegalArgumentException("configMode");
+            }
+        } else if (configFromServerXML.getIncludedAppsAndModules().isPresent()) {
+            List<String> rawNames = configFromServerXML.getIncludedAppsAndModules().get();
+            included = rawNames.stream().map((String rawName) -> parseModuleName(rawName, Constants.MERGE_INCLUDE_CONFIG, WarningMode.LOG_WARNINGS))
+                               .filter(Optional::isPresent)
+                               .map(Optional::get)
+                               .collect(Collectors.toList());
+            isAll = false;
+            isFirst = false;
+        } else {
+            DefaultInclusion defaultInclusion = getDefaultInclusion();
+            if (defaultInclusion == DefaultInclusion.FIRST) {
+                isFirst = true;
+                isAll = false;
+            } else {
+                isFirst = false;
+                isAll = true;
+            }
+            included = Collections.emptyList();
+        }
+
+        if (configFromServerXML.getExcludedAppsAndModules().isPresent()) {
+            List<String> rawNames = configFromServerXML.getExcludedAppsAndModules().get();
+            excluded = rawNames.stream().map((String rawName) -> parseModuleName(rawName, Constants.MERGE_INCLUDE_CONFIG, WarningMode.LOG_WARNINGS))
+                               .filter(Optional::isPresent)
+                               .map(Optional::get)
+                               .collect(Collectors.toList());
+        } else {
+            excluded = Collections.emptyList();
+        }
+
+        return Optional.of(new ConfigValues(isAll, isFirst, true, included, excluded));
+    }
+
+    /**
+     * Read the config values from MP Config
+     *
+     * @param configFromMPConfig the current {@link Config}
+     * @param warningMode whether or not to emit warnings if the config is in some way invalid
+     * @return the read config values, or an empty {@code Optional} if there's no module inclusion configuration in MP Config
+     */
+    private Optional<ConfigValues> readFromMpConfig(Config configFromMPConfig, WarningMode warningMode) {
+        Optional<String> inclusionProperty = configFromMPConfig.getOptionalValue(Constants.MERGE_INCLUDE_CONFIG, String.class);
+        Optional<String> exclusionProperty = configFromMPConfig.getOptionalValue(Constants.MERGE_EXCLUDE_CONFIG, String.class);
+        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+            Tr.debug(this, tc, "Inclusion read from config: " + inclusionProperty);
+            Tr.debug(this, tc, "Exclusion read from config: " + exclusionProperty);
+            Tr.debug(this, tc, "Names in config: " + configFromMPConfig.getPropertyNames());
+        }
+
+        if (!inclusionProperty.isPresent() && !exclusionProperty.isPresent()) {
+            return Optional.empty();
+        }
+
+        String defaultInclude = getDefaultInclusion() == DefaultInclusion.FIRST ? "first" : "all";
+        String inclusion = inclusionProperty.orElse(defaultInclude);
+
+        final boolean isAll;
+        final boolean isFirst;
+        final List<ModuleName> included;
+        final List<ModuleName> excluded;
+
+        if (inclusion.equals("none")) {
+            isFirst = false;
+            isAll = false;
+            included = Collections.emptyList();
+        } else if (inclusion.equals("all")) {
+            isFirst = false;
+            isAll = true;
+            included = Collections.emptyList();
+        } else if (inclusion.equals("first")) {
+            isFirst = true;
+            isAll = false;
+            included = Collections.emptyList();
+        } else {
+            isFirst = false;
+            isAll = false;
+            included = parseModuleNames(inclusion, Constants.MERGE_INCLUDE_CONFIG, warningMode);
+        }
+
+        String exclusion = configFromMPConfig.getOptionalValue(Constants.MERGE_EXCLUDE_CONFIG, String.class).orElse("none")
+                                             .trim();
+
+        if (exclusion.equals("none")) {
+            excluded = Collections.emptyList();
+        } else {
+            excluded = parseModuleNames(exclusion, Constants.MERGE_EXCLUDE_CONFIG, warningMode);
+        }
+
+        return Optional.of(new ConfigValues(isAll, isFirst, false, included, excluded));
+    }
+
+    private enum WarningMode {
+        LOG_WARNINGS,
+        SUPPRESS_WARNINGS
+    }
+
+    /**
+     * Holds a snapshot of the module selection configuration read from a particular source.
+     */
     private class ConfigValues {
         protected final boolean isAll;
         protected final boolean isFirst;
@@ -392,97 +592,45 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
         protected final List<ModuleName> included;
         protected final List<ModuleName> excluded;
 
-        /**
-         * A consistent set of configuration values used for module selection
-         * <p>
-         * Callers should get an instance by calling {@code getConfigValues()}.
-         */
-        protected ConfigValues() {
-            //defaults
-            boolean isAll = false;
-            boolean isFirst = false;
-            boolean serverxmlmode = false;
-            List<ModuleName> included = Collections.emptyList();
-            List<ModuleName> excluded = Collections.emptyList();
-
-            Config configFromMPConfig = ConfigProvider.getConfig(ApplicationRegistryImpl.class.getClassLoader());
-
-            OpenAPIServerXMLConfig configFromServerXML = configFromServerXMLProvider.getConfiguration();
-            serverxmlmode = configFromServerXML.wasAnyConfigFound();
-
-            if (serverxmlmode) {
-                Tr.debug(this, tc, "Acquired includes statement from server.xml");
-
-                if (configFromServerXML.getConfigMode().isPresent()) {
-                    ConfigMode configMode = configFromServerXML.getConfigMode().get();
-                    if (configMode == OpenAPIServerXMLConfig.ConfigMode.All) {
-                        isAll = true;
-                    } else if (configMode == OpenAPIServerXMLConfig.ConfigMode.First) {
-                        isFirst = true;
-                    } else if (configMode == OpenAPIServerXMLConfig.ConfigMode.None) {
-                        included = Collections.emptyList();
-                    }
-                } else if (configFromServerXML.getIncludedAppsAndModules().isPresent()) {
-                    List<String> rawNames = configFromServerXML.getIncludedAppsAndModules().get();
-                    included = rawNames.stream().map((String rawName) -> parseModuleName(rawName, Constants.MERGE_INCLUDE_CONFIG))
-                                       .filter(Optional::isPresent)
-                                       .map(Optional::get)
-                                       .collect(Collectors.toList());
-                } else {
-                    DefaultInclusion defaultInclusion = getDefaultInclusion();
-                    if (defaultInclusion == DefaultInclusion.FIRST) {
-                        isFirst = true;
-                    } else {
-                        isAll = true;
-                    }
-                }
-            } else {
-                String defaultInclude = getDefaultInclusion() == DefaultInclusion.FIRST ? "first" : "all";
-                String inclusion = configFromMPConfig.getOptionalValue(Constants.MERGE_INCLUDE_CONFIG, String.class).orElse(defaultInclude);
-                Tr.debug(this, tc, "Names in config: " + configFromMPConfig.getPropertyNames());
-                Tr.debug(this, tc, "Inclusion read from config: " + inclusion);
-
-                if (inclusion.equals("none")) {
-                    included = Collections.emptyList();
-                } else if (inclusion.equals("all")) {
-                    isAll = true;
-                } else if (inclusion.equals("first")) {
-                    isFirst = true;
-                } else {
-                    included = parseModuleNames(inclusion, Constants.MERGE_INCLUDE_CONFIG);
-                }
-            }
-
-            if (serverxmlmode) {
-                if (configFromServerXML.getExcludedAppsAndModules().isPresent()) {
-                    List<String> rawNames = configFromServerXML.getExcludedAppsAndModules().get();
-                    excluded = rawNames.stream().map((String rawName) -> parseModuleName(rawName, Constants.MERGE_INCLUDE_CONFIG))
-                                       .filter(Optional::isPresent)
-                                       .map(Optional::get)
-                                       .collect(Collectors.toList());
-                } else {
-                    excluded = Collections.emptyList();
-                }
-            } else {
-                String exclusion = configFromMPConfig.getOptionalValue(Constants.MERGE_EXCLUDE_CONFIG, String.class).orElse("none")
-                                                     .trim();
-                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                    Tr.debug(this, tc, "Exclusion read from config: " + exclusion);
-                }
-
-                if (exclusion.equals("none")) {
-                    excluded = Collections.emptyList();
-                } else {
-                    excluded = parseModuleNames(exclusion, Constants.MERGE_EXCLUDE_CONFIG);
-                }
-            }
-
+        public ConfigValues(boolean isAll, boolean isFirst, boolean serverxmlmode, List<ModuleName> included, List<ModuleName> excluded) {
+            super();
             this.isAll = isAll;
             this.isFirst = isFirst;
             this.serverxmlmode = serverxmlmode;
             this.included = included;
             this.excluded = excluded;
+        }
 
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("ConfigValues [isAll=");
+            builder.append(isAll);
+            builder.append(", isFirst=");
+            builder.append(isFirst);
+            builder.append(", serverxmlmode=");
+            builder.append(serverxmlmode);
+            builder.append(", included=");
+            builder.append(included);
+            builder.append(", excluded=");
+            builder.append(excluded);
+            builder.append("]");
+            return builder.toString();
+        }
+
+        /**
+         * Returns whether two {@code ConfigValue} objects are equivalent.
+         * <p>
+         * Config is equivalent if they're equal, ignoring the ordering of {@code included} and {@code excluded}
+         *
+         * @param other the object to compare to, must not be {@code null}
+         * @return {@code true} if {@code other} is equivalent to this object, otherwise {@code false}
+         */
+        public boolean equivalentTo(ConfigValues other) {
+            return Objects.equals(new HashSet<>(excluded), new HashSet<>(other.excluded))
+                   && Objects.equals(new HashSet<>(included), new HashSet<>(other.included))
+                   && isAll == other.isAll
+                   && isFirst == other.isFirst;
         }
     }
 
