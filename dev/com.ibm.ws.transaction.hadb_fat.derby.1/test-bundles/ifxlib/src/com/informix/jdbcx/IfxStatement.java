@@ -409,7 +409,7 @@ public class IfxStatement implements Statement {
                                ", failatoperation - " + failatoperation);
             IfxConnection.incrementQueryFailoverCounter();
 
-            if (IfxConnection.getQueryFailoverCounter() == failatoperation) {
+            if (IfxConnection.getQueryFailoverCounter() >= failatoperation) {
                 failOver = true;
             }
         }
