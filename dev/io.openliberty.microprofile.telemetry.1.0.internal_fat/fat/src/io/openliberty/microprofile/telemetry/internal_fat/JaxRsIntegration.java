@@ -128,17 +128,8 @@ public class JaxRsIntegration extends FATServletClient {
                         .addAsServiceProvider(ConfigurableSpanExporterProvider.class, InMemorySpanExporterProvider.class)
                         .addAsResource(w3cTraceAppConfig, "META-INF/microprofile-config.properties");
 
-        PropertiesAsset w3cTraceContextAppConfig = new PropertiesAsset()
-                        .include(appConfig)
-                        .addProperty("otel.propagators", "tracecontext");
         WebArchive w3cTraceContextApp = ShrinkWrap.create(WebArchive.class, W3C_TRACE_CONTEXT_PROPAGATOR_APP_NAME + ".war")
-                        .addClass(W3CTraceContextPropagatorTestServlet.class)
-                        .addPackage(InMemorySpanExporter.class.getPackage())
-                        .addPackage(TestSpans.class.getPackage())
-                        .addPackage(AbstractSpanMatcher.class.getPackage())
-                        //.addPackage(PropagationHeaderEndpoint.class.getPackage())
-                        .addAsServiceProvider(ConfigurableSpanExporterProvider.class, InMemorySpanExporterProvider.class)
-                        .addAsResource(w3cTraceContextAppConfig, "META-INF/microprofile-config.properties");
+                        .addClass(W3CTraceContextPropagatorTestServlet.class);
 
         //TO-DO: tests to create or read the tracestate header
         PropertiesAsset w3cTraceBaggageAppConfig = new PropertiesAsset()
