@@ -79,10 +79,10 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
         }
 
         StringBuilder sb = new StringBuilder("Module Selection Config[");
-        if (config.isFirst) {
+        if (config.inclusionMode == InclusionMode.FIRST) {
             sb.append("useFirstModuleOnly");
         } else {
-            if (config.isAll) {
+            if (config.inclusionMode == InclusionMode.ALL) {
                 sb.append("include = all");
             } else {
                 sb.append("include = ").append(config.included);
@@ -103,7 +103,7 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
      */
     @Override
     public boolean useFirstModuleOnly() {
-        return getConfigValues().isFirst;
+        return getConfigValues().inclusionMode == InclusionMode.FIRST;
     }
 
     /**
@@ -115,12 +115,12 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
     @Override
     public boolean isIncluded(ModuleInfo module) {
         ConfigValues config = getConfigValues();
-        if (config.isFirst) {
+        if (config.inclusionMode == InclusionMode.FIRST) {
             return true;
         }
 
         boolean result = false;
-        if (config.isAll) {
+        if (config.inclusionMode == InclusionMode.ALL) {
             result = true;
         } else {
             for (ModuleName name : config.included) {
@@ -156,7 +156,7 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
     @Override
     public void sendWarningsForAppsAndModulesNotMatchingAnything(Collection<? extends ModuleInfo> moduleInfos) {
         ConfigValues config = getConfigValues();
-        if (config.isAll || config.isFirst) {
+        if (config.inclusionMode != InclusionMode.NORMAL) {
             return;
         }
 
@@ -237,7 +237,6 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
                            excludedNotYetSeenButSeenUnderOldNaming.get(unmatchedExclude));
             }
         }
-
     }
 
     protected enum DefaultInclusion {
@@ -429,9 +428,9 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
      */
     private ConfigValues getDefaultConfig() {
         if (getDefaultInclusion() == DefaultInclusion.ALL) {
-            return new ConfigValues(true, false, false, Collections.emptyList(), Collections.emptyList());
+            return new ConfigValues(InclusionMode.ALL, false, Collections.emptyList(), Collections.emptyList());
         } else {
-            return new ConfigValues(false, true, false, Collections.emptyList(), Collections.emptyList());
+            return new ConfigValues(InclusionMode.FIRST, false, Collections.emptyList(), Collections.emptyList());
         }
     }
 
@@ -466,23 +465,19 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
             return Optional.empty();
         }
 
-        final boolean isAll;
-        final boolean isFirst;
-        final List<ModuleName> included;
-        final List<ModuleName> excluded;
+        InclusionMode inclusionMode;
+        List<ModuleName> included;
+        List<ModuleName> excluded;
 
         if (configFromServerXML.getConfigMode().isPresent()) {
             ConfigMode configMode = configFromServerXML.getConfigMode().get();
             included = Collections.emptyList();
             if (configMode == OpenAPIServerXMLConfig.ConfigMode.All) {
-                isAll = true;
-                isFirst = false;
+                inclusionMode = InclusionMode.ALL;
             } else if (configMode == OpenAPIServerXMLConfig.ConfigMode.First) {
-                isAll = false;
-                isFirst = true;
+                inclusionMode = InclusionMode.FIRST;
             } else if (configMode == OpenAPIServerXMLConfig.ConfigMode.None) {
-                isAll = false;
-                isFirst = false;
+                inclusionMode = InclusionMode.NONE;
             } else {
                 throw new IllegalArgumentException("configMode");
             }
@@ -492,16 +487,13 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
                                .filter(Optional::isPresent)
                                .map(Optional::get)
                                .collect(Collectors.toList());
-            isAll = false;
-            isFirst = false;
+            inclusionMode = InclusionMode.NORMAL;
         } else {
             DefaultInclusion defaultInclusion = getDefaultInclusion();
             if (defaultInclusion == DefaultInclusion.FIRST) {
-                isFirst = true;
-                isAll = false;
+                inclusionMode = InclusionMode.FIRST;
             } else {
-                isFirst = false;
-                isAll = true;
+                inclusionMode = InclusionMode.ALL;
             }
             included = Collections.emptyList();
         }
@@ -516,7 +508,7 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
             excluded = Collections.emptyList();
         }
 
-        return Optional.of(new ConfigValues(isAll, isFirst, true, included, excluded));
+        return Optional.of(new ConfigValues(inclusionMode, true, included, excluded));
     }
 
     /**
@@ -542,31 +534,28 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
         String defaultInclude = getDefaultInclusion() == DefaultInclusion.FIRST ? "first" : "all";
         String inclusion = inclusionProperty.orElse(defaultInclude);
 
-        final boolean isAll;
-        final boolean isFirst;
-        final List<ModuleName> included;
-        final List<ModuleName> excluded;
+        InclusionMode inclusionMode;
+        List<ModuleName> included;
+        List<ModuleName> excluded;
 
         if (inclusion.equals("none")) {
-            isFirst = false;
-            isAll = false;
-            included = Collections.emptyList();
+            inclusionMode = InclusionMode.NONE;
         } else if (inclusion.equals("all")) {
-            isFirst = false;
-            isAll = true;
-            included = Collections.emptyList();
+            inclusionMode = InclusionMode.ALL;
         } else if (inclusion.equals("first")) {
-            isFirst = true;
-            isAll = false;
-            included = Collections.emptyList();
+            inclusionMode = InclusionMode.FIRST;
         } else {
-            isFirst = false;
-            isAll = false;
-            included = parseModuleNames(inclusion, Constants.MERGE_INCLUDE_CONFIG, warningMode);
+            inclusionMode = InclusionMode.NORMAL;
         }
 
-        String exclusion = configFromMPConfig.getOptionalValue(Constants.MERGE_EXCLUDE_CONFIG, String.class).orElse("none")
-                                             .trim();
+        if (inclusionMode == InclusionMode.NORMAL) {
+            included = parseModuleNames(inclusion, Constants.MERGE_INCLUDE_CONFIG, warningMode);
+        } else {
+            included = Collections.emptyList();
+        }
+
+        String exclusion = exclusionProperty.orElse("none")
+                                            .trim();
 
         if (exclusion.equals("none")) {
             excluded = Collections.emptyList();
@@ -574,7 +563,7 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
             excluded = parseModuleNames(exclusion, Constants.MERGE_EXCLUDE_CONFIG, warningMode);
         }
 
-        return Optional.of(new ConfigValues(isAll, isFirst, false, included, excluded));
+        return Optional.of(new ConfigValues(inclusionMode, false, included, excluded));
     }
 
     private enum WarningMode {
@@ -582,20 +571,29 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
         SUPPRESS_WARNINGS
     }
 
+    private enum InclusionMode {
+        ALL,
+        FIRST,
+        NONE,
+        NORMAL
+    }
+
     /**
      * Holds a snapshot of the module selection configuration read from a particular source.
      */
-    private class ConfigValues {
-        protected final boolean isAll;
-        protected final boolean isFirst;
+    private static class ConfigValues {
+        protected final InclusionMode inclusionMode;
         protected final boolean serverxmlmode;
         protected final List<ModuleName> included;
         protected final List<ModuleName> excluded;
 
-        public ConfigValues(boolean isAll, boolean isFirst, boolean serverxmlmode, List<ModuleName> included, List<ModuleName> excluded) {
-            super();
-            this.isAll = isAll;
-            this.isFirst = isFirst;
+        public ConfigValues(InclusionMode inclusionMode, boolean serverxmlmode, List<ModuleName> included, List<ModuleName> excluded) {
+            // Enforce consistency
+            if (inclusionMode != InclusionMode.NORMAL && !included.isEmpty()) {
+                throw new IllegalStateException("InclusionMode = " + inclusionMode + ", included = " + included);
+            }
+
+            this.inclusionMode = inclusionMode;
             this.serverxmlmode = serverxmlmode;
             this.included = included;
             this.excluded = excluded;
@@ -604,10 +602,8 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
         @Override
         public String toString() {
             StringBuilder builder = new StringBuilder();
-            builder.append("ConfigValues [isAll=");
-            builder.append(isAll);
-            builder.append(", isFirst=");
-            builder.append(isFirst);
+            builder.append("ConfigValues [inclusionMode=");
+            builder.append(inclusionMode);
             builder.append(", serverxmlmode=");
             builder.append(serverxmlmode);
             builder.append(", included=");
@@ -629,8 +625,16 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
         public boolean equivalentTo(ConfigValues other) {
             return Objects.equals(new HashSet<>(excluded), new HashSet<>(other.excluded))
                    && Objects.equals(new HashSet<>(included), new HashSet<>(other.included))
-                   && isAll == other.isAll
-                   && isFirst == other.isFirst;
+                   && equivalent(inclusionMode, other.inclusionMode);
+        }
+
+        private static boolean equivalent(InclusionMode a, InclusionMode b) {
+            // NONE and NORMAL are equivalent, since NONE guarantees that included is empty
+            // convert NONE to NORMAL before comparing
+            InclusionMode aNormal = a == InclusionMode.NONE ? InclusionMode.NORMAL : a;
+            InclusionMode bNormal = b == InclusionMode.NONE ? InclusionMode.NORMAL : b;
+
+            return aNormal == bNormal;
         }
     }
 
