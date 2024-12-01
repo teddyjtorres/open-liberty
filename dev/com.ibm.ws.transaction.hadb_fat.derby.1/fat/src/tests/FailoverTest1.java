@@ -182,7 +182,7 @@ public class FailoverTest1 extends FailoverTest {
 
         server = defaultServer;
 
-        HADBTestControl.write(HADBTestType.RUNTIME, -4498, 12, 1);
+        HADBTestControl.write(HADBTestType.RUNTIME, -4498, 14, 1);
 
         FATUtils.startServers(runner, server);
 
@@ -269,7 +269,7 @@ public class FailoverTest1 extends FailoverTest {
 
         server = defaultServer;
 
-        HADBTestControl.write(HADBTestType.STARTUP, -4498, 11, 1);
+        HADBTestControl.write(HADBTestType.STARTUP, -4498, 11, 1, "--assertLogOwnershipAtOpenPeerLocking");
 
         FATUtils.startServers(runner, server);
 
@@ -284,7 +284,7 @@ public class FailoverTest1 extends FailoverTest {
         server = defaultServer;
         serverMsgs = new String[] { "WTRN0107W", "WTRN0000E", "WTRN0112E", "WTRN0153W" };
 
-        HADBTestControl.write(HADBTestType.STARTUP, -3, 11, 1);
+        HADBTestControl.write(HADBTestType.STARTUP, -3, 11, 1, "--assertLogOwnershipAtOpenPeerLocking");
 
         FATUtils.startServers(runner, server);
         StringBuilder sb = runInServlet(server, SERVLET_NAME, "driveTransactions");
@@ -300,7 +300,7 @@ public class FailoverTest1 extends FailoverTest {
         server = defaultServer;
         serverMsgs = new String[] { "WTRN0107W", "WTRN0000E", "WTRN0112E", "WTRN0153W" };
 
-        HADBTestControl.write(HADBTestType.STARTUP, -3, 3, 1);
+        HADBTestControl.write(HADBTestType.STARTUP, -3, 4, 1, "--internalClaimRecoveryLogs");
 
         FATUtils.startServers(runner, server);
         StringBuilder sb = runInServlet(server, SERVLET_NAME, "driveTransactions");

@@ -2709,7 +2709,7 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
      */
     private void assertLogOwnershipAtOpenPeerLocking(Connection conn) throws SQLException, InternalLogException {
         if (tc.isEntryEnabled())
-            Tr.entry(tc, "assertLogOwnershipAtOpenPeerLocking", new java.lang.Object[] { conn, this });
+            Tr.entry(tc, "assertLogOwnershipAtOpenPeerLocking", conn, this);
 
         boolean takeLock = false;
         Statement readForUpdateStmt = null;
@@ -2718,7 +2718,7 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
 
         try {
             readForUpdateStmt = conn.createStatement();
-            readForUpdateRS = readHADBLock(readForUpdateStmt, _logIdentifierString);
+            readForUpdateRS = readHADBLock(readForUpdateStmt, _logIdentifierString, "--assertLogOwnershipAtOpenPeerLocking");
             if (readForUpdateRS.next()) {
                 // We found the HA Lock row
                 String storedServerName = readForUpdateRS.getString(1);
@@ -2967,10 +2967,8 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
                               fullTableName +
                               " (SERVER_NAME, SERVICE_ID, RU_ID, RUSECTION_ID, RUSECTION_DATA_INDEX, DATA)" +
                               " VALUES (?,?,?,?,?,?)";
-        if (tc.isDebugEnabled())
-            Tr.debug(tc, "Insert LOCKING row using - " + insertString);
 
-        int ret;
+        final int ret;
         try (PreparedStatement specStatement = conn.prepareStatement(insertString)) {
             specStatement.setString(1, _currentProcessServerName);
             specStatement.setShort(2, serviceId);
@@ -2982,10 +2980,8 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             ret = specStatement.executeUpdate();
         }
 
-        if (tc.isDebugEnabled())
-            Tr.debug(tc, "Have inserted HA LOCKING ROW with return: " + ret);
         if (tc.isEntryEnabled())
-            Tr.exit(tc, "insertLockingRow");
+            Tr.exit(tc, "insertLockingRow", ret);
     }
 
     //------------------------------------------------------------------------------
@@ -3683,12 +3679,18 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
 
     // helper method
     private ResultSet readHADBLock(Statement lockingStmt, String logIdentifierString) throws SQLException {
+        return readHADBLock(lockingStmt, logIdentifierString, "");
+    }
+
+    // helper method
+    private ResultSet readHADBLock(Statement lockingStmt, String logIdentifierString, String sqltag) throws SQLException {
         // Use RDBMS SELECT FOR UPDATE to lock table for recovery
         String queryString = "SELECT SERVER_NAME, RUSECTION_ID" +
                              " FROM " + _recoveryTableName + logIdentifierString + _recoveryTableNameSuffix +
                              (DBProduct.Sqlserver == dbProduct ? " WITH (ROWLOCK, UPDLOCK, HOLDLOCK)" : "") +
                              " WHERE RU_ID=-1" +
-                             (DBProduct.Sqlserver == dbProduct ? "" : " FOR UPDATE");
+                             ((DBProduct.Sqlserver == dbProduct ? "" : " FOR UPDATE") +
+                              sqltag);
         if (tc.isDebugEnabled())
             Tr.debug(tc, "Attempt to select the HA LOCKING ROW for UPDATE - " + queryString);
         return lockingStmt.executeQuery(queryString);
@@ -3955,7 +3957,7 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             try {
                 touchStmt = conn.createStatement();
                 // This is just a touch test to see if we need to create the table (surely we could use  DatabaseMetaData.getTables)
-                touchRS = readHADBLock(touchStmt, logIdentifierString);
+                touchRS = readHADBLock(touchStmt, logIdentifierString, "--assertDBTableExists");
 
                 if (touchRS != null)
                     try {
@@ -4446,7 +4448,8 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
                              " FROM " + _recoveryTableName + "PARTNER_LOG" + _recoveryTableNameSuffix +
                              (DBProduct.Sqlserver == dbProduct ? " WITH (ROWLOCK, UPDLOCK, HOLDLOCK)" : "") +
                              " WHERE RU_ID=-1" +
-                             (DBProduct.Sqlserver == dbProduct ? "" : " FOR UPDATE");
+                             ((DBProduct.Sqlserver == dbProduct ? "" : " FOR UPDATE") +
+                              "--internalClaimRecoveryLogs");
         if (tc.isDebugEnabled())
             Tr.debug(tc, "Attempt to select the HA LOCKING ROW for UPDATE using - " + queryString);
 
