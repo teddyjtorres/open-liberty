@@ -57,4 +57,5 @@ Import-Package: \
 	com.ibm.ws.logging;version=latest,\
 	io.openliberty.security.authorization.internal.jacc.1.5;project=com.ibm.ws.security.authorization.jacc;source=none,\
 	org.jmock:jmock-junit4;strategy=exact;version=2.5.1,\
-	org.jmock:jmock;strategy=exact;version=2.5.1
+	org.jmock:jmock;strategy=exact;version=2.5.1, \
+	com.ibm.ws.kernel.service;version=latest
