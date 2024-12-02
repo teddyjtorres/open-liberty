@@ -39,7 +39,6 @@ import com.ibm.ws.container.service.app.deploy.ModuleInfo;
 
 import io.openliberty.microprofile.openapi.internal.common.services.OpenAPIAppConfigProvider;
 import io.openliberty.microprofile.openapi.internal.common.services.OpenAPIServerXMLConfig;
-import io.openliberty.microprofile.openapi.internal.common.services.OpenAPIServerXMLConfig.ConfigMode;
 import io.openliberty.microprofile.openapi20.internal.services.ModuleSelectionConfig;
 import io.openliberty.microprofile.openapi20.internal.utils.Constants;
 import io.openliberty.microprofile.openapi20.internal.utils.MessageConstants;
@@ -239,12 +238,15 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
         }
     }
 
-    protected enum DefaultInclusion {
-        ALL, FIRST
+    protected enum InclusionMode {
+        ALL,
+        FIRST,
+        NONE,
+        NORMAL
     }
 
-    protected DefaultInclusion getDefaultInclusion() {
-        return DefaultInclusion.FIRST;
+    protected InclusionMode getDefaultInclusion() {
+        return InclusionMode.FIRST;
     }
 
     /**
@@ -427,11 +429,7 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
      * @return the default configuration values
      */
     private ConfigValues getDefaultConfig() {
-        if (getDefaultInclusion() == DefaultInclusion.ALL) {
-            return new ConfigValues(InclusionMode.ALL, false, Collections.emptyList(), Collections.emptyList());
-        } else {
-            return new ConfigValues(InclusionMode.FIRST, false, Collections.emptyList(), Collections.emptyList());
-        }
+        return new ConfigValues(getDefaultInclusion(), false, Collections.emptyList(), Collections.emptyList());
     }
 
     /**
@@ -469,44 +467,39 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
         List<ModuleName> included;
         List<ModuleName> excluded;
 
-        if (configFromServerXML.getConfigMode().isPresent()) {
-            ConfigMode configMode = configFromServerXML.getConfigMode().get();
-            included = Collections.emptyList();
+        inclusionMode = configFromServerXML.getConfigMode().map(configMode -> {
             if (configMode == OpenAPIServerXMLConfig.ConfigMode.All) {
-                inclusionMode = InclusionMode.ALL;
+                return InclusionMode.ALL;
             } else if (configMode == OpenAPIServerXMLConfig.ConfigMode.First) {
-                inclusionMode = InclusionMode.FIRST;
+                return InclusionMode.FIRST;
             } else if (configMode == OpenAPIServerXMLConfig.ConfigMode.None) {
-                inclusionMode = InclusionMode.NONE;
+                return InclusionMode.NONE;
             } else {
                 throw new IllegalArgumentException("configMode");
             }
-        } else if (configFromServerXML.getIncludedAppsAndModules().isPresent()) {
-            List<String> rawNames = configFromServerXML.getIncludedAppsAndModules().get();
-            included = rawNames.stream().map((String rawName) -> parseModuleName(rawName, Constants.MERGE_INCLUDE_CONFIG, WarningMode.LOG_WARNINGS))
-                               .filter(Optional::isPresent)
-                               .map(Optional::get)
-                               .collect(Collectors.toList());
-            inclusionMode = InclusionMode.NORMAL;
+        }).orElseGet(() -> configFromServerXML.getIncludedAppsAndModules().isPresent() ? InclusionMode.NORMAL : getDefaultInclusion());
+
+        if (inclusionMode == InclusionMode.NORMAL) {
+            included = configFromServerXML.getIncludedAppsAndModules()
+                                          .map(rawNames -> {
+                                              return rawNames.stream()
+                                                             .map(rawName -> parseModuleName(rawName, Constants.MERGE_INCLUDE_CONFIG, WarningMode.LOG_WARNINGS))
+                                                             .filter(Optional::isPresent)
+                                                             .map(Optional::get)
+                                                             .collect(Collectors.toList());
+                                          })
+                                          .orElse(Collections.emptyList());
         } else {
-            DefaultInclusion defaultInclusion = getDefaultInclusion();
-            if (defaultInclusion == DefaultInclusion.FIRST) {
-                inclusionMode = InclusionMode.FIRST;
-            } else {
-                inclusionMode = InclusionMode.ALL;
-            }
             included = Collections.emptyList();
         }
 
-        if (configFromServerXML.getExcludedAppsAndModules().isPresent()) {
-            List<String> rawNames = configFromServerXML.getExcludedAppsAndModules().get();
-            excluded = rawNames.stream().map((String rawName) -> parseModuleName(rawName, Constants.MERGE_INCLUDE_CONFIG, WarningMode.LOG_WARNINGS))
-                               .filter(Optional::isPresent)
-                               .map(Optional::get)
-                               .collect(Collectors.toList());
-        } else {
-            excluded = Collections.emptyList();
-        }
+        excluded = configFromServerXML.getExcludedAppsAndModules()
+                                      .map(rawNames -> rawNames.stream()
+                                                               .map(rawName -> parseModuleName(rawName, Constants.MERGE_INCLUDE_CONFIG, WarningMode.LOG_WARNINGS))
+                                                               .filter(Optional::isPresent)
+                                                               .map(Optional::get)
+                                                               .collect(Collectors.toList()))
+                                      .orElse(Collections.emptyList());
 
         return Optional.of(new ConfigValues(inclusionMode, true, included, excluded));
     }
@@ -531,25 +524,24 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
             return Optional.empty();
         }
 
-        String defaultInclude = getDefaultInclusion() == DefaultInclusion.FIRST ? "first" : "all";
-        String inclusion = inclusionProperty.orElse(defaultInclude);
-
         InclusionMode inclusionMode;
         List<ModuleName> included;
         List<ModuleName> excluded;
 
-        if (inclusion.equals("none")) {
-            inclusionMode = InclusionMode.NONE;
-        } else if (inclusion.equals("all")) {
-            inclusionMode = InclusionMode.ALL;
-        } else if (inclusion.equals("first")) {
-            inclusionMode = InclusionMode.FIRST;
-        } else {
-            inclusionMode = InclusionMode.NORMAL;
-        }
+        inclusionMode = inclusionProperty.map(inclusion -> {
+            if (inclusion.equals("none")) {
+                return InclusionMode.NONE;
+            } else if (inclusion.equals("all")) {
+                return InclusionMode.ALL;
+            } else if (inclusion.equals("first")) {
+                return InclusionMode.FIRST;
+            } else {
+                return InclusionMode.NORMAL;
+            }
+        }).orElseGet(this::getDefaultInclusion);
 
         if (inclusionMode == InclusionMode.NORMAL) {
-            included = parseModuleNames(inclusion, Constants.MERGE_INCLUDE_CONFIG, warningMode);
+            included = parseModuleNames(inclusionProperty.orElse(""), Constants.MERGE_INCLUDE_CONFIG, warningMode);
         } else {
             included = Collections.emptyList();
         }
@@ -569,13 +561,6 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
     private enum WarningMode {
         LOG_WARNINGS,
         SUPPRESS_WARNINGS
-    }
-
-    private enum InclusionMode {
-        ALL,
-        FIRST,
-        NONE,
-        NORMAL
     }
 
     /**
