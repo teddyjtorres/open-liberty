@@ -312,6 +312,9 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
     private int _throttleWaiters;
     private final static int _waiterThreshold;
 
+    // Switch on SQL comments for testing
+    private static Boolean _tagSQL;
+
     static {
         int waiterThreshold = 6;
         try {
@@ -331,6 +334,17 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         _waiterThreshold = waiterThreshold;
         if (tc.isDebugEnabled())
             Tr.debug(tc, "Throttle waiter threshold set to ", _waiterThreshold);
+
+        try {
+            _tagSQL = AccessController.doPrivileged(
+                                                    new PrivilegedExceptionAction<Boolean>() {
+                                                        @Override
+                                                        public Boolean run() {
+                                                            return Boolean.getBoolean("com.ibm.ws.recoverylog.custom.jdbc.tagSQL");
+                                                        }
+                                                    });
+        } catch (PrivilegedActionException e) {
+        }
     }
 
     private boolean _throttleEnabled;
@@ -3690,7 +3704,7 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
                              (DBProduct.Sqlserver == dbProduct ? " WITH (ROWLOCK, UPDLOCK, HOLDLOCK)" : "") +
                              " WHERE RU_ID=-1" +
                              ((DBProduct.Sqlserver == dbProduct ? "" : " FOR UPDATE") +
-                              sqltag);
+                              (_tagSQL ? sqltag : ""));
         if (tc.isDebugEnabled())
             Tr.debug(tc, "Attempt to select the HA LOCKING ROW for UPDATE - " + queryString);
         return lockingStmt.executeQuery(queryString);
@@ -4449,7 +4463,7 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
                              (DBProduct.Sqlserver == dbProduct ? " WITH (ROWLOCK, UPDLOCK, HOLDLOCK)" : "") +
                              " WHERE RU_ID=-1" +
                              ((DBProduct.Sqlserver == dbProduct ? "" : " FOR UPDATE") +
-                              "--internalClaimRecoveryLogs");
+                              (_tagSQL ? "--internalClaimRecoveryLogs" : ""));
         if (tc.isDebugEnabled())
             Tr.debug(tc, "Attempt to select the HA LOCKING ROW for UPDATE using - " + queryString);
 
