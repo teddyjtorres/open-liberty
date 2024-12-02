@@ -23,6 +23,7 @@ import org.junit.runners.model.FrameworkMethod;
 
 import componenttest.annotation.SkipForRepeat;
 import componenttest.annotation.SkipForRepeat.MultivalueSkips;
+import componenttest.rules.repeater.CheckpointRule;
 import componenttest.rules.repeater.RepeatTestAction;
 
 public class RepeatTestFilter {
@@ -58,7 +59,7 @@ public class RepeatTestFilter {
 
         String[] skipValues = MultivalueSkips.getSkipForRepeatValues(anno.value());
         for (String action : skipValues) {
-            if (repeatStackContainsActionByID(action)) {
+            if (repeatStackContainsActionByID(action) || (action.equals(CheckpointRule.ID) && CheckpointRule.isActive())) {
                 log.info("Skipping test method " + method.getName() + " on action " + action);
                 return false;
             }
@@ -83,7 +84,7 @@ public class RepeatTestFilter {
 
         String[] skipValues = MultivalueSkips.getSkipForRepeatValues(anno.value());
         for (String action : skipValues) {
-            if (repeatStackContainsActionByID(action)) {
+            if (repeatStackContainsActionByID(action) || (action.equals(CheckpointRule.ID) && CheckpointRule.isActive())) {
                 log.info("Skipping test class " + clazz.getName() + " on action " + action);
                 return false;
             }

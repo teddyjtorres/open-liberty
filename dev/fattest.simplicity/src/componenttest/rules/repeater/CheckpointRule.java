@@ -42,6 +42,7 @@ import io.openliberty.checkpoint.spi.CheckpointPhase;
  */
 public class CheckpointRule implements TestRule {
     private static final AtomicBoolean IS_ACTIVE = new AtomicBoolean();
+    public static final String ID = "CHECKPOINT_RULE";
 
     /**
      * Returns true if the test is running with the checkpoint scenario
@@ -394,7 +395,7 @@ public class CheckpointRule implements TestRule {
             setJvmOptions();
             configureBootStrapProperties();
 
-            String logName = "CHECKPOINT_RULE_" + consoleLogName;
+            String logName = ID + "_" + consoleLogName;
             log("checkpointSetup", "Configuring checkpoint phase '" + checkpointPhase + "' with log name: " + logName);
             CheckpointInfo checkpointInfo = new CheckpointInfo(checkpointPhase, true, postCheckpointLambda);
             server.setConsoleLogName(logName);
