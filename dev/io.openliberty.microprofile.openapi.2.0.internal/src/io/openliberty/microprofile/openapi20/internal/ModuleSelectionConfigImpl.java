@@ -124,7 +124,7 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
             result = true;
         } else {
             for (ModuleName name : config.included) {
-                if (matches(name, module)) {
+                if (matches(name, module, config)) {
                     result = true;
                     break;
                 }
@@ -133,7 +133,7 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
 
         if (result) {
             for (ModuleName name : config.excluded) {
-                if (matches(name, module)) {
+                if (matches(name, module, config)) {
                     result = false;
                     break;
                 }
@@ -164,7 +164,7 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
         for (Iterator<ModuleName> iterator = includedNotYetSeen.iterator(); iterator.hasNext();) {
             ModuleName moduleName = iterator.next();
             for (ModuleInfo moduleInfo : moduleInfos) {
-                if (matches(moduleName, moduleInfo)) {
+                if (matches(moduleName, moduleInfo, config)) {
                     iterator.remove();
                     break;
                 }
@@ -208,7 +208,7 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
         for (Iterator<ModuleName> iterator = excludedNotYetSeen.iterator(); iterator.hasNext();) {
             ModuleName moduleName = iterator.next();
             for (ModuleInfo moduleInfo : moduleInfos) {
-                if (matches(moduleName, moduleInfo)) {
+                if (matches(moduleName, moduleInfo, config)) {
                     iterator.remove();
                     break;
                 }
@@ -252,8 +252,8 @@ public class ModuleSelectionConfigImpl implements ModuleSelectionConfig, OpenAPI
      * @param name a name we're configured to include in the openAPI documentation
      * @param module an actual module deployed on the server
      */
-    private boolean matches(ModuleName name, ModuleInfo module) {
-        return matches(name, module, getConfigValues().serverxmlmode ? MatchingMode.SERVER_XML_NAME : MatchingMode.DEPLOYMENT_DESCRIPTOR_NAME);
+    private boolean matches(ModuleName name, ModuleInfo module, ConfigValues config) {
+        return matches(name, module, config.serverxmlmode ? MatchingMode.SERVER_XML_NAME : MatchingMode.DEPLOYMENT_DESCRIPTOR_NAME);
     }
 
     private static boolean matches(ModuleName name, ModuleInfo module, MatchingMode matchingMode) {
