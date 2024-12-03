@@ -313,15 +313,7 @@ public class CryptoUtils {
                     md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
                                                     IBMJCE_PLUS_FIPS_NAME);
                 }
-            } else if (isOpenJCEPlusAvailable()) {
-                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA,
-                                                OPENJCE_PLUS_NAME);
-            } else if (isIBMJCEAvailable()) {
-                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA,
-                                                IBMJCE_NAME);
-            } 
-            
-            if (md1 == null) {
+            } else {
                 md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA);
             }
 
