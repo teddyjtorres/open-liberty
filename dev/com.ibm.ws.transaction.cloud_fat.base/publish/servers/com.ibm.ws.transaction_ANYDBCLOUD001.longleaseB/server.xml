@@ -40,9 +40,14 @@
       <!-- Properties modified by fat for database rotation -->
       <properties.derby.embedded  createDatabase="create" databaseName="${shared.resource.dir}/data/transactionFATCloud" user="dbuser1" password="{xor}Oz0vKDtu"/>
     </dataSource>
-    
-    <include location="../fatTestPorts.xml"/>
-    
+
+	<httpEndpoint host="*"
+                  httpPort="${bvt.prop.HTTP_tertiary}"
+                  httpsPort="${bvt.prop.HTTP_tertiary.secure}"
+                  id="defaultHttpEndpoint">
+    	<tcpOptions portOpenRetries="100000"/>
+	</httpEndpoint>
+
     <javaPermission codeBase="${server.config.dir}/apps/transaction.war" className="java.security.AllPermission"/>
     <javaPermission codeBase="${server.config.dir}/apps/transaction.war" className="java.util.PropertyPermission" name="user.dir" actions="read"/>
     
