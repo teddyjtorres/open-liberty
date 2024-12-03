@@ -179,11 +179,24 @@
 		</condition>
 
 		<!-- boolean for Java15+.  The assumption is that at this point forward (Java 15), we will only be building using LTS 
-		     or interium versions of Java -->
+		     or interim versions of Java -->
 		<condition property="is.java15.orHigher" value="true">
 			<not>
 				<or>
 					<equals arg1="11" arg2="${java.specification.version}"/>
+					<equals arg1="1.8" arg2="${java.specification.version}"/>
+				</or>
+		    </not>
+		</condition>
+		
+		<!-- boolean for Java24+.  The assumption is that at this point forward (Java 24), we will only be building using LTS 
+		     or interim versions of Java -->
+		<condition property="is.java24.orHigher" value="true">
+			<not>
+				<or>
+					<equals arg1="21"  arg2="${java.specification.version}"/>
+					<equals arg1="17"  arg2="${java.specification.version}"/>
+					<equals arg1="11"  arg2="${java.specification.version}"/>
 					<equals arg1="1.8" arg2="${java.specification.version}"/>
 				</or>
 		    </not>
@@ -199,12 +212,14 @@
 		<property name="illegal.access.permit.fat" value=""/>
 		
 		<!-- Java 17 began the security manager's deprecation process (https://openjdk.java.net/jeps/411).
-			     In Java 18, the `java.security.manager` system property's default changed from `allow` to `disallow`, which causes our build process to fail.  
-				 Setting up a gated property (use.java.security.manager) so that any builds that take place on Java 15+ use the JVM override 
-				 -Djava.security.manager=allow which is needed for our build process, but older versions will be skipped --> 
+             In Java 18, the `java.security.manager` system property's default changed from `allow` to `disallow`, which causes our build process to fail.  
+             Setting up a gated property (use.java.security.manager) so that any builds that take place on Java 15+ use the JVM override 
+             -Djava.security.manager=allow which is needed for our build process, but older versions will be skipped. 
+             In Java 24, they are permanently disabling the security manager (https://openjdk.org/jeps/486) and trying to specify `-Djava.security.manager=allow` throws an exception.  So not allowing that parameter to be set if Java 24 or higher. --> 
 		<condition property="use.java.security.manager" value="-Djava.security.manager=allow">
 			<and>
 				<istrue value="${is.java15.orHigher}"/>
+				<not><istrue value="${is.java24.orHigher}"/></not>
 				<not><istrue value="${supports.framework.java}"/></not>
 			</and>
 		</condition>
