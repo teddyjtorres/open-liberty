@@ -48,8 +48,10 @@ public class JSONJacksonImpl implements JSON {
         //set inclusion
         Include inclusion = settings.getInclusion();
         if (inclusion == Include.ALWAYS) {
+            System.out.println("=====    Inclusion is Always    =====");
             mapper.getSerializationConfig().setSerializationInclusion(Inclusion.ALWAYS);
         } else if (inclusion == Include.NON_NULL) {
+            System.out.println("=====    Inclusion is Non Null    =====");
             mapper.getSerializationConfig().setSerializationInclusion(Inclusion.NON_NULL);
         }
     }
@@ -58,7 +60,9 @@ public class JSONJacksonImpl implements JSON {
     @Override
     public String stringify(Object o) throws JSONMarshallException {
         try {
-            return mapper.writeValueAsString(o);
+            String s = mapper.writeValueAsString(o);
+            System.out.println(s);
+            return s;
         } catch (JsonMappingException e) {
             throw new JSONMarshallException("Unable to parse non-well-formed content", e);
         } catch (JsonGenerationException e) {
