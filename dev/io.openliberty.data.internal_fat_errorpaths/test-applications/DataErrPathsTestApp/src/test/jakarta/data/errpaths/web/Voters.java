@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 import jakarta.data.Sort;
 import jakarta.data.repository.BasicRepository;
 import jakarta.data.repository.By;
+import jakarta.data.repository.Delete;
 import jakarta.data.repository.Find;
 import jakarta.data.repository.Insert;
 import jakarta.data.repository.OrderBy;
@@ -138,6 +139,12 @@ public interface Voters extends BasicRepository<Voter, Integer> {
      */
     @Insert
     Voter register(Voter... v);
+
+    /**
+     * Delete method that attempts to return a record instead of an entity.
+     */
+    @Delete
+    Optional<NameAndZipCode> removeBySSN(@By("ssn") int socialSecurityNumber);
 
     /**
      * This invalid method has matching named parameters and Param annotation,

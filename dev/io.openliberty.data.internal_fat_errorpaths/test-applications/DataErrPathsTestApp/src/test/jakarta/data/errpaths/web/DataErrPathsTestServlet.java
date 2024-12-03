@@ -470,6 +470,25 @@ public class DataErrPathsTestServlet extends FATServlet {
     }
 
     /**
+     * Tests an error path where a repository method attempts to return a subset of
+     * an entity as a record where the record component names do not all match the
+     * entity attribute names.
+     */
+    @Test
+    public void testRemoveAsSubsetOfEntity() {
+        try {
+            NameAndZipCode removed = voters.removeBySSN(789001234).orElseThrow();
+            fail("Should not be able to remove an entity as a record: " +
+                 removed);
+        } catch (MappingException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1006E") ||
+                !x.getMessage().contains("NameAndZipCode"))
+                throw x;
+        }
+    }
+
+    /**
      * Tests an error path where the application specifies the repository dataStore
      * to be a JNDI name that does not exist.
      */
