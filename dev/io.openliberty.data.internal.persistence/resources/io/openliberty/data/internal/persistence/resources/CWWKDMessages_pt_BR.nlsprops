@@ -66,7 +66,7 @@ CWWKD1009.lifecycle.param.err=CWWKD1009E: O m\u00e9todo {0} da interface do repo
 CWWKD1009.lifecycle.param.err.explanation=Os m\u00e9todos de ciclo de vida devem ter um \u00fanico par\u00e2metro de entidade.
 CWWKD1009.lifecycle.param.err.useraction=Atualize o m\u00e9todo do reposit\u00f3rio para ter um \u00fanico par\u00e2metro que seja uma entidade ou uma matriz de Lista da entidade.
 
-CWWKD1010.unknown.entity.prop=CWWKD1010E: O m\u00e9todo {0} da interface do reposit\u00f3rio {1} espera uma propriedade de entidade chamada {2} que n\u00e3o \u00e9 encontrada na classe de entidade {3}. Os nomes de propriedades v\u00e1lidos para a entidade s\u00e3o: {4}.
+CWWKD1010.unknown.entity.prop=CWWKD1010E: Uma propriedade de entidade chamada {0} n\u00e3o foi encontrada na classe de entidade {1} para o m\u00e9todo {2} da interface de reposit\u00f3rio {3}. Os nomes de propriedades v\u00e1lidos para a entidade s\u00e3o: {4}.
 CWWKD1010.unknown.entity.prop.explanation=O m\u00e9todo de reposit\u00f3rio est\u00e1 tentando usar uma propriedade de entidade que n\u00e3o existe.
 CWWKD1010.unknown.entity.prop.useraction=Atualiza o m\u00e9todo do reposit\u00f3rio para corresponder a uma propriedade v\u00e1lida que \u00e9 definida pela entidade.
 
@@ -392,3 +392,24 @@ CWWKD1089.unordered.pagination.useraction=Use a anota\u00e7\u00e3o OrderBy para 
 CWWKD1090.orderby.conflict=CWWKD1090E: O m\u00e9todo {0} da interface do reposit\u00f3rio {1} n\u00e3o pode combinar a anota\u00e7\u00e3o OrderBy e a palavra-chave OrderBy.
 CWWKD1090.orderby.conflict.explanation=A anota\u00e7\u00e3o OrderBy n\u00e3o \u00e9 compat\u00edvel com a palavra-chave OrderBy.
 CWWKD1090.orderby.conflict.useraction=Use somente a anota\u00e7\u00e3o OrderBy ou a palavra-chave OrderBy.
+
+CWWKD1091.method.name.parse.err=CWWKD1091E: Uma propriedade de entidade chamada {0} n\u00e3o foi encontrada na classe de entidade {1} para o m\u00e9todo {2} da interface de reposit\u00f3rio {3}. Confirme se o m\u00e9todo do reposit\u00f3rio tem um nome que esteja em conformidade com o padr\u00e3o Query by Method Name (Consulta por nome de m\u00e9todo) ou se est\u00e1 anotado com um dos seguintes: {4}. Os nomes de propriedades v\u00e1lidos para a entidade s\u00e3o: {5}.
+CWWKD1091.method.name.parse.err.explanation=O nome do m\u00e9todo do reposit\u00f3rio foi analisado de acordo com o padr\u00e3o Query by Method Name porque o m\u00e9todo do reposit\u00f3rio n\u00e3o tem uma anota\u00e7\u00e3o Jakarta Data que indique o tipo de opera\u00e7\u00e3o.
+CWWKD1091.method.name.parse.err.useraction=Corrija o nome do m\u00e9todo do reposit\u00f3rio ou anote o m\u00e9todo do reposit\u00f3rio para indicar uma opera\u00e7\u00e3o do Jakarta Data, como Query, Find ou Save.
+
+CWWKD1092.lifecycle.arg.empty=CWWKD1092E: O m\u00e9todo {0} do reposit\u00f3rio {1} n\u00e3o aceita um par\u00e2metro {2} vazio. O valor do par\u00e2metro deve conter pelo menos uma entidade.
+CWWKD1092.lifecycle.arg.empty.explanation=M\u00e9todos Insert, Update, Save e Delete
+ require pelo menos uma entidade.
+CWWKD1092.lifecycle.arg.empty.useraction=Certifique-se de que a matriz, a lista ou o fluxo fornecido ao m\u00e9todo contenha pelo menos uma entidade.
+
+CWWKD1093.fn.not.applicable=CWWKD1093E: A fun\u00e7\u00e3o {0} n\u00e3o pode ser avaliada para a entidade {1} que \u00e9 usada pelo m\u00e9todo {2} da interface do reposit\u00f3rio {3}. A entidade n\u00e3o tem uma propriedade anotada com {4} ou da qual {0} possa ser inferido.
+CWWKD1093.fn.not.applicable.explanation=A fun\u00e7\u00e3o n\u00e3o pode ser usada na entidade porque a entidade n\u00e3o possui uma propriedade de ID ou vers\u00e3o.
+CWWKD1093.fn.not.applicable.useraction=N\u00e3o use a fun\u00e7\u00e3o na linguagem de consulta ou nos par\u00e2metros do m\u00e9todo de reposit\u00f3rio.
+
+CWWKD1094.return.mismatch=CWWKD1094E: O m\u00e9todo {0} da interface {1} do reposit\u00f3rio tem o tipo de retorno {2}, que n\u00e3o \u00e9 capaz de retornar o n\u00famero de entidades, {3}, que o m\u00e9todo do reposit\u00f3rio aceita como par\u00e2metro. Os tipos de retorno v\u00e1lidos para um m\u00e9todo {4} que aceita v\u00e1rias entidades incluem: {5}.
+CWWKD1094.return.mismatch.explanation=Um m\u00e9todo do ciclo de vida do reposit\u00f3rio que retorna entidades deve ser capaz de retornar o mesmo n\u00famero de entidades que s\u00e3o aceitas pelo m\u00e9todo.
+CWWKD1094.return.mismatch.useraction=Atualize o m\u00e9todo do reposit\u00f3rio para usar um tipo de retorno que possa retornar v\u00e1rias entidades ou atualize o m\u00e9todo do reposit\u00f3rio para aceitar apenas uma \u00fanica entidade.
+
+CWWKD1095.repo.err=CWWKD1095E: Uma implementa\u00e7\u00e3o da interface do reposit\u00f3rio {0} n\u00e3o pode ser fornecida devido a um erro. A anota\u00e7\u00e3o do reposit\u00f3rio \u00e9 {1}. A classe de entidade prim\u00e1ria \u00e9 {2}. O erro \u00e9: {3}
+CWWKD1095.repo.err.explanation=O provedor integrado Jakarta Data n\u00e3o pode fornecer uma inst\u00e2ncia do reposit\u00f3rio devido a um erro.
+CWWKD1095.repo.err.useraction=Investigue o erro e corrija a interface do reposit\u00f3rio, as entidades, a configura\u00e7\u00e3o do armazenamento de dados ou o banco de dados.

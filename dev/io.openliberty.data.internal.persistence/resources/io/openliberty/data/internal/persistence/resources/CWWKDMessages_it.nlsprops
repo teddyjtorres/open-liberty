@@ -66,7 +66,7 @@ CWWKD1009.lifecycle.param.err=CWWKD1009E: Il metodo {0} dell''interfaccia del re
 CWWKD1009.lifecycle.param.err.explanation=I metodi del ciclo di vita devono avere un unico parametro di entit\u00e0.
 CWWKD1009.lifecycle.param.err.useraction=Aggiornare il metodo del repository per avere un singolo parametro che sia un'entit\u00e0 o un array di elenchi dell'entit\u00e0.
 
-CWWKD1010.unknown.entity.prop=CWWKD1010E: Il metodo {0} dell''interfaccia del repository {1} si aspetta una propriet\u00e0 dell''entit\u00e0 chiamata {2} che non si trova nella classe dell''entit\u00e0 {3}. I nomi di propriet\u00e0 validi per l''entit\u00e0 sono: {4}.
+CWWKD1010.unknown.entity.prop=CWWKD1010E: Una propriet\u00e0 dell''entit\u00e0 denominata {0} non si trova nella classe dell''entit\u00e0 {1} per il metodo {2} dell''interfaccia del repository {3}. I nomi di propriet\u00e0 validi per l''entit\u00e0 sono: {4}.
 CWWKD1010.unknown.entity.prop.explanation=Il metodo del repository sta tentando di utilizzare una propriet\u00e0 dell'entit\u00e0 che non esiste.
 CWWKD1010.unknown.entity.prop.useraction=Aggiornare il metodo del repository in modo che corrisponda a una propriet\u00e0 valida definita dall'entit\u00e0.
 
@@ -392,3 +392,24 @@ CWWKD1089.unordered.pagination.useraction=Utilizzare l'annotazione OrderBy per d
 CWWKD1090.orderby.conflict=CWWKD1090E: Il metodo {0} dell''interfaccia del repository {1} non pu\u00f2 combinare l''annotazione OrderBy e la parola chiave OrderBy.
 CWWKD1090.orderby.conflict.explanation=L'annotazione OrderBy non \u00e8 compatibile con la parola chiave OrderBy.
 CWWKD1090.orderby.conflict.useraction=Utilizzare solo l'annotazione OrderBy o la parola chiave OrderBy.
+
+CWWKD1091.method.name.parse.err=CWWKD1091E: Una propriet\u00e0 dell''entit\u00e0 denominata {0} non si trova nella classe dell''entit\u00e0 {1} per il metodo {2} dell''interfaccia del repository {3}. Confermare che il metodo del repository abbia un nome conforme allo schema Query by Method Name o sia annotato con uno dei seguenti elementi: {4}. I nomi di propriet\u00e0 validi per l''entit\u00e0 sono: {5}.
+CWWKD1091.method.name.parse.err.explanation=Il nome del metodo del repository \u00e8 stato analizzato secondo lo schema Query by Method Name, perch\u00e9 il metodo del repository non ha un'annotazione Jakarta Data che indica il tipo di operazione.
+CWWKD1091.method.name.parse.err.useraction=Correggere il nome del metodo del repository o annotare il metodo del repository per indicare un'operazione di Jakarta Data come Query, Find o Save.
+
+CWWKD1092.lifecycle.arg.empty=CWWKD1092E: Il metodo {0} del repository {1} non accetta un parametro {2} vuoto. Il valore del parametro deve contenere almeno un''entit\u00e0.
+CWWKD1092.lifecycle.arg.empty.explanation=Metodi di inserimento, aggiornamento, salvataggio e cancellazione
+ require almeno un'entit\u00e0.
+CWWKD1092.lifecycle.arg.empty.useraction=Assicurarsi che l'array, l'elenco o il flusso fornito al metodo contenga almeno un'entit\u00e0.
+
+CWWKD1093.fn.not.applicable=CWWKD1093E: La funzione {0} non pu\u00f2 essere valutata per l''entit\u00e0 {1} utilizzata dal metodo {2} dell''interfaccia del repository {3}. L''entit\u00e0 non ha una propriet\u00e0 annotata con {4} o da cui si possa dedurre {0}.
+CWWKD1093.fn.not.applicable.explanation=La funzione non pu\u00f2 essere usata sull'entit\u00e0 perch\u00e9 questa non ha una propriet\u00e0 ID o versione.
+CWWKD1093.fn.not.applicable.useraction=Non utilizzare la funzione nel linguaggio di interrogazione o nei parametri del metodo di repository.
+
+CWWKD1094.return.mismatch=CWWKD1094E: Il metodo {0} dell''interfaccia del repository {1} ha il tipo di ritorno {2}, che non \u00e8 in grado di restituire il numero di entit\u00e0, {3}, che il metodo del repository accetta come parametro. I tipi di ritorno validi per un metodo {4} che accetta pi\u00f9 entit\u00e0 includono: {5}.
+CWWKD1094.return.mismatch.explanation=Un metodo del ciclo di vita del repository che restituisce entit\u00e0 deve poter restituire lo stesso numero di entit\u00e0 accettate dal metodo.
+CWWKD1094.return.mismatch.useraction=Aggiornare il metodo del repository per utilizzare un tipo di ritorno che possa restituire pi\u00f9 entit\u00e0 o aggiornare il metodo del repository per accettare solo una singola entit\u00e0.
+
+CWWKD1095.repo.err=CWWKD1095E: Un''implementazione dell''interfaccia del repository {0} non pu\u00f2 essere fornita a causa di un errore. L''annotazione del repository \u00e8 {1}. La classe di entit\u00e0 primaria \u00e8 {2}. L''errore \u00e8: {3}
+CWWKD1095.repo.err.explanation=Il provider integrato di Jakarta Data non \u00e8 in grado di fornire un'istanza del repository a causa di un errore.
+CWWKD1095.repo.err.useraction=Indagare l'errore e correggere l'interfaccia del repository, le entit\u00e0, la configurazione dell'archivio dati o il database.

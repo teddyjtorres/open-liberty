@@ -157,3 +157,7 @@ OPENAPI_VERSION_NOT_SUPPORTED_CWWK06182W.useraction=Actualiza\u021bi atributul o
 OPENAPI_INFO_INVALID_SERVERXML_CWWKO1683W=CWWKO1683W: Elementul de configurare a informa\u021biilor mpOpenAPI din fi\u0219ierul server.xml este nevalid. Trebuie setate at\u00e2t atributele titlu, c\u00e2t \u0219i versiunea. Elementul info va fi ignorat.
 OPENAPI_INFO_INVALID_SERVERXML_CWWKO1683W.explanation=C\u00e2mpurile titlu \u0219i versiune sunt propriet\u0103\u021bi obligatorii \u00een obiectul de informa\u021bii al unui document OpenAPI . La configurarea obiectului info, trebuie furnizat\u0103 o valoare pentru atributele titlu \u0219i versiune.
 OPENAPI_INFO_INVALID_SERVERXML_CWWKO1683W.useraction=Asigura\u021bi-v\u0103 c\u0103 atributele titlu \u0219i versiune sunt setate la valori valide \u00een elementul de informa\u021bii mpOpenAPI .
+
+OPENAPI_MERGE_UNUSED_INCLUDE_SERVERXML_CWWKO1684W=CWWKO1684W: Elementul de configurare {0} include \u201e {1} \u201d, dar care nu se potrive\u0219te cu nicio aplica\u021bie sau modul web implementat.
+OPENAPI_MERGE_UNUSED_INCLUDE_SERVERXML_CWWKO1684W.explanation=Serverul este configurat s\u0103 creeze documenta\u0163ia OpenAPI pentru numele de aplica\u0163ie sau de modul web, dar nu este implementat\u0103 nicio aplica\u0163ie sau modul web cu acel nume.
+OPENAPI_MERGE_UNUSED_INCLUDE_SERVERXML_CWWKO1684W.useraction=Verifica\u021bi dac\u0103 toate aplica\u021biile au pornit corect \u0219i dac\u0103 numele din configura\u021bie sunt specificate corect.

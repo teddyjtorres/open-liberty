@@ -157,3 +157,7 @@ OPENAPI_VERSION_NOT_SUPPORTED_CWWK06182W.useraction=Mettez \u00e0 jour l'attribu
 OPENAPI_INFO_INVALID_SERVERXML_CWWKO1683W=CWWKO1683W: L'\u00e9l\u00e9ment de configuration mpOpenAPI info du fichier server.xml n'est pas valide. Les attributs title et version doivent \u00eatre d\u00e9finis. L'\u00e9l\u00e9ment info sera ignor\u00e9.
 OPENAPI_INFO_INVALID_SERVERXML_CWWKO1683W.explanation=Les champs titre et version sont des propri\u00e9t\u00e9s obligatoires de l'objet info d'un document OpenAPI. Lors de la configuration de l'objet info, une valeur doit \u00eatre fournie pour les attributs title et version.
 OPENAPI_INFO_INVALID_SERVERXML_CWWKO1683W.useraction=Assurez-vous que les attributs title et version sont d\u00e9finis sur des valeurs valides dans l'\u00e9l\u00e9ment d'information mpOpenAPI 
+
+OPENAPI_MERGE_UNUSED_INCLUDE_SERVERXML_CWWKO1684W=CWWKO1684W: L''\u00e9l\u00e9ment de configuration {0} inclut{1}" mais cela ne correspond \u00e0 aucune application ou module web d\u00e9ploy\u00e9.
+OPENAPI_MERGE_UNUSED_INCLUDE_SERVERXML_CWWKO1684W.explanation=Le serveur est configur\u00e9 pour cr\u00e9er la documentation OpenAPI pour l'application ou le nom de module, mais aucune application ou module Web portant ce nom n'a \u00e9t\u00e9 d\u00e9ploy\u00e9.
+OPENAPI_MERGE_UNUSED_INCLUDE_SERVERXML_CWWKO1684W.useraction=V\u00e9rifiez que toutes les applications ont d\u00e9marr\u00e9 correctement et que les noms dans la configuration sont sp\u00e9cifi\u00e9s correctement.

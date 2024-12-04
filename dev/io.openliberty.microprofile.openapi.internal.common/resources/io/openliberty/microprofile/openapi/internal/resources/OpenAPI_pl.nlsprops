@@ -157,3 +157,7 @@ OPENAPI_VERSION_NOT_SUPPORTED_CWWK06182W.useraction=Zaktualizuj atrybut openAPIV
 OPENAPI_INFO_INVALID_SERVERXML_CWWKO1683W=CWWKO1683W: Element konfiguracji informacji mpOpenAPI w pliku server.xml jest nieprawid\u0142owy. Nale\u017cy ustawi\u0107 atrybuty title i version. Element info zostanie zignorowany.
 OPENAPI_INFO_INVALID_SERVERXML_CWWKO1683W.explanation=Pola tytu\u0142u i wersji to wymagane w\u0142a\u015bciwo\u015bci w obiekcie info dokumentu OpenAPI . Podczas konfigurowania obiektu info nale\u017cy poda\u0107 warto\u015bci atrybut\u00f3w title i version.
 OPENAPI_INFO_INVALID_SERVERXML_CWWKO1683W.useraction=Upewnij si\u0119, \u017ce atrybuty title i version s\u0105 ustawione na prawid\u0142owe warto\u015bci w elemencie info mpOpenAPI .
+
+OPENAPI_MERGE_UNUSED_INCLUDE_SERVERXML_CWWKO1684W=CWWKO1684W: Element konfiguracji {0} zawiera \u201e {1} \u201d, ale nie pasuje on do \u017cadnej wdro\u017conej aplikacji ani modu\u0142u internetowego.
+OPENAPI_MERGE_UNUSED_INCLUDE_SERVERXML_CWWKO1684W.explanation=Serwer jest skonfigurowany tak, aby utworzy\u0107 dokumentacj\u0119 OpenAPI dla nazwy aplikacji lub modu\u0142u, ale nie wdro\u017cono \u017cadnej aplikacji ani modu\u0142u internetowego o tej nazwie.
+OPENAPI_MERGE_UNUSED_INCLUDE_SERVERXML_CWWKO1684W.useraction=Sprawd\u017a, czy wszystkie aplikacje zosta\u0142y uruchomione prawid\u0142owo i czy nazwy w konfiguracji s\u0105 okre\u015blone poprawnie.
