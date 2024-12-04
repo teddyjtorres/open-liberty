@@ -204,7 +204,7 @@ public class OpenAPIAppConfigProviderImpl implements OpenAPIAppConfigProvider {
             MpConfigServerConfigObject otherConfig = (MpConfigServerConfigObject) other;
 
             return (includedApps.equals(otherConfig.includedApps)
-                    && excludedApps.equals(otherConfig.excludedModules)
+                    && excludedApps.equals(otherConfig.excludedApps)
                     && includedModules.equals(otherConfig.includedModules)
                     && excludedModules.equals(otherConfig.excludedModules)
                     && configMode.equals(otherConfig.configMode));
