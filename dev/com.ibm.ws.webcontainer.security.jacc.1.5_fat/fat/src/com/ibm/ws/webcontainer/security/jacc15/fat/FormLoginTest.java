@@ -70,16 +70,20 @@ import componenttest.topology.utils.LDAPUtils;
 @RunWith(FATRunner.class)
 @CheckpointTest(alwaysRun = true)
 public class FormLoginTest extends CommonServletTestScenarios {
-    private static LibertyServer myServer = LibertyServerFactory.getLibertyServer("com.ibm.ws.webcontainer.security.fat.formlogin");
+    private static LibertyServer myServer;
     private static Class<?> myLogClass = FormLoginTest.class;
     private static FormLoginClient myClient;
     private static SSLFormLoginClient mySSLClient;
 
     @ClassRule
-    public static CheckpointRule checkpointRule = new CheckpointRule().setConsoleLogName(FormLoginTest.class.getSimpleName()
-                                                                                         + ".log").setServerSetup(FormLoginTest::serverSetUp).setServerStart(FormLoginTest::serverStart).setServerTearDown(FormLoginTest::serverTearDown);
+    public static CheckpointRule checkpointRule = new CheckpointRule()
+                                                      .setConsoleLogName(FormLoginTest.class.getSimpleName() + ".log")
+                                                      .setServerSetup(FormLoginTest::serverSetUp)
+                                                      .setServerStart(FormLoginTest::serverStart)
+                                                      .setServerTearDown(FormLoginTest::serverTearDown);
 
     public static LibertyServer serverSetUp(ServerMode mode) throws Exception {
+        myServer = LibertyServerFactory.getLibertyServer("com.ibm.ws.webcontainer.security.fat.formlogin");
         myServer.addInstalledAppForValidation("formlogin");
 
         JACCFatUtils.installJaccUserFeature(myServer);

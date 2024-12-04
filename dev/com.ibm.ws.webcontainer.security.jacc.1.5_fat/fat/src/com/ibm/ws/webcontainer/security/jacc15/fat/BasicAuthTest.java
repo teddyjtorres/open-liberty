@@ -41,7 +41,7 @@ import componenttest.topology.impl.LibertyServerFactory;
 @CheckpointTest(alwaysRun = true)
 public class BasicAuthTest extends CommonServletTestScenarios {
     private static String DEFAULT_CONFIG_FILE = "basicauth.server.orig.xml";
-    private static LibertyServer myServer = LibertyServerFactory.getLibertyServer("com.ibm.ws.webcontainer.security.fat.basicauth");
+    private static LibertyServer myServer;
     private static Class<?> myLogClass = BasicAuthTest.class;
     private static BasicAuthClient myClient;
     private static SSLBasicAuthClient mySSLClient;
@@ -55,8 +55,11 @@ public class BasicAuthTest extends CommonServletTestScenarios {
     private static TestName _name = new TestName();
 
     @ClassRule
-    public static CheckpointRule checkpointRule = new CheckpointRule().setConsoleLogName(BasicAuthTest.class.getSimpleName()
-                                                                                         + ".log").setServerSetup(BasicAuthTest::serverSetUp).setServerStart(BasicAuthTest::serverStart).setServerTearDown(BasicAuthTest::serverTearDown);
+    public static CheckpointRule checkpointRule = new CheckpointRule()
+                                                      .setConsoleLogName(BasicAuthTest.class.getSimpleName()+ ".log")
+                                                      .setServerSetup(BasicAuthTest::serverSetUp)
+                                                      .setServerStart(BasicAuthTest::serverStart)
+                                                      .setServerTearDown(BasicAuthTest::serverTearDown);
 
     public static LibertyServer serverSetUp(ServerMode mode) throws Exception {
         myServer = LibertyServerFactory.getLibertyServer("com.ibm.ws.webcontainer.security.fat.basicauth");
