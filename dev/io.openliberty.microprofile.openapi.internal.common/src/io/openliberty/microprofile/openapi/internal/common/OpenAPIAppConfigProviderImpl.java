@@ -15,6 +15,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -210,6 +211,11 @@ public class OpenAPIAppConfigProviderImpl implements OpenAPIAppConfigProvider {
         }
 
         @Override
+        public int hashCode() {
+            return Objects.hash(configMode, excludedApps, excludedModules, includedApps, includedModules);
+        }
+
+        @Override
         public Optional<List<String>> getIncludedAppsAndModules() {
             List<String> combinedList = new ArrayList<String>(includedApps);
             combinedList.addAll(includedModules);
@@ -235,6 +241,25 @@ public class OpenAPIAppConfigProviderImpl implements OpenAPIAppConfigProvider {
                     || includedModules.size() > 0
                     || excludedModules.size() > 0
                     || configMode.isPresent());
+        }
+
+        @Override
+        public String toString() {
+            StringBuilder builder = new StringBuilder();
+            builder.append("MpConfigServerConfigObject [includedApps=");
+            builder.append(includedApps);
+            builder.append(", excludedApps=");
+            builder.append(excludedApps);
+            builder.append(", includedModules=");
+            builder.append(includedModules);
+            builder.append(", excludedModules=");
+            builder.append(excludedModules);
+            builder.append(", configMode=");
+            builder.append(configMode);
+            builder.append(", wasAnyConfigFound()=");
+            builder.append(wasAnyConfigFound());
+            builder.append("]");
+            return builder.toString();
         }
     }
 
