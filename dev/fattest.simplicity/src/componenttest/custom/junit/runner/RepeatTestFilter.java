@@ -60,13 +60,17 @@ public class RepeatTestFilter {
         String[] skipValues = MultivalueSkips.getSkipForRepeatValues(anno.value());
         for (String action : skipValues) {
             //Skipping for CHECKPOINT_RULE is currently possible only for methods since the isActive() never returns true on class level. It will skip running the checkpoint repeat for any method when the checkpoint rule is added as a ClassRule.
-            if (repeatStackContainsActionByID(action) || (action.equals(CheckpointRule.ID) && CheckpointRule.isActive())) {
+            if (repeatStackContainsActionByID(action) || checkpointActionActive(action)) {
                 log.info("Skipping test method " + method.getName() + " on action " + action);
                 return false;
             }
         }
         return true;
 
+    }
+
+    private static boolean checkpointActionActive(String action) {
+        return action.equals(CheckpointRule.ID) && CheckpointRule.isActive();
     }
 
     public static boolean shouldRun(Class<?> clazz) {
