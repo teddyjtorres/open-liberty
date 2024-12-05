@@ -165,24 +165,21 @@ public class CryptoUtils {
         if (ibmJCEPlusFIPSProviderChecked) {
             return ibmJCEPlusFIPSAvailable;
         } else {
-            ibmJCEPlusFIPSAvailable = JavaInfo.isSystemClassAvailable(IBMJCE_PLUS_FIPS_PROVIDER);
+            boolean ibmJCEPlusFIPSProviderAvailable = JavaInfo.isSystemClassAvailable(IBMJCE_PLUS_FIPS_PROVIDER);
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                 Tr.debug(tc, "ibmJCEPlusFIPSProvider: " + IBMJCE_PLUS_FIPS_PROVIDER);
+                Tr.debug(tc, "ibmJCEPlusFIPSProviderAvailable: " + ibmJCEPlusFIPSProviderAvailable);
             }
 
-            ibmJCEPlusFIPSProviderChecked = true;
-            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                Tr.debug(tc, "ibmJCEPlusFIPSAvailable: " + ibmJCEPlusFIPSAvailable);
-            }
-
-            if (isRunningBetaMode() && ibmJCEPlusFIPSAvailable) {
-                ibmJCEPlusFIPSAvailable = true;
+            if (ibmJCEPlusFIPSProviderAvailable) {
+                ibmJCEPlusFIPSAvailable = isRunningBetaMode();
             } else {
                 if (fipsEnabled && !isSemeruFips()) {
                     Tr.error(tc, "FIPS is enabled but the " + IBMJCE_PLUS_FIPS_PROVIDER + " provider is not available.");
                 }
                 ibmJCEPlusFIPSAvailable = false;
             }
+            ibmJCEPlusFIPSProviderChecked = true;
             return ibmJCEPlusFIPSAvailable;
         }
     }
@@ -201,24 +198,21 @@ public class CryptoUtils {
         if (openJCEPlusFIPSProviderChecked) {
             return openJCEPlusFIPSAvailable;
         } else {
-            openJCEPlusFIPSAvailable = JavaInfo.isSystemClassAvailable(OPENJCE_PLUS_FIPS_PROVIDER);
+            boolean openJCEPlusFIPSProviderAvailable = JavaInfo.isSystemClassAvailable(OPENJCE_PLUS_FIPS_PROVIDER);
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                 Tr.debug(tc, "openJCEPlusFIPSProvider: " + OPENJCE_PLUS_FIPS_PROVIDER);
+                Tr.debug(tc, "openJCEPlusFIPSAvailable: " + openJCEPlusFIPSProviderAvailable);
             }
 
-            openJCEPlusFIPSProviderChecked = true;
-            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                Tr.debug(tc, "openJCEPlusFIPSAvailable: " + openJCEPlusFIPSAvailable);
-            }
-
-            if (isRunningBetaMode() && openJCEPlusFIPSAvailable) {
-                openJCEPlusFIPSAvailable = true;
+            if (openJCEPlusFIPSProviderAvailable) {
+                openJCEPlusFIPSAvailable = isRunningBetaMode();
             } else {
                 if (fipsEnabled && isSemeruFips()) {
                     Tr.error(tc, "Semeru FIPS is enabled but the " + OPENJCE_PLUS_FIPS_PROVIDER + " provider is not available.");
                 }
                 openJCEPlusFIPSAvailable = false;
             }
+            openJCEPlusFIPSProviderChecked = true;
             return openJCEPlusFIPSAvailable;
         }
     }
@@ -345,12 +339,12 @@ public class CryptoUtils {
 
     public static boolean isFips140_3Enabled() {
 
-        return isRunningBetaMode() &&
-               "140-3".equals(FIPSLevel) || "true".equalsIgnoreCase(getProperty("global.fips_140-3", "false")) || isSemeruFips();
+        return ("140-3".equals(FIPSLevel) || "true".equalsIgnoreCase(getProperty("global.fips_140-3", "false")) || isSemeruFips())
+               && isRunningBetaMode();
     }
 
     public static boolean isFips140_2Enabled() {
-        return isRunningBetaMode() && "140-2".equals(FIPSLevel);
+        return "140-2".equals(FIPSLevel) && isRunningBetaMode();
     }
 
     public static boolean isFIPSEnabled() {
