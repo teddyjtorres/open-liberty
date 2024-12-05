@@ -524,23 +524,6 @@ public class DataExperimentalServlet extends FATServlet {
 
     /**
      * Repository method performing a parameter-based query on a compound entity Id which is an IdClass,
-     * where the method parameter is annotated with By.
-     */
-    // TODO enable once #29893 is fixed. EclipseLink rejects LOWER(id(o)) with:
-    // The encapsulated expression is not a valid expression.
-    //@Test
-    public void testIdClassFindByAnnotatedParameter() {
-
-        assertEquals(List.of("Springfield Massachusetts",
-                             "Rochester Minnesota",
-                             "Kansas City Missouri"),
-                     towns.largerThan(100000, TownId.of("springfield", "missouri"), "M%s")
-                                     .map(c -> c.name + ' ' + c.stateName)
-                                     .collect(Collectors.toList()));
-    }
-
-    /**
-     * Repository method performing a parameter-based query on a compound entity Id which is an IdClass,
      * without annotating the method parameter.
      */
     // TODO enable once #29073 is fixed
@@ -721,6 +704,20 @@ public class DataExperimentalServlet extends FATServlet {
 
         assertEquals(List.of("seventeen"),
                      primes.withRomanNumeralSuffixAndWithoutNameSuffix("VII", "seven", 50));
+    }
+
+    /**
+     * Test the NotIgnoreCase enumerated value for a parameter that is
+     * annotated with the By annotation.
+     */
+    @Test
+    public void testNotIgnoreCase() {
+
+        assertEquals(List.of("Rochester Minnesota",
+                             "Kansas City Missouri"),
+                     towns.largerThan(100000, "springfield", "M%s")
+                                     .map(c -> c.name + ' ' + c.stateName)
+                                     .collect(Collectors.toList()));
     }
 
     /**
