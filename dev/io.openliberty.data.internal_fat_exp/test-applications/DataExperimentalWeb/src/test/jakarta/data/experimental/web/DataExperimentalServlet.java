@@ -585,11 +585,10 @@ public class DataExperimentalServlet extends FATServlet {
 
     /**
      * Use cursor-based pagination with the OrderBy annotation on a composite id
-     * that is defined by an IdClass attribute. Also use named parameters, which
-     * means the cursor portion of the query will also need to use named parameters.
+     * that is defined by an IdClass attribute.
      */
     @Test
-    public void testIdClassOrderByAnnotationWithCursorPaginationAndNamedParameters() {
+    public void testIdClassOrderByAnnotationWithCursorPaginations() {
         PageRequest pagination = PageRequest.ofSize(2);
 
         CursoredPage<Town> page1 = towns.sizedWithin(100000, 1000000, pagination);

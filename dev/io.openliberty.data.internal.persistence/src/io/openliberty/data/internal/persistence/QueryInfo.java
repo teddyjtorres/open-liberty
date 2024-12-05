@@ -395,20 +395,17 @@ public class QueryInfo {
 
     /**
      * Adds Sort criteria to the end of the tracked list of sort criteria.
-     * For IdClass, adds all Id properties separately. TODO use id(this) instead once #30093 is fixed
      *
      * @param ignoreCase if ordering is to be independent of case.
-     * @param attribute  name of attribute (@OrderBy value or Sort property or parsed from OrderBy query-by-method).
+     * @param attribute  name of attribute (@OrderBy value, Sort property,
+     *                       or parsed from OrderBy method name keyword).
      * @param descending if ordering is to be in descending order
      */
     @Trivial
     private void addSort(boolean ignoreCase, String attribute, boolean descending) {
-        Set<String> names = entityInfo.idClassAttributeAccessors != null && ID.equalsIgnoreCase(attribute) //
-                        ? entityInfo.idClassAttributeAccessors.keySet() //
-                        : Set.of(attribute);
-
-        for (String name : names) {
-            name = getAttributeName(name, true);
+        if (entityInfo.idClassAttributeAccessors == null ||
+            !ID.equalsIgnoreCase(attribute)) {
+            String name = getAttributeName(attribute, true);
 
             sorts.add(ignoreCase ? //
                             descending ? //
@@ -417,7 +414,27 @@ public class QueryInfo {
                             descending ? //
                                             Sort.desc(name) : //
                                             Sort.asc(name));
+        } else {
+            // Expand ID(THIS) for composite IdClass into separate attributes
+            for (String name : entityInfo.idClassAttributeAccessors.keySet())
+                addSort(ignoreCase, name, descending);
         }
+    }
+
+    /**
+     * Appends the attribute name if it is a function ending with a ')' character.
+     * Otherwise appends the attribute name prefixed by the entity identifier
+     * variable.
+     *
+     * @param attrName attribute name, which might be represented as a function
+     *                     such as id(o) or version(o)
+     * @param q        string builder to which to append
+     */
+    @Trivial
+    private final void appendAttributeName(String attrName, StringBuilder q) {
+        if (attrName.charAt(attrName.length() - 1) != ')')
+            q.append(entityVar_);
+        q.append(attrName);
     }
 
     /**
@@ -474,9 +491,7 @@ public class QueryInfo {
 
                     if ("id".equalsIgnoreCase(str) && ql.regionMatches(true, i + 1, "(THIS)", 0, 6)) {
                         String name = getAttributeName(By.ID, true);
-                        if (name.charAt(name.length() - 1) != ')')
-                            q.append(o_);
-                        q.append(name);
+                        appendAttributeName(name, q);
                         i += 6;
                     } else if ("this".equalsIgnoreCase(str)
                                || getAttributeName(str, false) == null) {
@@ -1549,10 +1564,7 @@ public class QueryInfo {
         if (trimmed)
             attributeExpr.append("TRIM(");
 
-        String o_ = entityVar_;
-        if (name.charAt(name.length() - 1) != ')')
-            attributeExpr.append(o_);
-        attributeExpr.append(name);
+        appendAttributeName(name, attributeExpr);
 
         if (trimmed)
             attributeExpr.append(')');
@@ -1664,7 +1676,6 @@ public class QueryInfo {
         String paramPrefix = jpqlParamNames.isEmpty() ? "?" : ":cursor";
         StringBuilder a = fwd == null ? null : new StringBuilder(200).append(hasWhere ? " AND (" : " WHERE (");
         StringBuilder b = prev == null ? null : new StringBuilder(200).append(hasWhere ? " AND (" : " WHERE (");
-        String o_ = entityVar_;
         for (int i = 0; i < numSorts; i++) {
             if (a != null)
                 a.append(i == 0 ? "(" : " OR (");
@@ -1677,21 +1688,27 @@ public class QueryInfo {
                 boolean lower = sort.ignoreCase();
                 if (a != null)
                     if (lower) {
-                        a.append(s == 0 ? "LOWER(" : " AND LOWER(").append(o_).append(name).append(')');
+                        a.append(s == 0 ? "LOWER(" : " AND LOWER(");
+                        appendAttributeName(name, a);
+                        a.append(')');
                         a.append(s < i ? '=' : (asc ? '>' : '<'));
                         a.append("LOWER(").append(paramPrefix).append(jpqlParamCount + 1 + s).append(')');
                     } else {
-                        a.append(s == 0 ? "" : " AND ").append(o_).append(name);
+                        a.append(s == 0 ? "" : " AND ");
+                        appendAttributeName(name, a);
                         a.append(s < i ? '=' : (asc ? '>' : '<'));
                         a.append(paramPrefix).append(jpqlParamCount + 1 + s);
                     }
                 if (b != null)
                     if (lower) {
-                        b.append(s == 0 ? "LOWER(" : " AND LOWER(").append(o_).append(name).append(')');
+                        b.append(s == 0 ? "LOWER(" : " AND LOWER(");
+                        appendAttributeName(name, b);
+                        b.append(')');
                         b.append(s < i ? '=' : (asc ? '<' : '>'));
                         b.append("LOWER(").append(paramPrefix).append(jpqlParamCount + 1 + s).append(')');
                     } else {
-                        b.append(s == 0 ? "" : " AND ").append(o_).append(name);
+                        b.append(s == 0 ? "" : " AND ");
+                        appendAttributeName(name, b);
                         b.append(s < i ? '=' : (asc ? '<' : '>'));
                         b.append(paramPrefix).append(jpqlParamCount + 1 + s);
                     }
@@ -1921,9 +1938,8 @@ public class QueryInfo {
                             String name = getAttributeName(attribute, true);
 
                             q.append(first ? " " : ", ");
-                            if (name.charAt(name.length() - 1) != ')')
-                                q.append(o_);
-                            q.append(name).append("=");
+                            appendAttributeName(name, q);
+                            q.append("=");
                             first = false;
 
                             boolean withFunction = false;
@@ -2170,9 +2186,7 @@ public class QueryInfo {
                 // Specify columns without creating new instance
                 for (int i = 0; i < cols.length; i++) {
                     q.append(i == 0 ? "SELECT " : ", ");
-                    if (cols[i].charAt(cols[i].length() - 1) != ')')
-                        q.append(o_);
-                    q.append(cols[i]);
+                    appendAttributeName(cols[i], q);
                 }
             } else {
                 // Construct new instance from defined columns
@@ -2180,9 +2194,7 @@ public class QueryInfo {
                 for (int i = 0; i < cols.length; i++) {
                     if (i > 0)
                         q.append(", ");
-                    if (cols[i].charAt(cols[i].length() - 1) != ')')
-                        q.append(o_);
-                    q.append(cols[i]);
+                    appendAttributeName(cols[i], q);
                 }
                 q.append(')');
             }
@@ -2209,12 +2221,7 @@ public class QueryInfo {
         if (sort.ignoreCase())
             q.append("LOWER(");
 
-        if (propName.charAt(propName.length() - 1) == ')')
-            ; // id(o) or version(o) function
-        else
-            q.append(entityVar_);
-
-        q.append(propName);
+        appendAttributeName(propName, q);
 
         if (sort.ignoreCase())
             q.append(")");
@@ -2571,6 +2578,8 @@ public class QueryInfo {
                     Tr.debug(this, tc, "getCursorValues for " + loggable(entity),
                              accessors);
                 Object value = entity;
+                // TODO is it possible for accessors to be null here?
+                // Could sort.property() being VERSION(THIS) or some invalid name cause this?
                 for (Member accessor : accessors)
                     if (accessor instanceof Method)
                         value = ((Method) accessor).invoke(value);
@@ -3511,7 +3520,6 @@ public class QueryInfo {
                      countPages);
 
         String o = entityVar;
-        String o_ = entityVar_;
         StringBuilder q = null;
 
         if (methodTypeAnno instanceof Find || methodTypeAnno instanceof Update) {
@@ -4369,9 +4377,13 @@ public class QueryInfo {
         if (jpqlParamNames.isEmpty()) // positional parameters
             for (int i = 0; i < cursor.size(); i++) {
                 Object value = cursor.get(i);
-                if (entityInfo.idClassAttributeAccessors != null && entityInfo.idType.isInstance(value)) {
+                if (entityInfo.idClassAttributeAccessors != null &&
+                    entityInfo.idType.isInstance(value)) {
+                    // Expand ID(THIS) for composite IdClass into separate attributes
                     for (Member accessor : entityInfo.idClassAttributeAccessors.values()) {
-                        Object v = accessor instanceof Field ? ((Field) accessor).get(value) : ((Method) accessor).invoke(value);
+                        Object v = accessor instanceof Field //
+                                        ? ((Field) accessor).get(value) //
+                                        : ((Method) accessor).invoke(value);
                         if (++paramNum - jpqlParamCount > sorts.size())
                             cursorSizeMismatchError(cursor);
                         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
@@ -4392,13 +4404,18 @@ public class QueryInfo {
         else // named parameters
             for (int i = 0; i < cursor.size(); i++) {
                 Object value = cursor.get(i);
-                if (entityInfo.idClassAttributeAccessors != null && entityInfo.idType.isInstance(value)) {
+                if (entityInfo.idClassAttributeAccessors != null &&
+                    entityInfo.idType.isInstance(value)) {
+                    // Expand ID(THIS) for composite IdClass into separate attributes
                     for (Member accessor : entityInfo.idClassAttributeAccessors.values()) {
-                        Object v = accessor instanceof Field ? ((Field) accessor).get(value) : ((Method) accessor).invoke(value);
+                        Object v = accessor instanceof Field //
+                                        ? ((Field) accessor).get(value) //
+                                        : ((Method) accessor).invoke(value);
                         if (++paramNum - jpqlParamCount > sorts.size())
                             cursorSizeMismatchError(cursor);
                         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
-                            Tr.debug(this, tc, "set [cursor] :cursor" + paramNum + ' ' + value.getClass().getName() + "-->" +
+                            Tr.debug(this, tc, "set [cursor] :cursor" + paramNum +
+                                               ' ' + value.getClass().getName() + "-->" +
                                                (v == null ? null : v.getClass().getSimpleName()));
                         query.setParameter("cursor" + paramNum, v);
                     }
@@ -4472,7 +4489,8 @@ public class QueryInfo {
      * @return the combined list that the sort criteria was added to.
      */
     @Trivial
-    List<Sort<Object>> supplySorts(List<Sort<Object>> combined, Iterable<Sort<Object>> additional) {
+    List<Sort<Object>> supplySorts(List<Sort<Object>> combined,
+                                   Iterable<Sort<Object>> additional) {
         Iterator<Sort<Object>> addIt = additional.iterator();
         boolean hasIdClass = entityInfo.idClassAttributeAccessors != null;
         if (combined == null && addIt.hasNext())
@@ -4481,7 +4499,8 @@ public class QueryInfo {
             Sort<Object> sort = addIt.next();
             if (sort == null)
                 throw new IllegalArgumentException("Sort: null");
-            // TODO special IdClass handling should be unnecessary once 30093 is fixed
+            // IdClass is split up so that it can be possible to create a cursor
+            // that corresponds to sort criteria
             else if (hasIdClass && ID.equalsIgnoreCase(sort.property()))
                 for (String name : entityInfo.idClassAttributeAccessors.keySet())
                     combined.add(getWithAttributeName(getAttributeName(name, true), sort));
@@ -4501,14 +4520,16 @@ public class QueryInfo {
      * @return the combined list that the sort criteria was added to.
      */
     @Trivial
-    List<Sort<Object>> supplySorts(List<Sort<Object>> combined, @SuppressWarnings("unchecked") Sort<Object>... additional) {
+    List<Sort<Object>> supplySorts(List<Sort<Object>> combined,
+                                   @SuppressWarnings("unchecked") Sort<Object>... additional) {
         boolean hasIdClass = entityInfo.idClassAttributeAccessors != null;
         if (combined == null && additional.length > 0)
             combined = sorts == null ? new ArrayList<>() : new ArrayList<>(sorts);
         for (Sort<Object> sort : additional) {
             if (sort == null)
                 throw new IllegalArgumentException("Sort: null");
-            // TODO special IdClass handling should be unnecessary once 30093 is fixed
+            // IdClass is split up so that it can be possible to create a cursor
+            // that corresponds to sort criteria
             else if (hasIdClass && ID.equalsIgnoreCase(sort.property()))
                 for (String name : entityInfo.idClassAttributeAccessors.keySet())
                     combined.add(getWithAttributeName(getAttributeName(name, true), sort));
