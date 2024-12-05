@@ -85,26 +85,4 @@ public abstract class WSATTest extends FATServletClient {
 			server.deleteFileFromLibertyServerRoot(stateFile);
 		}    	
     }
-
-	public static void callClearResourcesServlet(String app, LibertyServer... servers) throws Exception{
-		final String method = "callClearResourcesServlet";
-		int expectedConnectionCode = HttpURLConnection.HTTP_OK;
-		String servletName = "ClearResourcesServlet";
-
-		for (LibertyServer server : servers) {
-			String urlStr = "http://" + server.getHostname() + ":" + server.getHttpDefaultPort() + "/" + app + "/" + servletName;
-	
-			Log.info(WSATTest.class, method, "callClearResourcesServlet URL: " + urlStr);
-			HttpURLConnection con = HttpUtils.getHttpConnection(new URL(urlStr), 
-				expectedConnectionCode, REQUEST_TIMEOUT);
-			try {
-				HttpUtils.getConnectionStream(con).readLine();
-			} finally {
-				con.disconnect();
-			}
-			
-			server.setMarkToEndOfLog();
-			server.setTraceMarkToEndOfDefaultTrace();
-		}
-	}
 }
