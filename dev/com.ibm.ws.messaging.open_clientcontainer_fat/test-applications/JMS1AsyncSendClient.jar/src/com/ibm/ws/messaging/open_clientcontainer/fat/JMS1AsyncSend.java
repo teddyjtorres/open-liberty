@@ -784,11 +784,17 @@ public class JMS1AsyncSend extends ClientMain {
       reportSuccess();
   }
 
+  // Original version of the clearQueue() method. Remove when no longer used.
   public void clearQueue(Queue queue, String messagePrefix, long numberExpected) throws JMSException, TestException {
+	  clearQueue(queueConnection_, queue, messagePrefix, numberExpected);
+  }
+
+	  
+  public void clearQueue(Connection connection, Queue queue, String messagePrefix, long numberExpected) throws JMSException, TestException {
       Util.TRACE_ENTRY(new Object[] {queue, messagePrefix, numberExpected});
 
       long numberCleared = 0;
-      try (QueueSession session = queueConnection_.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
+      try (Session session = connection.createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
           MessageConsumer consumer = session.createConsumer(queue);
          
           for (TextMessage message = (TextMessage) consumer.receiveNoWait(); message != null; message = (TextMessage) consumer.receiveNoWait()) {
