@@ -19,8 +19,8 @@ import io.openliberty.microprofile.openapi20.internal.services.ModuleSelectionCo
 public class ModuleSelectionConfig40Impl extends ModuleSelectionConfigImpl {
 
     @Override
-    protected DefaultInclusion getDefaultInclusion() {
-        return DefaultInclusion.ALL;
+    protected InclusionMode getDefaultInclusion() {
+        return InclusionMode.ALL;
     }
 
 }
