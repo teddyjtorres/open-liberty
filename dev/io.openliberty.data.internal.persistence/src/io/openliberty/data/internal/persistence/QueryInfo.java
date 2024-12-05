@@ -2951,17 +2951,7 @@ public class QueryInfo {
                         entityVar = "this";
                         entityVar_ = "";
 
-                        // TODO remove this workaround for #28931 once fixed
-                        boolean insertEntityVar = !entityInfo.relationAttributeNames.isEmpty();
-                        if (insertEntityVar) {
-                            entityVar_ = entityVar + ".";
-                            StringBuilder q = new StringBuilder(ql.length() * 3 / 2) //
-                                            .append("DELETE FROM ").append(entityInfo.name) //
-                                            .append(' ').append(entityVar).append(" WHERE");
-                            appendWithIdentifierName(ql, startAt + 5, ql.length(), entityVar_, q);
-                            jpql = q.toString();
-                            // The following if block is not part of the workaround and is still needed:
-                        } else if (entityInfo.recordClass != null)
+                        if (entityInfo.recordClass != null)
                             // Switch from record name to entity name
                             jpql = new StringBuilder(ql.length() + 6) //
                                             .append("DELETE FROM ") //
@@ -3009,16 +2999,7 @@ public class QueryInfo {
                         entityVar = "this";
                         entityVar_ = "";
 
-                        // TODO remove this workaround for #28931 once fixed
-                        boolean insertEntityVar = !entityInfo.relationAttributeNames.isEmpty();
-                        if (insertEntityVar) {
-                            entityVar = "o";
-                            entityVar_ = "o.";
-                            StringBuilder q = new StringBuilder(ql.length() * 3 / 2) //
-                                            .append("UPDATE ").append(entityInfo.name).append(" o SET");
-                            appendWithIdentifierName(ql, startAt + 3, ql.length(), entityVar_, q);
-                            jpql = q.toString();
-                        } else if (entityName.length() != entityInfo.name.length() || entityName.indexOf(entityInfo.name) != 0)
+                        if (entityName.length() != entityInfo.name.length() || entityName.indexOf(entityInfo.name) != 0)
                             jpql = new StringBuilder(ql.length() * 3 / 2) //
                                             .append("UPDATE ").append(entityInfo.name).append(" SET") //
                                             .append(jpql.substring(startAt + 3, ql.length())) //
@@ -3229,7 +3210,7 @@ public class QueryInfo {
 
             boolean hasEntityVar = entityVar_.length() > 0;
 
-            // TODO remove this workaround for #28931 once fixed
+            // TODO remove this workaround for #30351 once fixed and run the _fat_jpa bucket to verify
             boolean insertEntityVar = entityVar_.length() == 0 && !entityInfo.relationAttributeNames.isEmpty();
             if (insertEntityVar)
                 entityVar_ = entityVar + ".";
@@ -3333,7 +3314,7 @@ public class QueryInfo {
             }
 
             if (whereLen > 0)
-                // TODO once fixed, test #28931 by adding: && !"this.".equalsIgnoreCase(entityVar_)
+                // TODO once fixed, test #30351 by adding: && !"this.".equalsIgnoreCase(entityVar_)
                 // and running DataJPATestServlet.testCountQueryWithFromAndWhereClausesOnly
                 if (insertEntityVar) {
                     q.append("WHERE");
