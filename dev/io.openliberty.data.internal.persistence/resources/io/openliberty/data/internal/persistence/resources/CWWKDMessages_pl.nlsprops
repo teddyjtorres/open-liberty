@@ -66,7 +66,7 @@ CWWKD1009.lifecycle.param.err=CWWKD1009E: Metoda {0} interfejsu repozytorium {1}
 CWWKD1009.lifecycle.param.err.explanation=Metody cyklu \u017cycia musz\u0105 mie\u0107 pojedynczy parametr encji.
 CWWKD1009.lifecycle.param.err.useraction=Zaktualizuj metod\u0119 repozytorium, aby mia\u0142a pojedynczy parametr, kt\u00f3ry jest encj\u0105 lub tablic\u0105 listy encji.
 
-CWWKD1010.unknown.entity.prop=CWWKD1010E: Metoda {0} interfejsu repozytorium {1} oczekuje w\u0142a\u015bciwo\u015bci encji o nazwie {2} , kt\u00f3rej nie ma w klasie encji {3} . Prawid\u0142owe nazwy w\u0142a\u015bciwo\u015bci dla encji to: {4} .
+CWWKD1010.unknown.entity.prop=CWWKD1010E: Nie znaleziono w\u0142a\u015bciwo\u015bci encji o nazwie {0} w klasie encji {1} dla metody {2} interfejsu repozytorium {3} . Prawid\u0142owe nazwy w\u0142a\u015bciwo\u015bci dla encji to: {4} .
 CWWKD1010.unknown.entity.prop.explanation=Metoda repozytorium pr\u00f3buje u\u017cy\u0107 w\u0142a\u015bciwo\u015bci encji, kt\u00f3ra nie istnieje.
 CWWKD1010.unknown.entity.prop.useraction=Zaktualizuj metod\u0119 repozytorium, aby odpowiada\u0142a prawid\u0142owej w\u0142a\u015bciwo\u015bci zdefiniowanej przez jednostk\u0119.
 
@@ -392,3 +392,24 @@ CWWKD1089.unordered.pagination.useraction=U\u017cyj adnotacji OrderBy , aby zdef
 CWWKD1090.orderby.conflict=CWWKD1090E: Metoda {0} interfejsu repozytorium {1} nie mo\u017ce \u0142\u0105czy\u0107 adnotacji OrderBy i s\u0142owa kluczowego OrderBy .
 CWWKD1090.orderby.conflict.explanation=Adnotacja OrderBy nie jest zgodna ze s\u0142owem kluczowym OrderBy .
 CWWKD1090.orderby.conflict.useraction=Nale\u017cy u\u017cywa\u0107 wy\u0142\u0105cznie adnotacji OrderBy lub s\u0142owa kluczowego OrderBy .
+
+CWWKD1091.method.name.parse.err=CWWKD1091E: Nie znaleziono w\u0142a\u015bciwo\u015bci encji o nazwie {0} w klasie encji {1} dla metody {2} interfejsu repozytorium {3} . Potwierd\u017a, \u017ce metoda repozytorium ma nazw\u0119 zgodn\u0105 ze wzorcem Zapytanie wed\u0142ug nazwy metody lub jest opatrzona jedn\u0105 z adnotacji: {4} . Prawid\u0142owe nazwy w\u0142a\u015bciwo\u015bci dla encji to: {5} .
+CWWKD1091.method.name.parse.err.explanation=Nazw\u0119 metody repozytorium przeanalizowano zgodnie ze wzorcem zapytania wed\u0142ug nazwy metody, poniewa\u017c metoda repozytorium nie ma adnotacji Jakarta Data wskazuj\u0105cej typ operacji.
+CWWKD1091.method.name.parse.err.useraction=Popraw nazw\u0119 metody repozytorium lub dodaj adnotacj\u0119 do metody repozytorium, aby wskaza\u0107 operacj\u0119 na danych Jakarta, tak\u0105 jak Zapytanie, Znajd\u017a lub Zapisz.
+
+CWWKD1092.lifecycle.arg.empty=CWWKD1092E: Metoda {0} repozytorium {1} nie akceptuje pustego parametru {2} . Warto\u015b\u0107 parametru musi zawiera\u0107 co najmniej jedn\u0105 jednostk\u0119.
+CWWKD1092.lifecycle.arg.empty.explanation=Metody Wstaw, Aktualizuj, Zapisz i Usu\u0144
+ require co najmniej jeden podmiot.
+CWWKD1092.lifecycle.arg.empty.useraction=Upewnij si\u0119, \u017ce tablica, lista lub strumie\u0144 dostarczony do metody zawiera co najmniej jedn\u0105 encj\u0119.
+
+CWWKD1093.fn.not.applicable=CWWKD1093E: Funkcji {0} nie mo\u017cna oceni\u0107 dla encji {1} u\u017cywanej przez metod\u0119 {2} interfejsu repozytorium {3} . Jednostka nie ma w\u0142a\u015bciwo\u015bci, kt\u00f3ra jest adnotowana za pomoc\u0105 {4} lub z kt\u00f3rej mo\u017cna wywnioskowa\u0107 {0} .
+CWWKD1093.fn.not.applicable.explanation=Funkcji nie mo\u017cna u\u017cy\u0107 w odniesieniu do encji, poniewa\u017c encja nie posiada w\u0142a\u015bciwo\u015bci ID lub wersji.
+CWWKD1093.fn.not.applicable.useraction=Nie nale\u017cy u\u017cywa\u0107 funkcji w j\u0119zyku zapyta\u0144 ani parametr\u00f3w dla metody repozytorium.
+
+CWWKD1094.return.mismatch=CWWKD1094E: Metoda {0} interfejsu repozytorium {1} ma typ zwracany {2} , kt\u00f3ry nie jest w stanie zwr\u00f3ci\u0107 liczby encji {3} , kt\u00f3r\u0105 metoda repozytorium akceptuje jako parametr. Prawid\u0142owe typy zwracane dla metody {4} akceptuj\u0105cej wiele encji to m.in.: {5} .
+CWWKD1094.return.mismatch.explanation=Metoda cyklu \u017cycia repozytorium, kt\u00f3ra zwraca encje, musi by\u0107 w stanie zwr\u00f3ci\u0107 tak\u0105 sam\u0105 liczb\u0119 encji, jaka zosta\u0142a zaakceptowana przez metod\u0119.
+CWWKD1094.return.mismatch.useraction=Zaktualizuj metod\u0119 repozytorium, aby u\u017cywa\u0142a typu zwracanego, kt\u00f3ry mo\u017ce zwraca\u0107 wiele encji, lub zaktualizuj metod\u0119 repozytorium, aby akceptowa\u0142a tylko jedn\u0105 encj\u0119.
+
+CWWKD1095.repo.err=CWWKD1095E: Nie mo\u017cna dostarczy\u0107 implementacji interfejsu repozytorium {0} z powodu b\u0142\u0119du. Adnotacja repozytorium to {1} . Podstawow\u0105 klas\u0105 encji jest {2} . B\u0142\u0105d to: {3}
+CWWKD1095.repo.err.explanation=Wbudowany dostawca danych Jakarta nie jest w stanie dostarczy\u0107 wyst\u0105pienia repozytorium z powodu b\u0142\u0119du.
+CWWKD1095.repo.err.useraction=Zbadaj b\u0142\u0105d i popraw interfejs repozytorium, encje, konfiguracj\u0119 magazynu danych lub baz\u0119 danych.

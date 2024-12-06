@@ -66,7 +66,7 @@ CWWKD1009.lifecycle.param.err=CWWKD1009E: El m\u00e9todo {0} de la interfaz de r
 CWWKD1009.lifecycle.param.err.explanation=Los m\u00e9todos del ciclo de vida deben tener un \u00fanico par\u00e1metro de entidad.
 CWWKD1009.lifecycle.param.err.useraction=Actualiza el m\u00e9todo de repositorio para que tenga un \u00fanico par\u00e1metro que sea una entidad o un array de List de la entidad.
 
-CWWKD1010.unknown.entity.prop=CWWKD1010E: El m\u00e9todo {0} de la interfaz de repositorio {1} espera una propiedad de entidad llamada {2} que no se encuentra en la clase de entidad {3}. Los nombres de propiedad v\u00e1lidos para la entidad son: {4}.
+CWWKD1010.unknown.entity.prop=CWWKD1010E: No se encuentra una propiedad de entidad llamada {0} en la clase de entidad {1} para el m\u00e9todo {2} de la interfaz de repositorio {3}. Los nombres de propiedad v\u00e1lidos para la entidad son: {4}.
 CWWKD1010.unknown.entity.prop.explanation=El m\u00e9todo de repositorio est\u00e1 intentando utilizar una propiedad de entidad que no existe.
 CWWKD1010.unknown.entity.prop.useraction=Actualiza el m\u00e9todo del repositorio para que coincida con una propiedad v\u00e1lida definida por la entidad.
 
@@ -392,3 +392,24 @@ CWWKD1089.unordered.pagination.useraction=Utilice la anotaci\u00f3n OrderBy para
 CWWKD1090.orderby.conflict=CWWKD1090E: El m\u00e9todo {0} de la interfaz de repositorio {1} no puede combinar la anotaci\u00f3n OrderBy y la palabra clave OrderBy.
 CWWKD1090.orderby.conflict.explanation=La anotaci\u00f3n OrderBy no es compatible con la palabra clave OrderBy.
 CWWKD1090.orderby.conflict.useraction=Utilice \u00fanicamente la anotaci\u00f3n OrderBy o la palabra clave OrderBy.
+
+CWWKD1091.method.name.parse.err=CWWKD1091E: No se encuentra una propiedad de entidad llamada {0} en la clase de entidad {1} para el m\u00e9todo {2} de la interfaz de repositorio {3}. Confirme que el m\u00e9todo del repositorio tiene un nombre que se ajusta al patr\u00f3n Query by Method Name o est\u00e1 anotado con uno de los siguientes: {4}. Los nombres de propiedad v\u00e1lidos para la entidad son: {5}.
+CWWKD1091.method.name.parse.err.explanation=El nombre del m\u00e9todo del repositorio se analiz\u00f3 seg\u00fan el patr\u00f3n Consulta por nombre de m\u00e9todo porque el m\u00e9todo del repositorio no tiene una anotaci\u00f3n de Jakarta Data que indique el tipo de operaci\u00f3n.
+CWWKD1091.method.name.parse.err.useraction=Corrija el nombre del m\u00e9todo del repositorio o anote el m\u00e9todo del repositorio para indicar una operaci\u00f3n de Jakarta Data como Consultar, Buscar o Guardar.
+
+CWWKD1092.lifecycle.arg.empty=CWWKD1092E: El m\u00e9todo {0} del repositorio {1} no acepta un par\u00e1metro {2} vac\u00edo. El valor del par\u00e1metro debe contener al menos una entidad.
+CWWKD1092.lifecycle.arg.empty.explanation=M\u00e9todos de inserci\u00f3n, actualizaci\u00f3n, almacenamiento y eliminaci\u00f3n
+ require al menos una entidad.
+CWWKD1092.lifecycle.arg.empty.useraction=Aseg\u00farese de que la matriz, lista o flujo que se proporciona al m\u00e9todo contiene al menos una entidad.
+
+CWWKD1093.fn.not.applicable=CWWKD1093E: La funci\u00f3n {0} no puede ser evaluada para la entidad {1} que es utilizada por el m\u00e9todo {2} de la interfaz del repositorio {3}. La entidad no tiene una propiedad anotada con {4} o de la que pueda inferirse {0}.
+CWWKD1093.fn.not.applicable.explanation=La funci\u00f3n no puede utilizarse en la entidad porque \u00e9sta carece de una propiedad ID o versi\u00f3n.
+CWWKD1093.fn.not.applicable.useraction=No utilice la funci\u00f3n en lenguaje de consulta o par\u00e1metros para el m\u00e9todo de repositorio.
+
+CWWKD1094.return.mismatch=CWWKD1094E: El m\u00e9todo {0} de la interfaz de repositorio {1} tiene el tipo de retorno {2}, que no es capaz de devolver el n\u00famero de entidades, {3}, que el m\u00e9todo de repositorio acepta como par\u00e1metro. Los tipos de retorno v\u00e1lidos para un m\u00e9todo {4} que acepta m\u00faltiples entidades incluyen: {5}.
+CWWKD1094.return.mismatch.explanation=Un m\u00e9todo del ciclo de vida del repositorio que devuelva entidades debe ser capaz de devolver el mismo n\u00famero de entidades que son aceptadas por el m\u00e9todo.
+CWWKD1094.return.mismatch.useraction=Actualice el m\u00e9todo de repositorio para que utilice un tipo de devoluci\u00f3n que pueda devolver varias entidades o actualice el m\u00e9todo de repositorio para que s\u00f3lo acepte una \u00fanica entidad.
+
+CWWKD1095.repo.err=CWWKD1095E: No se puede proporcionar una implementaci\u00f3n de la interfaz de repositorio {0} debido a un error. La anotaci\u00f3n del repositorio es {1}. La clase de entidad primaria es {2}. El error es: {3}
+CWWKD1095.repo.err.explanation=El proveedor incorporado de Jakarta Data no puede proporcionar una instancia del repositorio debido a un error.
+CWWKD1095.repo.err.useraction=Investigue el error y corrija la interfaz del repositorio, las entidades, la configuraci\u00f3n del almac\u00e9n de datos o la base de datos.
