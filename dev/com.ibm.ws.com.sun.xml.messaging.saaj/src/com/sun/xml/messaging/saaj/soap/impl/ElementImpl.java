@@ -64,6 +64,9 @@ public class ElementImpl implements SOAPElement, SOAPBodyElement {
     public static final String XENC_NS = "http://www.w3.org/2001/04/xmlenc#".intern();
     public static final String WSU_NS = "http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd".intern();
 
+    // Set this property to true if SOAPElement contains duplicate namespaces
+    private static final String DISABLE_DUPLICATE_NS_PROPERTY = "io.openliberty.saaj.disableDuplicateNS";
+
     private transient AttributeManager encodingStyleAttribute = new AttributeManager();
 
     protected QName elementQName;
@@ -173,7 +176,14 @@ public class ElementImpl implements SOAPElement, SOAPBodyElement {
     public ElementImpl(SOAPDocumentImpl ownerDoc, Element domElement) {
         this.element = domElement;
         this.soapDocument = ownerDoc;
-        this.elementQName = new QName(domElement.getNamespaceURI(), domElement.getLocalName(), (domElement.getPrefix() != null ? domElement.getPrefix() : "")); //Liberty change
+        // Liberty change begin
+        if (getBooleanSystemProperty(DISABLE_DUPLICATE_NS_PROPERTY)) {
+            this.elementQName = new QName(domElement.getNamespaceURI(), domElement.getLocalName(), (domElement.getPrefix() != null ? domElement.getPrefix() : ""));
+        } else {
+            // Liberty change end
+            this.elementQName = new QName(domElement.getNamespaceURI(), domElement.getLocalName());
+        } // Liberty change
+
         soapDocument.register(this);
         NamedNodeMap attributes = domElement.getAttributes();
         for (int i = attributes.getLength() - 1; i >= 0; i--) {
@@ -1746,5 +1756,15 @@ public class ElementImpl implements SOAPElement, SOAPBodyElement {
 
     public SOAPDocumentImpl getSoapDocument() {
         return soapDocument;
+    }
+
+    private static boolean getBooleanSystemProperty(String propertyName) {
+        String propertyValue = System.getProperty(propertyName);
+        if (propertyValue != null) {
+            return Boolean.parseBoolean(propertyValue);
+        } else {
+            // Default value is false
+            return false;
+        }
     }
 }
