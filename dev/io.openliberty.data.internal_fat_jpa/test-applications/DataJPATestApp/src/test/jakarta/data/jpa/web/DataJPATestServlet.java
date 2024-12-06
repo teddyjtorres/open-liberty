@@ -707,6 +707,42 @@ public class DataJPATestServlet extends FATServlet {
     }
 
     /**
+     * Test that a query with named parameters can be used for pagination
+     * where the cursor is an IdClass value.
+     */
+    @Test
+    public void testCursoredPagesWithNamedParametersAndIdClass() {
+        PageRequest page1req = PageRequest
+                        .ofSize(3)
+                        .afterCursor(Cursor.forKey(CityId.of("Indianapolis",
+                                                             "Indiana")));
+
+        CursoredPage<City> page1 = cities.smallerThanOrNotNamed(100000,
+                                                                "Springfield",
+                                                                page1req);
+
+        assertEquals(List.of("Kansas City in Kansas",
+                             "Kansas City in Missouri",
+                             "Rochester in Minnesota"),
+                     page1.stream()
+                                     .map(c -> c.name + " in " + c.stateName)
+                                     .collect(Collectors.toList()));
+
+        CursoredPage<City> page2 = cities.smallerThanOrNotNamed(100000,
+                                                                "Springfield",
+                                                                page1.nextPageRequest());
+
+        assertEquals(List.of("Rochester in New York",
+                             "Springfield in Ohio",
+                             "Springfield in Oregon"),
+                     page2.stream()
+                                     .map(c -> c.name + " in " + c.stateName)
+                                     .collect(Collectors.toList()));
+
+        assertEquals(false, page2.hasNext());
+    }
+
+    /**
      * Verify that an EntityManager can be obtained for a repository and used to perform database operations.
      */
     @Test

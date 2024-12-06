@@ -470,9 +470,8 @@ public class DataErrPathsTestServlet extends FATServlet {
     }
 
     /**
-     * Tests an error path where a repository method attempts to return a subset of
-     * an entity as a record where the record component names do not all match the
-     * entity attribute names.
+     * Tests an error path where a repository method attempts to remove an entity
+     * but return it as a record instead.
      */
     @Test
     public void testRemoveAsSubsetOfEntity() {
