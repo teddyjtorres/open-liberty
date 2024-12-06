@@ -177,23 +177,22 @@ public class JakartaDataRecreateServlet extends FATServlet {
         Segment segment = Segment.of(x1, y1, x2, y2);
         List<Exception> exceptions = new ArrayList<>();
         
-        if (tx.getStatus() != jakarta.transaction.Status.STATUS_ACTIVE) {
-            tx.begin();  
-        }
+        tx.begin();  
 
         try {           
             em.persist(segment);            
             tx.commit();
         } catch (Exception e) {            
             if (tx.getStatus() == jakarta.transaction.Status.STATUS_ACTIVE) {
-                tx.rollback();
+                // Only rollback if it's not a RollbackException
+                if (!(e instanceof jakarta.transaction.RollbackException)) {
+                    tx.rollback();
+                }
             }
             exceptions.add(e);
         }
 
-        if (tx.getStatus() != jakarta.transaction.Status.STATUS_ACTIVE) {
-            tx.begin();  
-        }
+        tx.begin();  
 
         try {
             em.createNativeQuery("INSERT INTO Segment (id, pointA_x, pointA_y, pointB_x, pointB_y) VALUES (?, ?, ?, ?, ?)")
@@ -206,7 +205,10 @@ public class JakartaDataRecreateServlet extends FATServlet {
             tx.commit();
         } catch (Exception e) {            
             if (tx.getStatus() == jakarta.transaction.Status.STATUS_ACTIVE) {
-                tx.rollback();
+                // Only rollback if it's not a RollbackException
+                if (!(e instanceof jakarta.transaction.RollbackException)) {
+                    tx.rollback();
+                }
             }
             exceptions.add(e);
         }
@@ -232,6 +234,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertEquals(x2, retrievedSegment2.pointB.x());
         assertEquals(y2, retrievedSegment2.pointB.y());
     }
+
 
 
     @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28908
