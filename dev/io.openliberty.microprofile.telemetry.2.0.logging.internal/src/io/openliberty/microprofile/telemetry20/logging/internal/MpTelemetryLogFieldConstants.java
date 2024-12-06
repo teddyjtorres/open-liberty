@@ -14,24 +14,34 @@ package io.openliberty.microprofile.telemetry20.logging.internal;
  */
 public class MpTelemetryLogFieldConstants {
 
-    // Common Mapped OTel Attribute Log fields
+    /*
+     * Common Mapped OTel Attribute Log fields
+     */
     public static final String LIBERTY_TYPE = "io.openliberty.type";
     public static final String LIBERTY_SEQUENCE = "io.openliberty.sequence";
     public static final String LIBERTY_CLASSNAME = "io.openliberty.class_name";
 
-    // Mapped OTel Attribute Liberty message and trace log fields
+    /*
+     * Mapped OTel Attribute Liberty message and trace log fields
+     */
     public static final String LIBERTY_MESSAGEID = "io.openliberty.message_id";
     public static final String LIBERTY_MODULE = "io.openliberty.module";
     public static final String LIBERTY_METHODNAME = "io.openliberty.method_name";
 
-    // Mapped OTel Attribute Liberty FFDC log fields
+    /*
+     * Mapped OTel Attribute Liberty FFDC log fields
+     */
     public static final String LIBERTY_PROBEID = "io.openliberty.probe_id";
     public static final String LIBERTY_OBJECTDETAILS = "io.openliberty.object_details";
 
-    // Mapped OTel Attribute Liberty LogRecordContext Extension fields
+    /*
+     * Mapped OTel Attribute Liberty LogRecordContext Extension fields
+     */
     public static final String LIBERTY_EXT_APP_NAME = "io.openliberty.ext.app_name";
 
-    // Miscellaneous
+    /*
+     * Miscellaneous
+     */
     public static final String EXT_APPNAME = "ext_appName";
     public static final String EXT_THREAD = "ext_thread";
     public static final String IO_OPENLIBERTY_TAG = "io.openliberty.";
@@ -39,10 +49,14 @@ public class MpTelemetryLogFieldConstants {
     public static final String LOGGING_EVENT_TIME = "loggingEventTime";
     public static final String LOGGING_SEQUENCE_NUMBER = "loggingSequenceNumber";
 
-    // OpenTelemetry Scope Info field
+    /*
+     * OpenTelemetry Scope Info field
+     */
     public static final String OTEL_SCOPE_INFO = "scopeInfo:";
 
-    // Audit type prefix
+    /*
+     * Audit type prefix
+     */
     public static final String AUDIT_TYPE_PREFIX_TAG = "audit.";
 
     /**
