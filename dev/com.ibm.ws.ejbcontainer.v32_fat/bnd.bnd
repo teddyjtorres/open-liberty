@@ -14,7 +14,9 @@
 bVersion=1.0
 
 src: \
-	fat/src
+	fat/src,\
+	test-applications/JavaGlobalInjectIntoServletEJB.jar/src,\
+	test-applications/JavaGlobalInjectIntoServletWeb.war/src
 
 fat.project: true
 
@@ -30,4 +32,3 @@ tested.features: \
 	com.ibm.websphere.javaee.transaction.1.2;version=latest,\
 	com.ibm.ws.tx.embeddable;version=latest,\
 	io.openliberty.ejbcontainer.jakarta.fat_tools; version=latest
-	

@@ -16,7 +16,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
-//import com.ibm.ws.ejbcontainer.v32.fat.tests.JavaGlobalInjectIntoServletTest;
+import com.ibm.ws.ejbcontainer.v32.fat.tests.JavaGlobalInjectIntoServletTest;
 //import com.ibm.ws.ejbcontainer.v32.fat.tests.PassivationTest;
 //import com.ibm.ws.ejbcontainer.v32.fat.tests.SingletonLifecycleTxTest;
 //import com.ibm.ws.ejbcontainer.v32.fat.tests.StatefulLifecycleTxTest;
@@ -25,8 +25,8 @@ import componenttest.custom.junit.runner.AlwaysPassesTest;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-                AlwaysPassesTest.class //,
-//                JavaGlobalInjectIntoServletTest.class,
+                AlwaysPassesTest.class,
+                JavaGlobalInjectIntoServletTest.class //,
 //                PassivationTest.class,
 //                SingletonLifecycleTxTest.class,
 //                StatefulLifecycleTxTest.class

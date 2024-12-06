@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024 IBM Corporation and others.
+ * Copyright (c) 2016, 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -10,16 +10,10 @@
  * Contributors:
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
-repositories {
-  ivy {
-    url "../cnf/local"
-    metadataSources {
-      ivyDescriptor()
-      artifact()
-    }
-  }
-}
+package io.openliberty.ejb32.javaglobal.ejb;
 
-addRequiredLibraries {
-  dependsOn addJakartaTransformer
+public interface InjectIntoServletLocal {
+    void testJavaGlobalfromAppXml();
+
+    void testJavaAppfromAppXml();
 }
