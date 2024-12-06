@@ -3816,11 +3816,12 @@ public class QueryInfo {
     }
 
     /**
-     * Parses the number (if any) following findFirst or deleteFirst.
+     * Parses the number (if any) following findFirst.
      *
-     * @param start     starting position after findFirst or deleteFirst
-     * @param endBefore index of first occurrence of "By" in the method name, or otherwise the method name length.
-     * @return next starting position after the find/deleteFirst(#).
+     * @param start     starting position after findFirst.
+     * @param endBefore index of first occurrence of "By" in the method name,
+     *                      or otherwise the method name length.
+     * @return next starting position after the findFirst(#).
      */
     private int parseFirst(int start, int endBefore) {
         String methodName = method.getName();
