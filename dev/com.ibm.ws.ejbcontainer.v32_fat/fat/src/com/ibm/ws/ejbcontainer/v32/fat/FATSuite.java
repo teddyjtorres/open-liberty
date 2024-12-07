@@ -27,6 +27,7 @@ import componenttest.custom.junit.runner.AlwaysPassesTest;
 @SuiteClasses({
                 AlwaysPassesTest.class,
                 JavaGlobalInjectIntoServletTest.class //,
+//                TODO: enable these once tests are ported to Liberty
 //                PassivationTest.class,
 //                SingletonLifecycleTxTest.class,
 //                StatefulLifecycleTxTest.class
