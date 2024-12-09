@@ -172,12 +172,13 @@ public class CryptoUtils {
             }
 
             if (ibmJCEPlusFIPSProviderAvailable) {
-                ibmJCEPlusFIPSAvailable = isRunningBetaMode();
+                if(!fipsEnabled){
+                    ibmJCEPlusFIPSProviderAvailable = false;
+                }
             } else {
                 if (fipsEnabled && !isSemeruFips()) {
-                    Tr.error(tc, "FIPS is enabled but the " + IBMJCE_PLUS_FIPS_PROVIDER + " provider is not available.");
+                    Tr.debug(tc, "FIPS is enabled but the " + IBMJCE_PLUS_FIPS_PROVIDER + " provider is not available.");
                 }
-                ibmJCEPlusFIPSAvailable = false;
             }
             ibmJCEPlusFIPSProviderChecked = true;
             return ibmJCEPlusFIPSAvailable;
@@ -205,12 +206,13 @@ public class CryptoUtils {
             }
 
             if (openJCEPlusFIPSProviderAvailable) {
-                openJCEPlusFIPSAvailable = isRunningBetaMode();
+                if(!fipsEnabled || !isSemeruFips()){
+                    openJCEPlusFIPSProviderAvailable = false;
+                }
             } else {
                 if (fipsEnabled && isSemeruFips()) {
-                    Tr.error(tc, "Semeru FIPS is enabled but the " + OPENJCE_PLUS_FIPS_PROVIDER + " provider is not available.");
+                    Tr.debug(tc, "Semeru FIPS is enabled but the " + OPENJCE_PLUS_FIPS_PROVIDER + " provider is not available.");
                 }
-                openJCEPlusFIPSAvailable = false;
             }
             openJCEPlusFIPSProviderChecked = true;
             return openJCEPlusFIPSAvailable;
@@ -368,7 +370,7 @@ public class CryptoUtils {
             // Running beta exception, issue message if we haven't already issued one for this class
             if (!issuedBetaMessage) {
                 Tr.info(tc, "BETA: A beta method has been invoked for the class CryptoUtils for the first time.");
-                issuedBetaMessage = !issuedBetaMessage;
+                issuedBetaMessage = true;
             }
             return true;
         }
