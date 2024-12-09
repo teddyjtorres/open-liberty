@@ -9,6 +9,9 @@
  *******************************************************************************/
 package io.openliberty.microprofile.telemetry20.logging.internal;
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.temporal.TemporalAccessor;
 import java.util.ArrayList;
 import java.util.concurrent.TimeUnit;
 
@@ -16,10 +19,13 @@ import com.ibm.websphere.logging.WsLevel;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Trivial;
+import com.ibm.ws.kernel.productinfo.ProductInfo;
 import com.ibm.ws.logging.collector.CollectorConstants;
 import com.ibm.ws.logging.collector.CollectorJsonHelpers;
 import com.ibm.ws.logging.collector.LogFieldConstants;
+import com.ibm.ws.logging.data.AuditData;
 import com.ibm.ws.logging.data.FFDCData;
+import com.ibm.ws.logging.data.GenericData;
 import com.ibm.ws.logging.data.KeyValuePair;
 import com.ibm.ws.logging.data.KeyValuePairList;
 import com.ibm.ws.logging.data.LogTraceData;
@@ -40,6 +46,10 @@ public class MpTelemetryLogMappingUtils {
     private static final TraceComponent tc = Tr.register(MpTelemetryLogMappingUtils.class, "TELEMETRY",
                                                          "io.openliberty.microprofile.telemetry.internal.common.resources.MPTelemetry");
 
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ");
+
+    private static boolean issuedBetaMessage = false;
+
     /**
      * Get the event type from the Liberty log source.
      *
@@ -52,6 +62,8 @@ public class MpTelemetryLogMappingUtils {
             return CollectorConstants.TRACE_LOG_EVENT_TYPE;
         } else if (source.endsWith(CollectorConstants.FFDC_SOURCE)) {
             return CollectorConstants.FFDC_EVENT_TYPE;
+        } else if (isBetaModeCheck() && source.endsWith(CollectorConstants.AUDIT_LOG_SOURCE)) {
+            return CollectorConstants.AUDIT_LOG_EVENT_TYPE;
         } else
             return "";
     }
@@ -69,6 +81,8 @@ public class MpTelemetryLogMappingUtils {
             mapMessageAndTraceToOpenTelemetry(builder, eventType, event);
         } else if (eventType.equals(CollectorConstants.FFDC_EVENT_TYPE)) {
             mapFFDCToOpenTelemetry(builder, eventType, event);
+        } else if (isBetaModeCheck() && eventType.equals(CollectorConstants.AUDIT_LOG_EVENT_TYPE)) {
+            mapAuditLogsToOpenTelemetry(builder, eventType, event);
         }
     }
 
@@ -76,7 +90,7 @@ public class MpTelemetryLogMappingUtils {
      * Maps the Message and Trace log events to the OpenTelemetry Logs Data Model.
      *
      * @param builder   The OpenTelemetry LogRecordBuilder, which is used to construct the LogRecord.
-     * @param eventType The object originating from logging source which contains necessary fields
+     * @param eventType The object originating from logging source which contains necessary fields.
      * @param event     The type of event
      */
     private static void mapMessageAndTraceToOpenTelemetry(LogRecordBuilder builder, String eventType, Object event) {
@@ -223,6 +237,72 @@ public class MpTelemetryLogMappingUtils {
     }
 
     /**
+     * Maps the Audit log events to the OpenTelemetry Logs Data Model.
+     *
+     * @param builder   The OpenTelemetry LogRecordBuilder, which is used to construct the LogRecord.
+     * @param eventType The object originating from logging source which contains necessary fields.
+     * @param event     The type of event
+     */
+    private static void mapAuditLogsToOpenTelemetry(LogRecordBuilder builder, String eventType, Object event) {
+        GenericData genData = (GenericData) event;
+        KeyValuePair[] pairs = genData.getPairs();
+        String key = null;
+
+        // Set AUDIT log level to INFO2 in the LogRecordBuilder
+        builder.setSeverity(Severity.INFO2);
+
+        // Get Attributes builder to add additional Log fields
+        AttributesBuilder attributes = Attributes.builder();
+
+        // Map the event type.
+        attributes.put(MpTelemetryLogFieldConstants.LIBERTY_TYPE, eventType);
+
+        for (KeyValuePair kvp : pairs) {
+            if (kvp != null) {
+                if (!kvp.isList()) {
+                    key = kvp.getKey();
+                    /*
+                     * Explicitly parse the audit_eventName, audit_eventTime, sequenceNumber, and threadID.
+                     *
+                     * Set the audit_eventTime as the Timestamp in the LogRecordBuilder, since it accurately represents when the audit event occurred.
+                     *
+                     * The rest are generic audit event fields.
+                     */
+                    if (key.equals(LogFieldConstants.IBM_DATETIME) || key.equals("loggingEventTime") || AuditData.getDatetimeKey(0).equals(key)) {
+                        // Omit the mapping of ibm_dateTime, since we are mapping the audit_eventTime to the LogRecordBuilder Timestamp instead.
+                        continue;
+                    }
+
+                    if (key.equals(MpTelemetryLogFieldConstants.AUDIT_EVENT_NAME)) {
+                        // Explicitly parse the eventName to map it to the body in the LogRecordBuilder and as well as in the AttributeBuilder.
+                        builder.setBody(kvp.getStringValue());
+                        attributes.put(MpTelemetryAuditEventMappingUtils.getOTelMappedAuditEventKeyName(key), kvp.getStringValue());
+                    } else if (key.equals(MpTelemetryLogFieldConstants.AUDIT_EVENT_TIME)) {
+                        // Format the dateTime string into an Instant and set it in the LogRecordBuilder
+                        builder.setTimestamp(formatDateTime(kvp.getStringValue()));
+                    } else if (key.equals(LogFieldConstants.IBM_SEQUENCE) || key.equals(MpTelemetryLogFieldConstants.LOGGING_SEQUENCE_NUMBER)
+                               || AuditData.getSequenceKey(0).equals(key)) {
+                        // Explicitly get the ibm_sequence and set it in the AttributeBuilder.
+                        attributes.put(MpTelemetryLogFieldConstants.LIBERTY_SEQUENCE, kvp.getStringValue());
+                    } else if (key.equals(LogFieldConstants.IBM_THREADID) || AuditData.getThreadIDKey(0).equals(key)) {
+                        // Add Thread information to Attributes Builder
+                        attributes.put(SemanticAttributes.THREAD_ID, kvp.getIntValue());
+                    } else {
+                        // Format and map the other audit event fields accordingly.
+                        attributes.put(MpTelemetryAuditEventMappingUtils.getOTelMappedAuditEventKeyName(key), kvp.getStringValue());
+                    }
+                }
+            }
+        }
+
+        // Set the Attributes to the builder.
+        builder.setAllAttributes(attributes.build());
+
+        // Set the Span and Trace IDs from the current context.
+        builder.setContext(Context.current());
+    }
+
+    /**
      * Maps the Liberty Log levels to the OpenTelemetry Severity.
      *
      * @param level
@@ -297,6 +377,33 @@ public class MpTelemetryLogMappingUtils {
             }
         }
         return sb.toString();
+    }
+
+    /*
+     * Formats the given date and time String, into an Instant instance.
+     */
+    private static Instant formatDateTime(String dateTime) {
+        TemporalAccessor tempAccessor = FORMATTER.parse(dateTime);
+        Instant instant = Instant.from(tempAccessor);
+        return instant;
+    }
+
+    public static boolean isBetaModeCheck() {
+        if (!ProductInfo.getBetaEdition()) {
+            if (tc.isDebugEnabled()) {
+                Tr.debug(tc, "Not running Beta Edition, the audit logs will NOT be routed to OpenTelemetry.");
+            }
+            return false;
+        } else {
+            // Running beta exception, issue message if we haven't already issued one for this class.
+            if (!issuedBetaMessage) {
+                Tr.info(tc,
+                        "BETA: A beta method has been invoked for routing audit logs to OpenTelemetry in the class "
+                            + MpTelemetryLogMappingUtils.class.getName() + " for the first time.");
+                issuedBetaMessage = !issuedBetaMessage;
+            }
+            return true;
+        }
     }
 
 }
