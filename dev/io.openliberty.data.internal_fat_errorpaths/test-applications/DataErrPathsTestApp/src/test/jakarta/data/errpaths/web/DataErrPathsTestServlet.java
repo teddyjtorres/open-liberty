@@ -162,6 +162,35 @@ public class DataErrPathsTestServlet extends FATServlet {
     }
 
     /**
+     * Verify an error is raised for a repository method that specifies an
+     * OrderBy annotation on a Delete operation with void return type.
+     */
+    @Test
+    public void testDeleteWithOrderByAnnotationButNoResult() {
+        try {
+            voters.discardInOrder("701 Silver Creek Rd NE, Rochester, MN 55906");
+            fail("Should not be able to define an Order parameter on a method that" +
+                 " deletes entities but does not return them");
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1096E:") ||
+                !x.getMessage().contains("discardInOrder"))
+                throw x;
+        }
+    }
+
+    @Test
+    public void testDeleteWithOrderByKeywordButNoResult() {
+        try {
+            voters.deleteByAddressOrderByName("701 Silver Creek Rd NE, Rochester, MN 55906");
+            fail("Should not be able to define an OrderBy keyword on a method that" +
+                 " deletes entities but does not return them");
+        } catch (MappingException x) {
+            // expected
+        }
+    }
+
+    /**
      * Verify an error is raised for a repository method that defines two method
      * parameters (Param annotation) for the same named parameter.
      */

@@ -956,3 +956,10 @@ CWWKD1095.repo.err.explanation=The built-in Jakarta Data provider is unable \
  to provide an instance of the repository due to an error.
 CWWKD1095.repo.err.useraction=Investigate the error and correct \
  the repository interface, entities, data store configuration, or database.
+
+CWWKD1096.orderby.incompat=CWWKD1096E: The {0} method of the {1} repository \
+ has an OrderBy annotation, but the {0} method is not a find operation or a \
+ delete operation that returns entities.
+CWWKD1096.orderby.incompat.explanation=The OrderBy annotation is not compatible \
+ with the type of repository operation.
+CWWKD1096.orderby.incompat.useraction=Remove the OrderBy annotation.
