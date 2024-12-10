@@ -626,7 +626,7 @@ public class ExternalTestService {
 	} else if (serverOrigin.startsWith("10.21.") || serverOrigin.startsWith("10.21.")) {
 	    return "FYRERTP";
         } else {
-	    System.out.println("Unknown host/IP address " + serverOrigin + ".  For better effeciency, please add global.network.location=IBM9UK or IBM9US to your user.build.properties.  If appropriate, please update fattest.simplicity/src/componenttest/topology/utils/ExternalTestService.getNetworkLocation()";
+	    System.out.println("Unknown host/IP address " + serverOrigin + ".  For better effeciency, please add global.network.location=IBM9UK or IBM9US to your user.build.properties.  If appropriate, please update fattest.simplicity/src/componenttest/topology/utils/ExternalTestService.getNetworkLocation()");
             return "UNKNOWN";
         }
     }
