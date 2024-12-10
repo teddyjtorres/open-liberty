@@ -117,7 +117,8 @@ Import-Package: \
   *
 
 -buildpath: \
-  org.apache.myfaces.core:myfaces-impl;strategy=exact;version=${Implementation-Version},\
+  org.apache.myfaces.core:myfaces-impl;strategy=exact;version=${Implementation-Version}, \
+  org.apache.myfaces.core:myfaces-api;strategy=exact;version=${Implementation-Version}, \
   io.openliberty.jakarta.faces.4.1;version=latest,\
   com.ibm.ws.classloading;version=latest,\
   com.ibm.ws.webcontainer.jakarta;version=latest,\
