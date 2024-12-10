@@ -623,7 +623,7 @@ public class ExternalTestService {
 	    return "FYREHUR";
 	} else if (serverOrigin.startsWith("10.17.") || serverOrigin.startsWith("10.11.") || serverOrigin.startsWith("10.15.")) {
 	    return "FYRESVL";
-	} else if (serverOrigin.startsWith("10.21.") || serverOrigin.startsWith("10.21.")) {
+	} else if (serverOrigin.startsWith("10.21.") || serverOrigin.startsWith("10.26.")) {
 	    return "FYRERTP";
         } else {
 	    System.out.println("Unknown host/IP address " + serverOrigin + ".  For better effeciency, please add global.network.location=IBM9UK or IBM9US to your user.build.properties.  If appropriate, please update fattest.simplicity/src/componenttest/topology/utils/ExternalTestService.getNetworkLocation()");
