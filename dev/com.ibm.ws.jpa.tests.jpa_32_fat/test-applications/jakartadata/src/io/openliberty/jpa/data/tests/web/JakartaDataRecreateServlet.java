@@ -169,6 +169,73 @@ public class JakartaDataRecreateServlet extends FATServlet {
 
         assertEquals(character.getHexadecimal(), result);
     }
+    
+    @Test
+    @Ignore("Reference issue:https://github.com/OpenLiberty/open-liberty/issues/29459")
+    public void testOLGH29459() throws Exception {
+        int x1 = 0, y1 = 0, x2 = 120, y2 = 209;
+        Segment segment = Segment.of(x1, y1, x2, y2);
+        List<Exception> exceptions = new ArrayList<>();
+        
+        tx.begin();  
+
+        try {           
+            em.persist(segment);            
+            tx.commit();
+        } catch (Exception e) {            
+            if (tx.getStatus() == jakarta.transaction.Status.STATUS_ACTIVE) {
+                // Only rollback if it's not a RollbackException
+                if (!(e instanceof jakarta.transaction.RollbackException)) {
+                    tx.rollback();
+                }
+            }
+            exceptions.add(e);
+        }
+
+        tx.begin();  
+
+        try {
+            em.createNativeQuery("INSERT INTO Segment (id, pointA_x, pointA_y, pointB_x, pointB_y) VALUES (?, ?, ?, ?, ?)")
+                .setParameter(1, segment.id + 1)      
+                .setParameter(2, segment.pointA.x())  
+                .setParameter(3, segment.pointA.y())  
+                .setParameter(4, segment.pointB.x())  
+                .setParameter(5, segment.pointB.y())  
+                .executeUpdate();
+            tx.commit();
+        } catch (Exception e) {            
+            if (tx.getStatus() == jakarta.transaction.Status.STATUS_ACTIVE) {
+                // Only rollback if it's not a RollbackException
+                if (!(e instanceof jakarta.transaction.RollbackException)) {
+                    tx.rollback();
+                }
+            }
+            exceptions.add(e);
+        }
+       
+        if (!exceptions.isEmpty()) {           
+            throw exceptions.get(0);
+        }
+
+        Segment retrievedSegment1 = em.find(Segment.class, segment.id);
+        Segment retrievedSegment2 = em.find(Segment.class, segment.id + 1); 
+
+        // Assertions for the first segment
+        assertEquals(segment.id, retrievedSegment1.id);
+        assertEquals(x1, retrievedSegment1.pointA.x());
+        assertEquals(y1, retrievedSegment1.pointA.y());
+        assertEquals(x2, retrievedSegment1.pointB.x());
+        assertEquals(y2, retrievedSegment1.pointB.y());
+
+        // Assertions for the second segment (inserted with incremented ID)
+        assertEquals(Long.valueOf(segment.id + 1), Long.valueOf(retrievedSegment2.id));
+        assertEquals(x1, retrievedSegment2.pointA.x());
+        assertEquals(y1, retrievedSegment2.pointA.y());
+        assertEquals(x2, retrievedSegment2.pointB.x());
+        assertEquals(y2, retrievedSegment2.pointB.y());
+    }
+
+
 
     @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28908
     public void testOLGH28908() throws Exception {
