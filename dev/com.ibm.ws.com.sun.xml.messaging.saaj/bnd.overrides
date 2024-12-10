@@ -5,6 +5,8 @@ Bundle-SymbolicName: com.ibm.ws.com.sun.xml.messaging.saaj
 
 saajVersion=1.5.3
 
+instrument.disabled: true
+
 Include-Resource: \
      @${repo;com.sun.xml.messaging.saaj:saaj-impl;${saajVersion};EXACT}!/META-INF/services/javax.xml.soap.SOAPFactory, \
      @${repo;com.sun.xml.messaging.saaj:saaj-impl;${saajVersion};EXACT}!/META-INF/services/javax.xml.soap.SOAPConnectionFactory, \

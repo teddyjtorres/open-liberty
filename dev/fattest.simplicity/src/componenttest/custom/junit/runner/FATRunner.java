@@ -118,7 +118,7 @@ public class FATRunner extends BlockJUnit4ClassRunner {
             testName = testName + RepeatTestFilter.getRepeatActionsAsString();
         }
         if (CheckpointRule.isActive()) {
-            testName = testName + "_CHECKPOINT_RULE";
+            testName = testName + "_" + CheckpointRule.ID;
         }
         return testName;
     }

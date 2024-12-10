@@ -23,13 +23,9 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.text.SimpleDateFormat;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
@@ -50,8 +46,6 @@ import com.ibm.ws.Transaction.JTA.Util;
 
 public class XAResourceImpl implements XAResource, Serializable {
     static final long serialVersionUID = -2141508727147091254L;
-    
-    public static Path wakeUpFile = Paths.get(System.getProperty("java.io.tmpdir"), "wakeywakey.dat");
     
     // Set when dumped. If a operation occurs which changes the state after this has happened
     protected static boolean dumped;
@@ -951,22 +945,15 @@ public class XAResourceImpl implements XAResource, Serializable {
             if(recoverAction == SLEEP_RECOVER) {
                 System.out.println("scupperRecovery is " + scupperRecovery);
                 if(scupperRecovery) {
-                	final Instant wakeUpTime = Instant.now().plusSeconds(self().getRecoverDelay());
-                	System.out.println("Sleeping till " + TxTestUtils.traceTime(wakeUpTime.toEpochMilli()) + " in RECOVER");
-
-                	while (Instant.now().isBefore(wakeUpTime)) {
-                		try {
-							if (Files.deleteIfExists(wakeUpFile)) {
-								break;
-							}
-							
-							Thread.sleep(1000);
-						} catch (IOException | InterruptedException e) {
-							e.printStackTrace();
-						}
+                	try {
+                        final int recoverDelay = self().getRecoverDelay();
+                		System.out.println("Sleeping for " + recoverDelay + " seconds in RECOVER");
+                		Thread.sleep(recoverDelay * 1000);
+                	} catch (InterruptedException e) {
+                		e.printStackTrace();
+                	} finally {
+                		System.out.println("Awoken in RECOVER");
                 	}
-
-                	System.out.println("Awoken in RECOVER");
                 }
             } else {
             	self().setRecoverRepeatCount(repeatCount - 1);
