@@ -174,6 +174,8 @@ public class CryptoUtils {
             if (ibmJCEPlusFIPSProviderAvailable) {
                 if(!fipsEnabled){
                     ibmJCEPlusFIPSProviderAvailable = false;
+                } else {
+                    ibmJCEPlusFIPSAvailable = true;
                 }
             } else {
                 if (fipsEnabled && !isSemeruFips()) {
@@ -208,6 +210,8 @@ public class CryptoUtils {
             if (openJCEPlusFIPSProviderAvailable) {
                 if(!fipsEnabled || !isSemeruFips()){
                     openJCEPlusFIPSProviderAvailable = false;
+                } else {
+                    openJCEPlusFIPSAvailable = true;
                 }
             } else {
                 if (fipsEnabled && isSemeruFips()) {

@@ -41,7 +41,7 @@ public class IBMJSSEProvider extends AbstractJSSEProvider implements JSSEProvide
         super();
 
         String protocol = Constants.PROTOCOL_SSL_TLS_V2;
-        if (CryptoUtils.isFIPSEnabled() && CryptoUtils.isIBMJCEPlusFIPSAvailable()) {
+        if (CryptoUtils.isIBMJCEPlusFIPSAvailable()) {
             protocol = Constants.PROTOCOL_TLS;
         }
 
