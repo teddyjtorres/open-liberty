@@ -39,26 +39,21 @@ public class ArtifactoryMirrorSubstitutor extends ImageNameSubstitutor {
     public DockerImageName apply(final DockerImageName original) {
 
         final String repository;
-        final DockerImageName result;
 
         if (original.getRegistry().isEmpty()) {
             repository = REGISTRY_MAP.get("NONE") + "/" + original.getRepository();
-            result = DockerImageName.parse(original.asCanonicalNameString())
-                            .withRepository(repository);
-            Log.info(c, "apply", original.asCanonicalNameString() + " --> " + result.asCanonicalNameString());
-            return result;
-        }
-
-        if (REGISTRY_MAP.containsKey(original.getRegistry())) {
+        } else if (REGISTRY_MAP.containsKey(original.getRegistry())) {
             repository = REGISTRY_MAP.get(original.getRegistry()) + "/" + original.getRepository();
-            result = DockerImageName.parse(original.asCanonicalNameString())
-                            .withRepository(repository);
-            Log.info(c, "apply", original.asCanonicalNameString() + " --> " + result.asCanonicalNameString());
-            return result;
+        } else {
+            repository = original.getRepository();
         }
 
-        Log.info(c, "apply", original.asCanonicalNameString() + " --> [UNCHANGED]");
-        return original;
+        DockerImageName result = original;
+        result = result.withRegistry(""); //Remove registry
+        result = result.withRepository(repository); //Substitute repository
+
+        Log.info(c, "apply", original.asCanonicalNameString() + " --> " + result.asCanonicalNameString());
+        return result;
     }
 
     @Override

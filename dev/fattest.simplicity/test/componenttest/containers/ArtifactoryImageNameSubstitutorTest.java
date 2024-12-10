@@ -224,6 +224,25 @@ public class ArtifactoryImageNameSubstitutorTest {
 
     }
 
+    // Ensure that the asCompatibleSubsituteFor configuration is maintained during substitution.
+    @Test
+    public void testCompatibleSubstitutionIsMaintained() throws Exception {
+        //Using our remote docker host
+        setArtifactoryRegistryAvailable(true);
+        setDockerClientStrategy(new EnvironmentAndSystemPropertyClientProviderStrategy());
+
+        //Create a DockerImageName for an image in a public registry that is compatibile with an image in DockerHub
+        DockerImageName original = DockerImageName.parse("postgres:17.0-alpine");
+        DockerImageName input = DockerImageName.parse("public.ecr.aws/docker/library/postgres:17.0-alpine")
+                        .asCompatibleSubstituteFor(original);
+        assertTrue("Input should have been compatibile with original", input.isCompatibleWith(original));
+
+        DockerImageName expected = DockerImageName.parse("example.com/wasliberty-aws-docker-remote/docker/library/postgres:17.0-alpine");
+        DockerImageName output = new ArtifactoryImageNameSubstitutor().apply(input);
+        assertEquals(expected, output);
+        assertTrue("Output should have been compatibile with original", output.isCompatibleWith(original));
+    }
+
     private static void setDockerClientStrategy(DockerClientProviderStrategy strategy) throws Exception {
         Field strategyField = DockerClientFactory.class.getDeclaredField("strategy");
         strategyField.setAccessible(true);

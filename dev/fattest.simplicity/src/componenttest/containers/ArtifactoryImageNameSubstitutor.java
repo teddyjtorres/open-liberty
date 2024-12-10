@@ -65,12 +65,8 @@ public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
                 throw new RuntimeException("Not all developers of Open Liberty have access to artifactory, must use a public registry.");
             }
 
-//            // Priority 3: If a public registry was explicitly set on an image, do not substitute
-//            if (original.getRegistry() != null && !original.getRegistry().isEmpty()) {
-//                result = original;
-//                reason = "Image name is explicitally set with registry, cannot modify registry.";
-//                break;
-//            }
+            // Priority 3: If a public registry was explicitly set on an image, do not substitute
+            // This is now handled directly by the MIRROR substitutor
 
             // Priority 4: Always use Artifactory if using remote docker host.
             if (DockerClientFactory.instance().isUsing(EnvironmentAndSystemPropertyClientProviderStrategy.class)) {

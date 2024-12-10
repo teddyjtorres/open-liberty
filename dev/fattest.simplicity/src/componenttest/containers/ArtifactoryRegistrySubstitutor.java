@@ -35,8 +35,8 @@ public class ArtifactoryRegistrySubstitutor extends ImageNameSubstitutor {
                                        + " This substitutor cannot replace an existing registry.");
         }
 
-        DockerImageName result = DockerImageName.parse(original.asCanonicalNameString())
-                        .withRegistry(ArtifactoryRegistry.instance().getRegistry());
+        DockerImageName result = original;
+        result = result.withRegistry(ArtifactoryRegistry.instance().getRegistry());
 
         Log.info(c, "apply", original.asCanonicalNameString() + " --> " + result.asCanonicalNameString());
         return result;
