@@ -16,6 +16,7 @@ import static org.junit.Assert.fail;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
@@ -23,6 +24,7 @@ import java.util.stream.Stream;
 
 import jakarta.annotation.Resource;
 import jakarta.annotation.sql.DataSourceDefinition;
+import jakarta.data.Limit;
 import jakarta.data.Order;
 import jakarta.data.Sort;
 import jakarta.data.exceptions.DataException;
@@ -355,6 +357,136 @@ public class DataErrPathsTestServlet extends FATServlet {
                 !x.getMessage().startsWith("CWWKD1094E:") ||
                 !x.getMessage().contains("register") ||
                 !x.getMessage().contains("Voter[]"))
+                throw x;
+        }
+    }
+
+    /**
+     * Use a repository method with multiple entity parameters, which is not
+     * allowed for life cycle methods such as Insert.
+     */
+    @Test
+    public void testLifeCycleInsertMethodWithMultipleParameters() {
+        List<Voter> list = List //
+                        .of(new Voter(999887777, "New Voter 1", //
+                                        LocalDate.of(1999, Month.DECEMBER, 9), //
+                                        "213 13th Ave NW, Rochester, MN 55901"),
+
+                            new Voter(777665555, "New Voter 2", //
+                                            LocalDate.of(1987, Month.NOVEMBER, 7), //
+                                            "300 7th St SW, Rochester, MN 55902"));
+
+        try {
+            list = voters.addSome(list, Limit.of(1));
+            fail("Did not reject Insert method with multiple parameters. Result: " +
+                 list);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1009E") ||
+                !x.getMessage().contains("addSome"))
+                throw x;
+        }
+    }
+
+    /**
+     * Use a repository method with no parameters, which is not
+     * allowed for life cycle methods such as Insert.
+     */
+    @Test
+    public void testLifeCycleInsertMethodWithoutParameters() {
+        try {
+            Voter[] added = voters.addNothing();
+            fail("Did not reject Insert method without parameters. Result: " +
+                 Arrays.toString(added));
+
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1009E") ||
+                !x.getMessage().contains("addNothing"))
+                throw x;
+        }
+    }
+
+    /**
+     * Use a repository method with multiple entity parameters, which is not
+     * allowed for life cycle methods such as Save.
+     */
+    @Test
+    public void testLifeCycleSaveMethodWithMultipleParameters() {
+        Voter v = new Voter(123445678, "Updated Name", //
+                        LocalDate.of(1951, Month.SEPTEMBER, 25), //
+                        "4051 E River Rd NE, Rochester, MN 55906");
+        try {
+            Voter saved = voters.storeInDatabase(v, PageRequest.ofSize(5));
+
+            fail("Did not reject Save life cycle method that has" +
+                 " multiple parameters. Result: " + saved);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1009E") ||
+                !x.getMessage().contains("storeInDatabase"))
+                throw x;
+        }
+    }
+
+    /**
+     * Use a repository method with no parameters, which is not
+     * allowed for life cycle methods such as Save.
+     */
+    @Test
+    public void testLifeCycleSaveMethodWithoutParameters() {
+        try {
+            voters.storeNothing();
+            fail("Did not reject Save method without parameters.");
+
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1009E") ||
+                !x.getMessage().contains("storeNothing"))
+                throw x;
+        }
+    }
+
+    /**
+     * Use a repository method with multiple entity parameters, which are not
+     * allowed for life cycle methods such as Update.
+     */
+    @Test
+    public void testLifeCycleUpdateMethodWithMultipleParameters() {
+        Voter v1 = new Voter(123445678, "New Name 1", //
+                        LocalDate.of(1951, Month.SEPTEMBER, 25), //
+                        "4051 E River Rd NE, Rochester, MN 55906");
+        Voter v2 = new Voter(987665432, "New Name 2", //
+                        LocalDate.of(1971, Month.OCTOBER, 1), //
+                        "701 Silver Creek Rd NE, Rochester, MN 55906");
+        try {
+            List<Voter> list = voters.changeBoth(v1, v2);
+
+            fail("Did not reject Update life cycle method that has" +
+                 " multiple parameters. Result: " + list);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1009E") ||
+                !x.getMessage().contains("changeBoth"))
+                throw x;
+        }
+    }
+
+    /**
+     * Use a repository method with no parameters, which is not
+     * allowed for life cycle methods such as Update.
+     */
+    @Test
+    public void testLifeCycleUpdateMethodWithoutParameters() {
+        try {
+            voters.changeNothing();
+
+            fail("Did not reject Update life cycle method that has" +
+                 " no parameters.");
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1009E") ||
+                !x.getMessage().contains("changeNothing"))
                 throw x;
         }
     }

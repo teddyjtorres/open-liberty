@@ -41,6 +41,12 @@ public class DataErrPathsTest extends FATServletClient {
                     new String[] {
                                    "CWWJP9991W.*4002", // 2 persistence units attempt to autocreate same table
                                    "CWWKD1006E.*removeBySSN", // delete method attempts to return record
+                                   "CWWKD1009E.*addNothing", // Insert method without parameters
+                                   "CWWKD1009E.*addSome", // Insert method with multiple parameters
+                                   "CWWKD1009E.*changeNothing", // Update method without parameters
+                                   "CWWKD1009E.*changeBoth", // Update method with multiple entity parameters
+                                   "CWWKD1009E.*storeNothing", // Save method without parameters
+                                   "CWWKD1009E.*storeInDatabase", // Save method with multiple parameters
                                    "CWWKD1019E.*livingAt", // mix of named/positional parameters
                                    "CWWKD1019E.*residingAt", // unused parameters
                                    "CWWKD1077E.*test.jakarta.data.errpaths.web.RepoWithoutDataStore",

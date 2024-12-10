@@ -1967,6 +1967,19 @@ public class QueryInfo {
                         }
                     }
                 }
+
+                if (first)
+                    // No parameters are annotated to indicate update.
+                    // Raise an error that considers this an invalid life cycle
+                    // operation attempt. In the future, we could raise an error
+                    // that also mentions the possibility of invalid parameter-based
+                    // update operation.
+                    throw exc(UnsupportedOperationException.class,
+                              "CWWKD1009.lifecycle.param.err",
+                              method.getName(),
+                              repositoryInterface.getName(),
+                              method.getParameterCount(),
+                              Update.class.getSimpleName());
             } else {
                 type = Type.FIND;
                 q = generateSelectClause().append(" FROM ").append(entityInfo.name).append(' ').append(o);

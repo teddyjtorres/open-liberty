@@ -85,10 +85,12 @@ public interface DataVersionCompatibility {
     /**
      * Return a 2-element array where the first element is the entity attribute name
      * and the second element is the operation (=, +, -, *, or /).
-     * Null if none of the annotations indicate an update.
+     * Null if none of the annotations indicate an update
+     * of if the version used does not support parameter-based update.
      *
      * @param annos annotations on the method parameter. Must not be null.
-     * @return operation and entity attribute name. Null if not an update.
+     * @return operation and entity attribute name. Null if not an update
+     *         of if the version used does not support parameter-based update.
      */
     String[] getUpdateAttributeAndOperation(Annotation[] annos);
 
