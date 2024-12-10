@@ -51,7 +51,7 @@ import com.ibm.ws.Transaction.JTA.Util;
 public class XAResourceImpl implements XAResource, Serializable {
     static final long serialVersionUID = -2141508727147091254L;
     
-    public static Path wakeUpFile = Paths.get(System.getProperty("java.io.tmpdir"), "wakeywakey.dat");
+    private static Path wakeUpFile;
     
     // Set when dumped. If a operation occurs which changes the state after this has happened
     protected static boolean dumped;
@@ -956,7 +956,8 @@ public class XAResourceImpl implements XAResource, Serializable {
 
                 	while (Instant.now().isBefore(wakeUpTime)) {
                 		try {
-							if (Files.deleteIfExists(wakeUpFile)) {
+							if (Files.deleteIfExists(getWakeUpFile())) {
+			                	System.out.println("Interrupted sleep in RECOVER");
 								break;
 							}
 							
@@ -1648,5 +1649,28 @@ public class XAResourceImpl implements XAResource, Serializable {
 
 	public static File getStateFile() {
 		return STATE_FILE;
+	}
+
+	private static Path getWakeUpFile() {
+		if (null == wakeUpFile) {
+			 wakeUpFile = AccessController.doPrivileged(new PrivilegedAction<Path>() {
+	                @Override
+	                public Path run() {
+	                    return Paths.get(System.getProperty("java.io.tmpdir"), "wakeywakey.dat");
+	                }
+	            });
+		}
+
+		return wakeUpFile;
+	}
+
+	public static void wakeUp() throws IOException {
+		Files.createFile(getWakeUpFile());
+	}
+
+	public static void resetWakeUp() throws IOException {
+		if (wakeUpFile != null) {
+			Files.deleteIfExists(wakeUpFile);
+		}
 	}
 }

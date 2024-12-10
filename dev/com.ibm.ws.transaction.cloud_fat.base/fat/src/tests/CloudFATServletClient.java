@@ -17,7 +17,6 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.fail;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
@@ -133,7 +132,7 @@ public abstract class CloudFATServletClient extends CloudTestBase {
 
     @After
     public void after() throws IOException {
-        Files.deleteIfExists(XAResourceImpl.wakeUpFile);
+        XAResourceImpl.resetWakeUp();
     }
 
     @Before
@@ -183,9 +182,9 @@ public abstract class CloudFATServletClient extends CloudTestBase {
             // Now start server1
             FATUtils.startServers(_runner, longLeaseCompeteServer1);
 
-            // Wake up server2
-            Log.info(getClass(), "testAggressiveTakeover1", "Creating " + XAResourceImpl.wakeUpFile);
-            Files.createFile(XAResourceImpl.wakeUpFile);
+            // Wake up server2 which will be sleeping in recover
+            Log.info(getClass(), "testAggressiveTakeover1", "Wake up " + server2fastcheck.getServerName());
+            XAResourceImpl.wakeUp();
 
             assertNotNull("Peer recovery was not interrupted",
                           server2fastcheck.waitForStringInTrace("WTRN0107W: Server with identity cloud0021 attempted but failed to recover the logs of peer server cloud0011",
