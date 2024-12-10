@@ -21,33 +21,27 @@ import com.ibm.websphere.simplicity.log.Log;
 
 /**
  * An image name substituter is configured in testcontainers.properties and will transform docker image names.
- * Here we use it to apply a private registry prefix and organization prefix so that in remote builds we use an internal
- * Artifactory mirror of Docker Hub, instead of downloading from Docker Hub in each build which causes rate limiting issues.
+ * Here we use it to apply a private mirror registry and repository prefix so that in remote builds we use an internal
+ * Artifactory mirror for a number of supported Docker image registries.
  */
 @SuppressWarnings("deprecation")
 public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
 
     private static final Class<?> c = ArtifactoryImageNameSubstitutor.class;
 
+    private static final ArtifactoryMirrorSubstitutor MIRROR = new ArtifactoryMirrorSubstitutor();
+    private static final ArtifactoryRegistrySubstitutor REGISTRY = new ArtifactoryRegistrySubstitutor();
+
     /**
      * Manual override that will allow builds or users to pull from the default registry instead of Artifactory.
      */
     private static final String forceExternal = "fat.test.artifactory.force.external.repo";
 
-    /**
-     * A local cache of images in Artifactory used by Open Liberty and WebSphere Liberty
-     */
-    private static final String cache = "wasliberty-infrastructure-docker";
-
-    private static final boolean mockBehavior = System.getenv().containsKey("MOCK_ARTIFACTORY_BEHAVIOR")
-                                                && System.getenv().get("MOCK_ARTIFACTORY_BEHAVIOR").equalsIgnoreCase("true");
-
     @Override
     public DockerImageName apply(final DockerImageName original) {
-        DockerImageName result = null;
-        boolean needsArtifactory = false;
-        boolean collect = true;
-        String reason = "";
+        final DockerImageName result;
+        final boolean collect;
+        final String reason;
 
         do {
             // Priority 1: If we are using a synthetic image do not substitute nor cache
@@ -60,10 +54,8 @@ public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
 
             // Priority 2a: If the image is known to only exist in an Artifactory organization
             if (original.getRepository().contains("wasliberty-")) {
-                result = DockerImageName.parse(original.asCanonicalNameString())
-                                .withRegistry(ArtifactoryRegistry.instance().getRegistry())
-                                .asCompatibleSubstituteFor(original);
-                needsArtifactory = true;
+                result = REGISTRY.apply(original);
+                collect = true;
                 reason = "This image only exists in Artifactory, must use Artifactory registry.";
                 break;
             }
@@ -73,63 +65,43 @@ public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
                 throw new RuntimeException("Not all developers of Open Liberty have access to artifactory, must use a public registry.");
             }
 
-            // Priority 3: If a public registry was explicitly set on an image, do not substitute
-            if (original.getRegistry() != null && !original.getRegistry().isEmpty()) {
-                result = original;
-                reason = "Image name is explicitally set with registry, cannot modify registry.";
-                break;
-            }
+//            // Priority 3: If a public registry was explicitly set on an image, do not substitute
+//            if (original.getRegistry() != null && !original.getRegistry().isEmpty()) {
+//                result = original;
+//                reason = "Image name is explicitally set with registry, cannot modify registry.";
+//                break;
+//            }
 
             // Priority 4: Always use Artifactory if using remote docker host.
             if (DockerClientFactory.instance().isUsing(EnvironmentAndSystemPropertyClientProviderStrategy.class)) {
-                result = DockerImageName.parse(cache + '/' + original.asCanonicalNameString())
-                                .withRegistry(ArtifactoryRegistry.instance().getRegistry())
-                                .asCompatibleSubstituteFor(original);
-                needsArtifactory = true;
+                result = REGISTRY.apply(MIRROR.apply(original));
+                collect = true;
                 reason = "Using a remote docker host, must use Artifactory registry";
                 break;
             }
 
-            // Priority 5: System property artifactory.force.external.repo (NOTE: only honor this property if set to true)
+            // Priority 5: System property artifactory.force.external.repo
+            // (NOTE: only honor this property if set to true)
             if (Boolean.getBoolean(forceExternal)) {
                 result = original;
-                needsArtifactory = false;
+                collect = true;
                 reason = "System property [ fat.test.artifactory.force.external.repo ] was set to true, must use original image name.";
                 break;
             }
 
             // Priority 6: If Artifactory registry is available use it to avoid rate limits on other registries
             if (ArtifactoryRegistry.instance().isArtifactoryAvailable()) {
-                result = DockerImageName.parse(cache + '/' + original.asCanonicalNameString())
-                                .withRegistry(ArtifactoryRegistry.instance().getRegistry())
-                                .asCompatibleSubstituteFor(original);
-                needsArtifactory = true;
+                result = REGISTRY.apply(MIRROR.apply(original));
+                collect = true;
                 reason = "Artifactory was available.";
-                break;
-            }
-
-            // Priority 7: If we need to mock this behavior for image name generation
-            if (mockBehavior) {
-                result = DockerImageName.parse(cache + '/' + original.asCanonicalNameString())
-                                .withRegistry(ArtifactoryRegistry.instance().getRegistry())
-                                .asCompatibleSubstituteFor(original);
-                needsArtifactory = true;
-                reason = "Mocking artifactory behavior.";
                 break;
             }
 
             //default - use original
             result = original;
+            collect = true;
             reason = "Default behavior: use default docker registry.";
         } while (false);
-
-        // We determined we need Artifactory, but it is unavailable.
-        if (needsArtifactory && !mockBehavior && !ArtifactoryRegistry.instance().isArtifactoryAvailable()) {
-            throw new RuntimeException("Need to swap image " + original.asCanonicalNameString() + " --> " + result.asCanonicalNameString()
-                                       + System.lineSeparator() + "Reason: " + reason
-                                       + System.lineSeparator() + "Error: The Artifactory registry was not added to the docker config.", //
-                            ArtifactoryRegistry.instance().getSetupException());
-        }
 
         // Alert user that we either added the Artifactory registry or not.
         if (original == result) {
@@ -150,7 +122,7 @@ public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
 
     @Override
     protected String getDescription() {
-        return "ArtifactoryImageNameSubstitutor";
+        return "ArtifactoryImageNameSubstitutor: Chained subsitutor of ArtifactoryMirrorSubstitutor and ArtifactoryRegistrySubstitutor";
     }
 
     /**
