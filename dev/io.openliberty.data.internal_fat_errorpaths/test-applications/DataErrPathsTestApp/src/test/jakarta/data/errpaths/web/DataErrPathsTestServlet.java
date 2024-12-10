@@ -32,6 +32,7 @@ import jakarta.data.exceptions.DataException;
 import jakarta.data.exceptions.MappingException;
 import jakarta.data.page.Page;
 import jakarta.data.page.PageRequest;
+import jakarta.data.page.PageRequest.Cursor;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -641,6 +642,30 @@ public class DataErrPathsTestServlet extends FATServlet {
                 x.getMessage().contains(PageRequest.class.getName()))
                 ; // expected
             else
+                throw x;
+        }
+    }
+
+    /**
+     * Supply a PageRequest that has a Cursor to a repository method that returns
+     * an offset-based Page rather than a CursoredPage. Expect an error.
+     */
+    @Test
+    public void testOffsetPageRequestedWithCursor() {
+        Order<Voter> nameAsc = Order.by(Sort.asc("name"), Sort.asc("ssn"));
+        PageRequest after123456789 = PageRequest.ofSize(4) //
+                        .afterCursor(Cursor.forKey("Voter Name", 123456789));
+        try {
+            Page<Voter> page = voters //
+                            .atAddress("770 W Silver Lake Dr NE, Rochester, MN 55906",
+                                       after123456789,
+                                       nameAsc);
+            fail("Obtained an offset page from a PageRequest that contains a" +
+                 " Cursor: " + page);
+        } catch (IllegalArgumentException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1035E:") ||
+                !x.getMessage().contains("atAddress"))
                 throw x;
         }
     }

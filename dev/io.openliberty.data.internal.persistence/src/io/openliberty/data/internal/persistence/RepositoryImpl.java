@@ -677,10 +677,6 @@ public class RepositoryImpl<R> implements InvocationHandler {
                             }
                         }
 
-                        boolean asyncCompatibleResultForPagination = pagination != null &&
-                                                                     (void.class.equals(returnType) || CompletableFuture.class.equals(returnType)
-                                                                      || CompletionStage.class.equals(returnType));
-
                         Class<?> multiType = queryInfo.multiType;
 
                         if (CursoredPage.class.equals(multiType)) {

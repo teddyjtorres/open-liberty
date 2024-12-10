@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 import jakarta.data.Limit;
 import jakarta.data.Order;
 import jakarta.data.Sort;
+import jakarta.data.page.Page;
 import jakarta.data.page.PageRequest;
 import jakarta.data.repository.BasicRepository;
 import jakarta.data.repository.By;
@@ -56,6 +57,11 @@ public interface Voters extends BasicRepository<Voter, Integer> {
      */
     @Insert
     List<Voter> addSome(List<Voter> v, Limit limit);
+
+    @Find
+    Page<Voter> atAddress(@By("address") String homeAddress,
+                          PageRequest pageReq,
+                          Order<Voter> order);
 
     /**
      * This invalid method neglects to include the Param annotation for a
