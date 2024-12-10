@@ -657,8 +657,11 @@ public class JakartaDataRecreateServlet extends FATServlet {
             tx.rollback();
             throw e;
         }
-
+        
         assertEquals(3, ids.size());
+        assertEquals(5L, ids.get(0).longValue());
+        assertEquals(3L, ids.get(1).longValue());
+        assertEquals(2L, ids.get(2).longValue());
     }
 
     @Test
