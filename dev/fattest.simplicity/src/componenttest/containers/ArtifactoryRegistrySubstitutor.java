@@ -20,19 +20,19 @@ import com.ibm.websphere.simplicity.log.Log;
  */
 public class ArtifactoryRegistrySubstitutor extends ImageNameSubstitutor {
 
-    private static final Class<?> c = ArtifactoryMirrorSubstitutor.class;
+    private static final Class<?> c = ArtifactoryRegistrySubstitutor.class;
 
     @Override
     public DockerImageName apply(DockerImageName original) {
         if (!ArtifactoryRegistry.instance().isArtifactoryAvailable()) {
-            throw new RuntimeException("Need to append Artifactory registry to docker image name. "
-                                       + "However, no Artfiactory registry was available because "
+            throw new RuntimeException("Needed to append Artifactory registry to the docker image name: " + original.asCanonicalNameString()
+                                       + System.lineSeparator() + "No Artfiactory registry was available because "
                                        + ArtifactoryRegistry.instance().getSetupException().getMessage());
         }
 
         if (!original.getRegistry().isEmpty()) {
             throw new RuntimeException("A registry (" + original.getRegistry() + ") was already configured on the docker image name."
-                                       + " This substitutor cannot replace an existing registry.");
+                                       + System.lineSeparator() + "This substitutor cannot replace an existing registry.");
         }
 
         DockerImageName result = original;

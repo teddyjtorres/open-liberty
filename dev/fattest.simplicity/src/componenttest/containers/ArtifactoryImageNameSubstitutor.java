@@ -40,22 +40,20 @@ public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
     @Override
     public DockerImageName apply(final DockerImageName original) {
         final DockerImageName result;
-        final boolean collect;
         final String reason;
 
         do {
             // Priority 1: If we are using a synthetic image do not substitute nor cache
             if (isSyntheticImage(original)) {
                 result = original;
-                collect = false;
                 reason = "Image name is known to be synthetic, cannot use Artifactory registry.";
                 break;
             }
 
             // Priority 2a: If the image is known to only exist in an Artifactory organization
             if (original.getRepository().contains("wasliberty-")) {
+                ImageVerifier.collectImage(original);
                 result = REGISTRY.apply(original);
-                collect = true;
                 reason = "This image only exists in Artifactory, must use Artifactory registry.";
                 break;
             }
@@ -70,8 +68,8 @@ public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
 
             // Priority 4: Always use Artifactory if using remote docker host.
             if (DockerClientFactory.instance().isUsing(EnvironmentAndSystemPropertyClientProviderStrategy.class)) {
+                ImageVerifier.collectImage(original);
                 result = REGISTRY.apply(MIRROR.apply(original));
-                collect = true;
                 reason = "Using a remote docker host, must use Artifactory registry";
                 break;
             }
@@ -79,41 +77,30 @@ public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
             // Priority 5: System property artifactory.force.external.repo
             // (NOTE: only honor this property if set to true)
             if (Boolean.getBoolean(forceExternal)) {
+                ImageVerifier.collectImage(original);
                 result = original;
-                collect = true;
                 reason = "System property [ fat.test.artifactory.force.external.repo ] was set to true, must use original image name.";
                 break;
             }
 
             // Priority 6: If Artifactory registry is available use it to avoid rate limits on other registries
             if (ArtifactoryRegistry.instance().isArtifactoryAvailable()) {
+                ImageVerifier.collectImage(original);
                 result = REGISTRY.apply(MIRROR.apply(original));
-                collect = true;
                 reason = "Artifactory was available.";
                 break;
             }
 
             //default - use original
+            ImageVerifier.collectImage(original);
             result = original;
-            collect = true;
             reason = "Default behavior: use default docker registry.";
         } while (false);
 
-        // Alert user that we either added the Artifactory registry or not.
-        if (original == result) {
-            Log.info(c, "apply", "Keeping original image name: " + original.asCanonicalNameString()
-                                 + System.lineSeparator() + "Reason: " + reason);
-        } else {
-            Log.info(c, "apply", "Swapping docker image name " + original.asCanonicalNameString() + " --> " + result.asCanonicalNameString()
-                                 + System.lineSeparator() + "Reason: " + reason);
-        }
+        Log.info(c, "apply", original.asCanonicalNameString() + " --> " + result.asCanonicalNameString()
+                             + System.lineSeparator() + "Reason: " + reason);
 
-        // Collect image data for verification after testing
-        if (collect) {
-            return ImageVerifier.collectImage(original, result);
-        } else {
-            return original;
-        }
+        return result;
     }
 
     @Override

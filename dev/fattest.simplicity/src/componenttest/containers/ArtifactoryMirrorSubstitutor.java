@@ -45,7 +45,7 @@ public class ArtifactoryMirrorSubstitutor extends ImageNameSubstitutor {
         } else if (REGISTRY_MAP.containsKey(original.getRegistry())) {
             repository = REGISTRY_MAP.get(original.getRegistry()) + "/" + original.getRepository();
         } else {
-            repository = original.getRepository();
+            return original; //No mirror available, therefore return original
         }
 
         DockerImageName result = original;
