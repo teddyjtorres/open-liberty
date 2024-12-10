@@ -55,7 +55,9 @@ public class DataErrPathsTest extends FATServletClient {
                                    "CWWKD1085E.*livingOn", // extra Param annotations
                                    "CWWKD1086E.*withAddressShorterThan", // Param used for positional parameter
                                    "CWWKD1090E.*findByAddressOrderBy", // OrderBy anno/keyword conflict
-                                   "CWWKD1094E.*register" // incompatible return type
+                                   "CWWKD1091E.*deleteByAddressOrderByName", // OrderBy without return type
+                                   "CWWKD1094E.*register", // incompatible return type
+                                   "CWWKD1096E.*discardInOrder" // OrderBy annotation without return type
                     };
 
     @Server("io.openliberty.data.internal.fat.errpaths")

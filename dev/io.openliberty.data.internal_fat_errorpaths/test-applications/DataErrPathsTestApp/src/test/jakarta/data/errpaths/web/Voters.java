@@ -86,6 +86,20 @@ public interface Voters extends BasicRepository<Voter, Integer> {
     List<Voter> findByAddressOrderBySSN(int ssn, Sort<Voter> sort);
 
     /**
+     * This invalid method defines an ordering for results of a delete operation
+     * but has a return type that disallows returning results.
+     */
+    void deleteByAddressOrderByName(String address);
+
+    /**
+     * This invalid method defines an ordering for results of a delete operation
+     * but has a return type that disallows returning results.
+     */
+    @Delete
+    @OrderBy("name")
+    void discardInOrder(@By("address") String mailingAddress);
+
+    /**
      * This invalid method has a mixture of positional and named parameters.
      */
     @Query("""

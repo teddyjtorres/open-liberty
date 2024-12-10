@@ -238,13 +238,16 @@ public class QueryInfo {
     int[] sortPositions = NONE;
 
     /**
-     * Ordered list of Sort criteria, which can be defined statically via the OrderBy annotation or keyword,
-     * or dynamically via PageRequest Sort parameters or Sort parameters to the repository method,
+     * Ordered list of Sort criteria, which can be defined
+     * statically via the OrderBy annotation or keyword, or
+     * dynamically via Sort parameters to the repository method,
      * or a combination of both static and dynamic.
-     * If the Query annotation is used, it will be unknown whether its value hard-codes Sort criteria,
-     * in which case this field gets set to any additional sort criteria that is added statically or dynamically,
+     * If the Query annotation is used, it will be unknown whether it
+     * hard-codes Sort criteria, in which case this field gets set to
+     * any additional sort criteria that is added statically or dynamically,
      * or lacking either of those, an empty list.
-     * If none of the above, the value of this field is null, which can also mean it has not been initialized yet.
+     * If none of the above, the value of this field is null,
+     * which can also mean it has not been initialized yet.
      */
     List<Sort<Object>> sorts;
 
@@ -2781,6 +2784,13 @@ public class QueryInfo {
 
             // The @OrderBy annotation from Jakarta Data provides sort criteria statically
             if (orderBy.length > 0) {
+                // disallow on incompatible operations
+                if (type != Type.FIND && type != Type.FIND_AND_DELETE)
+                    throw exc(UnsupportedOperationException.class,
+                              "CWWKD1096.orderby.incompat",
+                              method.getName(),
+                              repositoryInterface.getName());
+
                 if (sorts != null) // also has an OrderBy keyword
                     throw exc(UnsupportedOperationException.class,
                               "CWWKD1090.orderby.conflict",
@@ -3816,11 +3826,12 @@ public class QueryInfo {
     }
 
     /**
-     * Parses the number (if any) following findFirst or deleteFirst.
+     * Parses the number (if any) following findFirst.
      *
-     * @param start     starting position after findFirst or deleteFirst
-     * @param endBefore index of first occurrence of "By" in the method name, or otherwise the method name length.
-     * @return next starting position after the find/deleteFirst(#).
+     * @param start     starting position after findFirst.
+     * @param endBefore index of first occurrence of "By" in the method name,
+     *                      or otherwise the method name length.
+     * @return next starting position after the findFirst(#).
      */
     private int parseFirst(int start, int endBefore) {
         String methodName = method.getName();
