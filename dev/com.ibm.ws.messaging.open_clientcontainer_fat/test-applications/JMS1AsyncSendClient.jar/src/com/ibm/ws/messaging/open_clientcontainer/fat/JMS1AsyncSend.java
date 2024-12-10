@@ -95,10 +95,15 @@ public class JMS1AsyncSend extends ClientMain {
     @ClientTest
     public void testJMS1AsyncSend() throws JMSException, TestException {
         // Util.setLevel(Level.FINEST);
-        try (QueueSession session = queueConnection_.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
+
+    	try (QueueConnection connection = queueConnectionFactory_.createQueueConnection();
+    			     QueueSession session = connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE)) {
+    		
+    		Queue queue = session.createTemporaryQueue();
+    		
             TextMessage sentMessage = session.createTextMessage(methodName() + " at " + new Date());
-            MessageProducer producer = session.createProducer(queueOne_);
-            MessageConsumer consumer = session.createConsumer(queueOne_);
+            MessageProducer producer = session.createProducer(queue);
+            MessageConsumer consumer = session.createConsumer(queue);
             BasicCompletionListener completionListener = new BasicCompletionListener();
             producer.send(sentMessage, completionListener);
 
