@@ -94,6 +94,8 @@ public class JMS1AsyncSend extends ClientMain {
 
     @ClientTest
     public void testJMS1AsyncSend() throws JMSException, TestException {
+    	
+    	Util.CODEPATH();
 
     	try (QueueConnection connection = queueConnectionFactory_.createQueueConnection();
 		     QueueSession session = connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE)) {
@@ -105,18 +107,26 @@ public class JMS1AsyncSend extends ClientMain {
             MessageProducer producer = session.createProducer(queue);
             MessageConsumer consumer = session.createConsumer(queue);
             BasicCompletionListener completionListener = new BasicCompletionListener();
+            
+            Util.LOG("Sending Message with CompletionListener");
             producer.send(sentMessage, completionListener);
+            
+            Util.LOG("Message sent");
+            Util.TRACE("sentMessage: " + sentMessage);
 
             if (!completionListener.waitFor(1, 0)) {
                 throw new TestException("Completion listener not notified, sent:" + sentMessage + " completionListener.formattedState:" + completionListener.formattedState());
             }
 
+            Util.LOG("Receiving Message");
             TextMessage receivedMessage = (TextMessage) consumer.receive(WAIT_TIME);
+
             if (null == receivedMessage) {
-                Util.TRACE("No message received.");
+                Util.LOG("No message received.");
                 throw new TestException("Message not received, sent:" + sentMessage + " completionListener.formattedState:" + completionListener.formattedState());
             } else {
-                Util.TRACE("Message received, receivedMessage:" + receivedMessage);
+            	Util.LOG("Message received");
+                Util.TRACE("receivedMessage:" + receivedMessage);
             }
 
             if (!receivedMessage.getText().equals(sentMessage.getText()))
