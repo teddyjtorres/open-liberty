@@ -94,11 +94,11 @@ public class JMS1AsyncSend extends ClientMain {
 
     @ClientTest
     public void testJMS1AsyncSend() throws JMSException, TestException {
-        // Util.setLevel(Level.FINEST);
 
     	try (QueueConnection connection = queueConnectionFactory_.createQueueConnection();
-    			     QueueSession session = connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE)) {
+		     QueueSession session = connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE)) {
     		
+    		// Use a temporary Queue so that it is automatically cleaned up whne the Connection is closed.
     		Queue queue = session.createTemporaryQueue();
     		
             TextMessage sentMessage = session.createTextMessage(methodName() + " at " + new Date());
@@ -122,12 +122,20 @@ public class JMS1AsyncSend extends ClientMain {
             if (!receivedMessage.getText().equals(sentMessage.getText()))
                 throw new TestException("Incorrect message received, receivedMessage:" + receivedMessage + "\n sentMessage:" + sentMessage);
 
-        } finally {
-            clearQueue(queueOne_, methodName(), 0);
         }
+    	// Deal with possible exceptions
+    	catch (JMSException | TestException ex) {
+    		Util.LOG("Exception thrown during test", ex);
+    		throw ex;
+    	}
+    	// Deal with unchecked Exceptions
+    	catch (Throwable t) {
+    		Util.LOG("Unchecked Exception thrown during test", t);
+    		TestException newException = new TestException("Unexpected Exception thrown during test", t);
+    		throw newException;
+    	}
 
         reportSuccess();
-        // Util.setLevel(Level.INFO);
     }
 
     // Case where the acknowledgement is not received, the JMS provider would notify
