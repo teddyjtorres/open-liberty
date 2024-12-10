@@ -636,8 +636,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
         Prime three = Prime.of(3, "III", "three");
         Prime five = Prime.of(5, "V", "five");
         Prime seven = Prime.of(7, "VII", "seven");
-
-        List<Prime> primes;
+        List<Long> ids;
 
         tx.begin();
         em.persist(two);
@@ -648,9 +647,9 @@ public class JakartaDataRecreateServlet extends FATServlet {
 
         tx.begin();
         try {
-            primes = em.createQuery(
+             ids = em.createQuery(
                                     "SELECT ID(THIS) FROM Prime WHERE ID(THIS) < ?1 ORDER BY ID(THIS) DESC",
-                                    Prime.class)
+                                    Long.class)
                             .setParameter(1, 7)
                             .getResultList();
             tx.commit();
@@ -659,7 +658,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
             throw e;
         }
 
-        assertEquals(3, primes.size());
+        assertEquals(3, ids.size());
     }
 
     @Test
