@@ -49,6 +49,7 @@ public class DataErrPathsTest extends FATServletClient {
                                    "CWWKD1009E.*storeInDatabase", // Save method with multiple parameters
                                    "CWWKD1019E.*livingAt", // mix of named/positional parameters
                                    "CWWKD1019E.*residingAt", // unused parameters
+                                   "CWWKD1022E.*discardPage", // Delete operation with a PageRequest
                                    "CWWKD1077E.*test.jakarta.data.errpaths.web.RepoWithoutDataStore",
                                    "CWWKD1078E.*test.jakarta.data.errpaths.web.InvalidNonJNDIRepo",
                                    "CWWKD1079E.*test.jakarta.data.errpaths.web.InvalidJNDIRepo",
@@ -63,7 +64,10 @@ public class DataErrPathsTest extends FATServletClient {
                                    "CWWKD1090E.*findByAddressOrderBy", // OrderBy anno/keyword conflict
                                    "CWWKD1091E.*deleteByAddressOrderByName", // OrderBy without return type
                                    "CWWKD1094E.*register", // incompatible return type
-                                   "CWWKD1096E.*discardInOrder" // OrderBy annotation without return type
+                                   "CWWKD1096E.*discardInOrder", // OrderBy annotation without return type
+                                   "CWWKD1097E.*discardLimited", // Limit parameter on Delete method
+                                   "CWWKD1097E.*discardOrdered", // Order parameter on Delete method
+                                   "CWWKD1097E.*discardSorted" // Sort parameter on Delete method
                     };
 
     @Server("io.openliberty.data.internal.fat.errpaths")

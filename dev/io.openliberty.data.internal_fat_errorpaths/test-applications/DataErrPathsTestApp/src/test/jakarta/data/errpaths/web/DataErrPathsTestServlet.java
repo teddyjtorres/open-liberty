@@ -12,6 +12,7 @@
  *******************************************************************************/
 package test.jakarta.data.errpaths.web;
 
+import static jakarta.data.repository.By.ID;
 import static org.junit.Assert.fail;
 
 import java.time.LocalDate;
@@ -164,6 +165,44 @@ public class DataErrPathsTestServlet extends FATServlet {
     }
 
     /**
+     * Verify an error is raised for a repository method that attempts to
+     * delete a page of results by specifying a PageRequest on a Delete operation.
+     */
+    @Test
+    public void testDeletePageOfResults() {
+        try {
+            voters.discardPage("701 Silver Creek Rd NE, Rochester, MN 55906",
+                               PageRequest.ofSize(15));
+            fail("Should not be able to perform a delete operation by supplying"
+                 + " a PageRequest.");
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1022E:") ||
+                !x.getMessage().contains("discardPage"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository method that specifies a
+     * Limit parameter on a Delete operation with void return type.
+     */
+    @Test
+    public void testDeleteWithLimitParameterButNoResult() {
+        try {
+            voters.discardLimited("701 Silver Creek Rd NE, Rochester, MN 55906",
+                                  Limit.of(3));
+            fail("Should not be able to define an Limit parameter on a method that" +
+                 " deletes entities but does not return them");
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1097E:") ||
+                !x.getMessage().contains("discardLimited"))
+                throw x;
+        }
+    }
+
+    /**
      * Verify an error is raised for a repository method that specifies an
      * OrderBy annotation on a Delete operation with void return type.
      */
@@ -189,6 +228,44 @@ public class DataErrPathsTestServlet extends FATServlet {
                  " deletes entities but does not return them");
         } catch (MappingException x) {
             // expected
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository method that specifies an
+     * Order parameter on a Delete operation with void return type.
+     */
+    @Test
+    public void testDeleteWithOrderParameterButNoResult() {
+        try {
+            voters.discardOrdered("701 Silver Creek Rd NE, Rochester, MN 55906",
+                                  Order.by(Sort.desc(ID)));
+            fail("Should not be able to define an Order parameter on a method that" +
+                 " deletes entities but does not return them");
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1097E:") ||
+                !x.getMessage().contains("discardOrdered"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository method that specifies a
+     * Sort parameter on a Delete operation with int return type.
+     */
+    @Test
+    public void testDeleteWithSortParameterButNoResult() {
+        try {
+            int count = voters.discardSorted("701 Silver Creek Rd NE, Rochester, MN 55906",
+                                             Sort.asc("ssn"));
+            fail("Should not be able to define a Sort parameter on a method that" +
+                 " deletes entities and returns an update count: " + count);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1097E:") ||
+                !x.getMessage().contains("discardSorted"))
+                throw x;
         }
     }
 

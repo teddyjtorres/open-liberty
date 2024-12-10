@@ -2849,8 +2849,7 @@ public class QueryInfo {
 
             jpql = q == null ? jpql : q.toString();
 
-            if (type == null)
-                throw excUnsupportedMethod();
+            validate();
 
             if (trace && tc.isEntryEnabled())
                 Tr.exit(this, tc, "init", new Object[] { this, entityInfo });
@@ -4330,15 +4329,6 @@ public class QueryInfo {
     void setParameters(jakarta.persistence.Query query, Object... args) throws Exception {
         final boolean trace = TraceComponent.isAnyTracingEnabled();
 
-        if (args != null && args.length < jpqlParamCount)
-            throw exc(DataException.class,
-                      "CWWKD1021.insufficient.params",
-                      method.getName(),
-                      repositoryInterface.getName(),
-                      args.length,
-                      jpqlParamCount,
-                      jpql);
-
         Iterator<String> namedParams = jpqlParamNames.iterator();
         for (int i = 0, p = 0; i < jpqlParamCount; i++) {
             Object arg = args[i];
@@ -4354,19 +4344,6 @@ public class QueryInfo {
                     Tr.debug(this, tc, "set ?" + (p + 1) + ' ' + loggable(arg));
                 query.setParameter(++p, arg);
             }
-        }
-
-        if (args != null &&
-            jpqlParamCount < args.length &&
-            type != Type.FIND &&
-            type != Type.FIND_AND_DELETE) {
-            throw exc(DataException.class,
-                      "CWWKD1022.too.many.params",
-                      method.getName(),
-                      repositoryInterface.getName(),
-                      jpqlParamCount,
-                      args.length,
-                      jpql);
         }
     }
 
@@ -4753,6 +4730,55 @@ public class QueryInfo {
         if (trace && tc.isEntryEnabled())
             Tr.exit(this, tc, "update", numUpdated);
         return numUpdated;
+    }
+
+    /**
+     * Validate this instance. This is invoked at the end of initialization.
+     */
+    @Trivial
+    private void validate() {
+        if (type == null)
+            throw excUnsupportedMethod();
+
+        int methodParamCount = method.getParameterCount();
+        if (jpql != null &&
+            methodParamCount < jpqlParamCount &&
+            type != Type.DELETE_WITH_ENTITY_PARAM &&
+            type != Type.UPDATE_WITH_ENTITY_PARAM &&
+            type != Type.UPDATE_WITH_ENTITY_PARAM_AND_RESULT)
+            throw exc(UnsupportedOperationException.class,
+                      "CWWKD1021.insufficient.params",
+                      method.getName(),
+                      repositoryInterface.getName(),
+                      methodParamCount,
+                      jpqlParamCount,
+                      jpql);
+
+        if (jpql != null &&
+            jpqlParamCount < methodParamCount &&
+            type != Type.FIND &&
+            type != Type.FIND_AND_DELETE) {
+
+            if (type == Type.DELETE) {
+                Class<?>[] paramTypes = method.getParameterTypes();
+                for (int i = jpqlParamCount; i < methodParamCount; i++)
+                    if (Util.SORT_PARAM_TYPES.contains(paramTypes[i]) ||
+                        Limit.class.equals(paramTypes[i]))
+                        throw exc(UnsupportedOperationException.class,
+                                  "CWWKD1097.param.incompat",
+                                  method.getName(),
+                                  repositoryInterface.getName(),
+                                  paramTypes[i].getSimpleName());
+            }
+
+            throw exc(UnsupportedOperationException.class,
+                      "CWWKD1022.too.many.params",
+                      method.getName(),
+                      repositoryInterface.getName(),
+                      jpqlParamCount,
+                      methodParamCount,
+                      jpql);
+        }
     }
 
     /**

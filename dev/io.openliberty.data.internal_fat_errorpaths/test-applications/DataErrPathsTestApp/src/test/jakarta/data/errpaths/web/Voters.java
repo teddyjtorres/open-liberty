@@ -18,6 +18,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import jakarta.data.Limit;
+import jakarta.data.Order;
 import jakarta.data.Sort;
 import jakarta.data.page.PageRequest;
 import jakarta.data.repository.BasicRepository;
@@ -101,6 +102,33 @@ public interface Voters extends BasicRepository<Voter, Integer> {
      */
     @Update
     void changeNothing();
+
+    /**
+     * This invalid method defines a limit on results of a delete operation
+     * but has a return type that disallows returning results.
+     */
+    @Delete
+    void discardLimited(@By("address") String mailingAddress, Limit limit);
+
+    /**
+     * This invalid method defines an ordering for results of a delete operation
+     * but has a return type that disallows returning results.
+     */
+    @Delete
+    void discardOrdered(@By("address") String mailingAddress, Order<Voter> order);
+
+    /**
+     * This invalid method attempts to delete a page of results.
+     */
+    @Delete
+    void discardPage(@By("address") String mailingAddress, PageRequest pageReq);
+
+    /**
+     * This invalid method defines sorting of results of a delete operation
+     * but has a return type that disallows returning results.
+     */
+    @Delete
+    int discardSorted(@By("address") String mailingAddress, Sort<Voter> sort);
 
     /**
      * This invalid method has a conflict between its OrderBy annotation and
