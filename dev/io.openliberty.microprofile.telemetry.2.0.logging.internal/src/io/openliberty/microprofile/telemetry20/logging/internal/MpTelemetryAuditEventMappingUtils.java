@@ -90,6 +90,7 @@ public class MpTelemetryAuditEventMappingUtils {
      * Gets the OpenTelemetry formatted audit event key name.
      *
      * @param auditKey
+     * @return
      */
     public static String getOTelMappedAuditEventKeyName(String auditKey) {
         String formattedAuditKey = getFormattedAuditEventKey(auditKey);
@@ -107,6 +108,7 @@ public class MpTelemetryAuditEventMappingUtils {
      * Gets the formatted audit event key from the audit table.
      *
      * @param auditKey
+     * @return
      */
     private static String getFormattedAuditEventKey(String auditKey) {
         String[][] auditTable = getAuditTypeTableFromKey(auditKey);
