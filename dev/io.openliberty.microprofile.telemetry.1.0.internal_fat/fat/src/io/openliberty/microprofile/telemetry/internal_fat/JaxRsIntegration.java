@@ -335,7 +335,8 @@ public class JaxRsIntegration extends FATServletClient {
 
     @Test
     public void testTraceStateFromHeaders() throws Exception {
-
+        //Manually creates the tracestate header with the HTTP request header. 
+        //Liberty and OpenTelemetry then turn it into a TraceState object on the current span by the time it gets to this method JaxRsEndpoints.testTraceStateFromHeaders
         HttpRequest pokeJax = new HttpRequest(server, "/" + APP_NAME + "/endpoints/traceStateFromHeaders").requestProp("tracestate", "key_1=value.1")
                         .requestProp("traceparent", "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01");
         String traceId = readTraceId(pokeJax);

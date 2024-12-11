@@ -344,8 +344,8 @@ public class JaxRsEndpoints extends Application {
     }
 
     @GET
-    @Path("/contextPropagatorTwo")
-    public Response contextPropagatorTwo(@Context HttpHeaders headers) throws Exception {
+    @Path("/checkTraceState")
+    public Response checkTraceState(@Context HttpHeaders headers) throws Exception {
         for (String h : headers.getRequestHeaders().keySet()) {
             if (h.equals("tracestate")) {
                 TraceState traceState = Span.current().getSpanContext().getTraceState();
@@ -358,19 +358,21 @@ public class JaxRsEndpoints extends Application {
         return Response.ok("Tracestate not found").build();
     }
 
+    //Test the tracestate we created is propagated on an outgoing request.
     @GET
     @Path("/traceState")
     public Response testTraceState(@Context UriInfo uriInfo) throws Exception {
+        //Manually creates a span with tracestate=[key_1=value.1] and sets it as the current span.
         Span parentSpan = Span.current();
         TraceState parentTraceState = TraceState.builder().put("key_1", "value.1").build();
         parentSpan = Span.wrap(SpanContext.create(parentSpan.getSpanContext().getTraceId(),
                                                   parentSpan.getSpanContext().getSpanId(),
                                                   parentSpan.getSpanContext().getTraceFlags(),
                                                   parentTraceState));
-
+        //Child spans are expected to have the given parentTraceState.
         try (Scope scope = parentSpan.makeCurrent()) {
             String url = new String(uriInfo.getAbsolutePath().toString());
-            url = url.replace("traceState", "contextPropagatorTwo"); //The jaxrsclient will use the URL as given so it needs the final part to be provided.
+            url = url.replace("traceState", "checkTraceState"); //The jaxrsclient will use the URL as given so it needs the final part to be provided.
             Client client = ClientBuilder.newClient();
             WebTarget resourceTarget = client.target(url);
             Invocation.Builder builder = resourceTarget.request();
@@ -382,15 +384,16 @@ public class JaxRsEndpoints extends Application {
         return Response.ok(Span.current().getSpanContext().getTraceId()).build();
     }
 
+    //Test that the tracestate is correctly set in the current Span from the request headers
     @GET
     @Path("/traceStateFromHeaders")
     public Response testTraceStateFromHeaders(@Context UriInfo uriInfo) throws Exception {
         TraceState traceState = Span.current().getSpanContext().getTraceState();
         assertFalse(traceState.isEmpty());
         assertEquals(traceState.get("key_1"), "value.1");
-
+        //Test the tracestate that was received is propagated to an outgoing request
         String url = new String(uriInfo.getAbsolutePath().toString());
-        url = url.replace("traceStateFromHeaders", "contextPropagatorTwo"); //The jaxrsclient will use the URL as given so it needs the final part to be provided.
+        url = url.replace("traceStateFromHeaders", "checkTraceState"); //The jaxrsclient will use the URL as given so it needs the final part to be provided.
         Client client = ClientBuilder.newClient();
         WebTarget resourceTarget = client.target(url);
         Invocation.Builder builder = resourceTarget.request();
@@ -400,6 +403,7 @@ public class JaxRsEndpoints extends Application {
 
     }
 
+    //Test that when we don't send a tracestate and the receiving side can see that it's missing
     @GET
     @Path("/emptyTraceState")
     public Response testEmptyTraceState(@Context UriInfo uriInfo) throws Exception {
@@ -407,7 +411,7 @@ public class JaxRsEndpoints extends Application {
         assertTrue(traceState.isEmpty());
 
         String url = new String(uriInfo.getAbsolutePath().toString());
-        url = url.replace("emptyTraceState", "contextPropagatorTwo"); //The jaxrsclient will use the URL as given so it needs the final part to be provided.
+        url = url.replace("emptyTraceState", "checkTraceState"); //The jaxrsclient will use the URL as given so it needs the final part to be provided.
         Client client = ClientBuilder.newClient();
         WebTarget resourceTarget = client.target(url);
         Invocation.Builder builder = resourceTarget.request();
