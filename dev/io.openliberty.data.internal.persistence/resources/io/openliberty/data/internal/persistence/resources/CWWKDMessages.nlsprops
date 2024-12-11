@@ -963,3 +963,10 @@ CWWKD1096.orderby.incompat=CWWKD1096E: The {0} method of the {1} repository \
 CWWKD1096.orderby.incompat.explanation=The OrderBy annotation is not compatible \
  with the type of repository operation.
 CWWKD1096.orderby.incompat.useraction=Remove the OrderBy annotation.
+
+CWWKD1097.param.incompat=CWWKD1097E: The {0} method of the {1} repository \
+ has a {2} parameter, but the {0} method is not a find operation or a \
+ delete operation that returns entities.
+CWWKD1097.param.incompat.explanation=Order, Sort, and Limit parameters are \
+ not compatible with the type of repository operation.
+CWWKD1097.param.incompat.useraction=Remove the Order, Sort, or Limit parameter.

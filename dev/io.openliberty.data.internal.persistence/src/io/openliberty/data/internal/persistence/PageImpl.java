@@ -26,8 +26,10 @@ import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Trivial;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 
+import jakarta.data.page.CursoredPage;
 import jakarta.data.page.Page;
 import jakarta.data.page.PageRequest;
+import jakarta.data.page.PageRequest.Mode;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 
@@ -52,6 +54,15 @@ public class PageImpl<T> implements Page<T> {
 
         if (pageRequest == null)
             queryInfo.missingPageRequest();
+
+        if (pageRequest.mode() != Mode.OFFSET)
+            throw exc(IllegalArgumentException.class,
+                      "CWWKD1035.incompat.page.mode",
+                      Mode.OFFSET,
+                      queryInfo.method.getName(),
+                      queryInfo.repositoryInterface.getName(),
+                      queryInfo.method.getGenericReturnType().getTypeName(),
+                      CursoredPage.class.getName());
 
         this.queryInfo = queryInfo;
         this.pageRequest = pageRequest;

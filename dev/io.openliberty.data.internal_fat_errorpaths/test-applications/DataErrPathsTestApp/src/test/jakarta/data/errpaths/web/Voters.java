@@ -17,7 +17,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Stream;
 
+import jakarta.data.Limit;
+import jakarta.data.Order;
 import jakarta.data.Sort;
+import jakarta.data.page.Page;
+import jakarta.data.page.PageRequest;
 import jakarta.data.repository.BasicRepository;
 import jakarta.data.repository.By;
 import jakarta.data.repository.Delete;
@@ -27,6 +31,7 @@ import jakarta.data.repository.OrderBy;
 import jakarta.data.repository.Param;
 import jakarta.data.repository.Query;
 import jakarta.data.repository.Repository;
+import jakarta.data.repository.Save;
 import jakarta.data.repository.Update;
 
 /**
@@ -38,6 +43,25 @@ import jakarta.data.repository.Update;
 public interface Voters extends BasicRepository<Voter, Integer> {
     static record NameAndZipCode(String name, int zipCode) {
     }
+
+    /**
+     * Invalid method. A method with a life cycle annotation must have exactly
+     * 1 parameter.
+     */
+    @Insert
+    Voter[] addNothing();
+
+    /**
+     * Invalid method. A method with a life cycle annotation must have exactly
+     * 1 parameter, not multiple.
+     */
+    @Insert
+    List<Voter> addSome(List<Voter> v, Limit limit);
+
+    @Find
+    Page<Voter> atAddress(@By("address") String homeAddress,
+                          PageRequest pageReq,
+                          Order<Voter> order);
 
     /**
      * This invalid method neglects to include the Param annotation for a
@@ -70,6 +94,47 @@ public interface Voters extends BasicRepository<Voter, Integer> {
 
     @Update
     List<Voter> changeAll(Stream<Voter> v);
+
+    /**
+     * Invalid method. A method with a life cycle annotation must have exactly
+     * 1 parameter, not multiple.
+     */
+    @Update
+    List<Voter> changeBoth(Voter v1, Voter v2);
+
+    /**
+     * Invalid method. A method with a life cycle annotation must have exactly
+     * 1 parameter.
+     */
+    @Update
+    void changeNothing();
+
+    /**
+     * This invalid method defines a limit on results of a delete operation
+     * but has a return type that disallows returning results.
+     */
+    @Delete
+    void discardLimited(@By("address") String mailingAddress, Limit limit);
+
+    /**
+     * This invalid method defines an ordering for results of a delete operation
+     * but has a return type that disallows returning results.
+     */
+    @Delete
+    void discardOrdered(@By("address") String mailingAddress, Order<Voter> order);
+
+    /**
+     * This invalid method attempts to delete a page of results.
+     */
+    @Delete
+    void discardPage(@By("address") String mailingAddress, PageRequest pageReq);
+
+    /**
+     * This invalid method defines sorting of results of a delete operation
+     * but has a return type that disallows returning results.
+     */
+    @Delete
+    int discardSorted(@By("address") String mailingAddress, Sort<Voter> sort);
 
     /**
      * This invalid method has a conflict between its OrderBy annotation and
@@ -174,6 +239,20 @@ public interface Voters extends BasicRepository<Voter, Integer> {
                            @Param("street") String street,
                            String city, // extra, unused parameter
                            String stateCode); // extra, unused parameter
+
+    /**
+     * Invalid method. A method with a life cycle annotation must have exactly
+     * 1 parameter.
+     */
+    @Save
+    void storeNothing();
+
+    /**
+     * Invalid method. A method with a life cycle annotation must have exactly
+     * 1 parameter, not multiple.
+     */
+    @Save
+    Voter storeInDatabase(Voter voter, PageRequest pageReq);
 
     /**
      * This invalid method has a query that requires a single positional parameter,
