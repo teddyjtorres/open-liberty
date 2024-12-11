@@ -1,58 +1,38 @@
+/*******************************************************************************
+ * Copyright (c) 2019, 2024 IBM Corporation and others.
+ * All rights reserved. This program and the accompanying materials
+ * are made available under the terms of the Eclipse Public License 2.0
+ * which accompanies this distribution, and is available at
+ * http://www.eclipse.org/legal/epl-2.0/
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     IBM Corporation - initial API and implementation
+ *******************************************************************************/
 package componenttest.topology.database.container;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.concurrent.Future;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
-import org.testcontainers.containers.JdbcDatabaseContainer;
-import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
-import org.testcontainers.containers.wait.strategy.Wait;
-import org.testcontainers.containers.wait.strategy.WaitStrategy;
 import org.testcontainers.utility.DockerImageName;
 
 /**
  * This class is a replacement for the regular <code>org.testcontainers.containers.PostgreSQLContainer</code> class.
- * This custom class is needed for 2 reasons:
- * 1. To add a ctor that accepts a <code>Future<String></code> parameter so we can mount SSL certificates in the image
- * 2. To fix the ordering of configure() so that we can set config options such as max_connections=200
+ * This custom class is needed to fix the ordering of configure() so that we can set config options such as max_connections=2
  */
-public class PostgreSQLContainer extends JdbcDatabaseContainer<PostgreSQLContainer> {
+public class PostgreSQLContainer extends org.testcontainers.containers.PostgreSQLContainer<PostgreSQLContainer> {
 
-    public static final String NAME = "postgresql";
-    public static final String IMAGE = "postgres";
-    public static final String DEFAULT_TAG = "9.6.8";
-
-    public static final Integer POSTGRESQL_PORT = 5432;
-    private String databaseName = "test";
-    private String username = "test";
-    private String password = "test";
     private final Map<String, String> options = new HashMap<>();
 
-    private final WaitStrategy defaultWaitStrategy = new LogMessageWaitStrategy()
-                    .withRegEx(".*database system is ready to accept connections.*\\s")
-                    .withTimes(2)
-                    .withStartupTimeout(Duration.of(60, ChronoUnit.SECONDS));
-
-    public PostgreSQLContainer(String img) {
-        super(img);
-        this.waitStrategy = defaultWaitStrategy; //can be overwritten by calling waitingFor or setWaitStrategy
+    public PostgreSQLContainer(final String dockerImageName) {
+        super(dockerImageName);
     }
 
-    public PostgreSQLContainer(final Future<String> image) {
-        super(image);
-        this.waitStrategy = defaultWaitStrategy; //can be overwritten by calling waitingFor or setWaitStrategy
-    }
-
-    public PostgreSQLContainer(final DockerImageName image) {
-        super(image);
-        this.waitStrategy = defaultWaitStrategy; //can be overwritten by calling waitingFor or setWaitStrategy
+    public PostgreSQLContainer(final DockerImageName dockerImageName) {
+        super(dockerImageName);
     }
 
     /**
@@ -63,85 +43,28 @@ public class PostgreSQLContainer extends JdbcDatabaseContainer<PostgreSQLContain
      * @return       this
      */
     public PostgreSQLContainer withConfigOption(String key, String value) {
-        if (key == null) {
-            throw new java.lang.NullPointerException("key marked @NonNull but is null");
-        }
-        if (value == null) {
-            throw new java.lang.NullPointerException("value marked @NonNull but is null");
-        }
+        Objects.requireNonNull(key);
+        Objects.requireNonNull(value);
+
         options.put(key, value);
-        return self();
+        return this;
     }
 
     @Override
     protected void configure() {
-        addExposedPort(POSTGRESQL_PORT);
-        addEnv("POSTGRES_DB", databaseName);
-        addEnv("POSTGRES_USER", username);
-        addEnv("POSTGRES_PASSWORD", password);
+        super.configure();
+
         if (!options.containsKey("fsync"))
             withConfigOption("fsync", "off");
         if (!options.containsKey("max_prepared_transactions"))
             withConfigOption("max_prepared_transactions", "2");
-        List<String> command = new ArrayList<>();
-        for (Entry<String, String> e : options.entrySet()) {
-            command.add("-c");
-            command.add(e.getKey() + '=' + e.getValue());
-        }
-        setCommand(command.toArray(new String[command.size()]));
-    }
 
-    @Override
-    protected Set<Integer> getLivenessCheckPorts() {
-        return new HashSet<>(getMappedPort(POSTGRESQL_PORT));
-    }
+        String command = "postgres -c " + options.entrySet()
+                        .stream()
+                        .map(e -> e.getKey() + '=' + e.getValue())
+                        .collect(Collectors.joining(" -c "));
 
-    @Override
-    public String getDriverClassName() {
-        return "org.postgresql.Driver";
-    }
-
-    @Override
-    public String getJdbcUrl() {
-        return "jdbc:postgresql://" + getHost() + ":" + getMappedPort(POSTGRESQL_PORT) + "/" + databaseName;
-    }
-
-    @Override
-    public String getDatabaseName() {
-        return databaseName;
-    }
-
-    @Override
-    public String getUsername() {
-        return username;
-    }
-
-    @Override
-    public String getPassword() {
-        return password;
-    }
-
-    @Override
-    public String getTestQueryString() {
-        return "SELECT 1";
-    }
-
-    @Override
-    public PostgreSQLContainer withDatabaseName(final String databaseName) {
-        this.databaseName = databaseName;
-        return self();
-    }
-
-    @Override
-    public PostgreSQLContainer withUsername(final String username) {
-        this.username = username;
-        return self();
-    }
-
-    @Override
-    public PostgreSQLContainer withPassword(final String password) {
-        this.password = password;
-        return self();
+        this.setCommand(command);
     }
 
     /**
@@ -155,16 +78,6 @@ public class PostgreSQLContainer extends JdbcDatabaseContainer<PostgreSQLContain
         withConfigOption("ssl_cert_file", "/var/lib/postgresql/server.crt");
         withConfigOption("ssl_key_file", "/var/lib/postgresql/server.key");
         return this;
-    }
-
-    @Override
-    protected void waitUntilContainerStarted() {
-        // by Testcontainers waits for being able to establish a JDBC connection
-        // use the default wait strategy instead (necessary for the SSL path)
-        if (getWaitStrategy().equals(Wait.defaultWaitStrategy())) {
-            throw new RuntimeException("DefaultWaitStrategy is inadequite to ensure the database is ready for incoming connections.");
-        }
-        getWaitStrategy().waitUntilReady(this);
     }
 
 }
