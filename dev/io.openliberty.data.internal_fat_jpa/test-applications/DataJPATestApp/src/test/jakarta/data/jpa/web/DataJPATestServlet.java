@@ -813,6 +813,15 @@ public class DataJPATestServlet extends FATServlet {
      * TODO PostgreSQL fails due to https://github.com/OpenLiberty/open-liberty/issues/30400
      */
     @Test
+    /*
+     * Even without providing an "ESCAPE '\'" clause to the SQL statement
+     * PostgreSQL will always escape a '\' within a string literal.
+     * See documentation here: https://www.postgresql.org/docs/current/sql-syntax-lexical.html#SQL-SYNTAX-STRINGS-ESCAPE
+     * Which indicates that you can set `standard_conforming_strings=on` (which is default)
+     * but it seems the PostgreSQL JDBC driver always provides prepared strings as
+     * escape string contents. So there is no work around.
+     */
+    @SkipIfSysProp(DB_Postgres)
     public void testEscapeCharacters() {
         orders.deleteAll();
 
