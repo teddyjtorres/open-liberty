@@ -47,6 +47,10 @@ public class DataErrPathsTest extends FATServletClient {
                                    "CWWKD1009E.*changeBoth", // Update method with multiple entity parameters
                                    "CWWKD1009E.*storeNothing", // Save method without parameters
                                    "CWWKD1009E.*storeInDatabase", // Save method with multiple parameters
+                                   "CWWKD1017E.*livesAt", // multiple Limit parameters
+                                   "CWWKD1017E.*residesAt", // multiple PageRequest parameters
+                                   "CWWKD1018E.*inhabiting", // intermixed Limit and PageRequest
+                                   "CWWKD1018E.*occupying", // intermixed Limit and PageRequest
                                    "CWWKD1019E.*livingAt", // mix of named/positional parameters
                                    "CWWKD1019E.*residingAt", // unused parameters
                                    "CWWKD1022E.*discardPage", // Delete operation with a PageRequest

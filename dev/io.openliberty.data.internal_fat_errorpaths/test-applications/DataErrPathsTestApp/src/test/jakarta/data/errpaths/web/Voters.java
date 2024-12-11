@@ -165,6 +165,24 @@ public interface Voters extends BasicRepository<Voter, Integer> {
     void discardInOrder(@By("address") String mailingAddress);
 
     /**
+     * This invalid method has Limit and PageRequest parameters and returns a List.
+     */
+    @Find
+    List<Voter> inhabiting(@By("address") String homeAddress,
+                           Limit limit,
+                           Order<Voter> order,
+                           PageRequest pageReq);
+
+    /**
+     * This invalid method has 2 Limit parameters.
+     */
+    @Find
+    List<Voter> livesAt(@By("address") String homeAddress,
+                        Limit firstLimit,
+                        Order<Voter> order,
+                        Limit secondLimit);
+
+    /**
      * This invalid method has a mixture of positional and named parameters.
      */
     @Query("""
@@ -213,6 +231,15 @@ public interface Voters extends BasicRepository<Voter, Integer> {
     Optional<NameAndZipCode> nameAndZipCode(@By("ssn") int socialSecurityNumber);
 
     /**
+     * This invalid method has Limit and PageRequest parameters and returns a Page.
+     */
+    @Find
+    Page<Voter> occupying(@By("address") String homeAddress,
+                          PageRequest pageReq,
+                          Order<Voter> order,
+                          Limit limit);
+
+    /**
      * For testing an error where the method parameter allows multiple entities,
      * but the return type only allows one.
      */
@@ -224,6 +251,15 @@ public interface Voters extends BasicRepository<Voter, Integer> {
      */
     @Delete
     Optional<NameAndZipCode> removeBySSN(@By("ssn") int socialSecurityNumber);
+
+    /**
+     * This invalid method has 2 PageRequest parameters.
+     */
+    @Find
+    Page<Voter> residesAt(@By("address") String homeAddress,
+                          PageRequest pageReq1,
+                          Order<Voter> order,
+                          PageRequest pageReq2);
 
     /**
      * This invalid method has matching named parameters and Param annotation,
