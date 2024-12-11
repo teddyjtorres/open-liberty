@@ -18,6 +18,7 @@ import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
 import com.ibm.ws.transaction.test.tests.BadLogTest;
+import com.ibm.ws.transaction.test.tests.CorruptLogTest;
 import com.ibm.ws.transaction.test.tests.SimpleTest;
 
 import componenttest.rules.repeater.FeatureReplacementAction;
@@ -25,6 +26,7 @@ import componenttest.rules.repeater.RepeatTests;
 
 @RunWith(Suite.class)
 @SuiteClasses({
+                CorruptLogTest.class,
                 BadLogTest.class,
                 SimpleTest.class,
 })
@@ -36,4 +38,3 @@ public class FATSuite {
                     .andWith(FeatureReplacementAction.EE9_FEATURES().fullFATOnly())
                     .andWith(FeatureReplacementAction.EE10_FEATURES().fullFATOnly());
 }
-
