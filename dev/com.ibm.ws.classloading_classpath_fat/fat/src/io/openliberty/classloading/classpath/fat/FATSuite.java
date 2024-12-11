@@ -54,6 +54,7 @@ import junit.framework.AssertionFailedError;
 
 @RunWith(Suite.class)
 @SuiteClasses({
+    ClassPathWarLoaderTests.class,
     ClassPathDefaultLoaderDropinsTests.class,
     ClassPathDefaultLoaderTests.class,
     ClassPathEarLoaderTests.class,
@@ -61,6 +62,7 @@ import junit.framework.AssertionFailedError;
     ClassPathInvalidLoaderTests.class
 })
 public class FATSuite {
+    static final String CLASSPATH_TEST_WAR_LOADER_SERVER = "classpathTestWarLoader";
     static final String CLASSPATH_TEST_DEFAULT_LOADER_SERVER = "classpathTestDefaultLoader";
     static final String CLASSPATH_TEST_DEFAULT_LOADER_DROPINS_SERVER = "classpathTestDefaultLoaderDropins";
     static final String CLASSPATH_TEST_INVALID_LOADER_SERVER = "classpathTestInvalidLoader";
