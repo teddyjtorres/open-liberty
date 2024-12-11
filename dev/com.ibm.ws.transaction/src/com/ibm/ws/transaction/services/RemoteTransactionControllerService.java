@@ -1,4 +1,4 @@
-/*******************************************************************************
+/* *****************************************************************************
  * Copyright (c) 2015, 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -9,7 +9,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ * *****************************************************************************/
 package com.ibm.ws.transaction.services;
 
 import java.io.Serializable;
@@ -467,3 +467,4 @@ public class RemoteTransactionControllerService implements RemoteTransactionCont
         return null;
     }
 }
+
