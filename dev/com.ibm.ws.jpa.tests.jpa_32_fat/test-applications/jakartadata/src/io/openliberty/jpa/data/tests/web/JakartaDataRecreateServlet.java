@@ -846,6 +846,8 @@ public class JakartaDataRecreateServlet extends FATServlet {
     @Test
     @SkipIfSysProp(DB_Postgres) //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/28368
     public void testOLGH28368() throws Exception {
+        deleteAllEntities(PurchaseOrder.class, "Orders");
+
         PurchaseOrder order1 = PurchaseOrder.of("testOLGH28368-1", 12.55f);
         PurchaseOrder order2 = PurchaseOrder.of("testOLGH28368-2", 12.55f);
 
@@ -1722,6 +1724,42 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertEquals("Emily", results.get(0).getName().getFirst());
         assertEquals("Doe", results.get(1).getName().getLast());
         assertEquals("John", results.get(1).getName().getFirst());
+
+    }
+
+    @Test
+    @SkipIfSysProp(DB_Postgres) //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/30400
+    public void testOLGH30400() throws Exception {
+        deleteAllEntities(PurchaseOrder.class, "Orders");
+
+        /*
+         * Expect the following columns in the database after escaping \ from in java string
+         *
+         * | id | ____purchaseBy____ | total | v |
+         * | -- | ------------------ | ----- | - |
+         * | XX | Escape\Characters _| 23.93 | 1 |
+         * | YY | Escape\\Characters | 27.97 | 1 |
+         */
+        PurchaseOrder order1 = PurchaseOrder.of("Escape\\Characters", 23.93f);
+        PurchaseOrder order2 = PurchaseOrder.of("Escape\\\\Characters", 27.97f);
+
+        tx.begin();
+        em.persist(order1);
+        em.persist(order2);
+        tx.commit();
+
+        tx.begin();
+        List<Float> totals = em.createQuery("SELECT total FROM Orders WHERE purchasedBy LIKE ?1 ORDER BY total", Float.class)
+                        .setParameter(1, "Escape\\\\Characters") //attempt to find `Escape\\Characters` in the database
+                        .getResultList();
+        tx.commit();
+
+        assertEquals(1, totals.size());
+
+        // Failure here, because PostgreSQL automatically escaped `Escape\\Characters` and instead found `Escape\Characters` in the database.
+        // This cannot be avoided even when setting standard_conforming_strings=on
+        // EclipseLink should handle this case by adding in additional escapes to the bound parameters where PostgreSQL uses the default escape character `\`
+        assertEquals(27.97f, totals.get(0), 0.01);
 
     }
 
