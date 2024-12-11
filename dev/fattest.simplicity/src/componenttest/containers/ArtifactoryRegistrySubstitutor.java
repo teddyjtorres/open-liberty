@@ -31,6 +31,15 @@ public class ArtifactoryRegistrySubstitutor extends ImageNameSubstitutor {
         }
 
         if (!original.getRegistry().isEmpty()) {
+            //TODO remove this workaround.  We should be pulling these from an artifactory mirror
+            // but thus far we have never run into any pull rate limits or slow speeds with these registries
+            // so the mirrors have not been set up yet.
+            if (original.getRegistry().equalsIgnoreCase("icr.io") || original.getRegistry().equalsIgnoreCase("mcr.microsoft.com")) {
+                Log.warning(c, "The registry (" + original.getRegistry() + ") was configured on the docker image name."
+                               + System.lineSeparator() + "This registry will NOT be replaced and we WILL pull from a non-artifactory registry.");
+                return original;
+            }
+
             throw new RuntimeException("A registry (" + original.getRegistry() + ") was already configured on the docker image name."
                                        + System.lineSeparator() + "This substitutor cannot replace an existing registry.");
         }
@@ -38,7 +47,7 @@ public class ArtifactoryRegistrySubstitutor extends ImageNameSubstitutor {
         DockerImageName result = original;
         result = result.withRegistry(ArtifactoryRegistry.instance().getRegistry());
 
-        Log.info(c, "apply", original.asCanonicalNameString() + " --> " + result.asCanonicalNameString());
+        Log.finer(c, "apply", original.asCanonicalNameString() + " --> " + result.asCanonicalNameString());
         return result;
     }
 

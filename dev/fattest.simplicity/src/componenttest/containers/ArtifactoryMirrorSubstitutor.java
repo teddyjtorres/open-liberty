@@ -52,7 +52,7 @@ public class ArtifactoryMirrorSubstitutor extends ImageNameSubstitutor {
         result = result.withRegistry(""); //Remove registry
         result = result.withRepository(repository); //Substitute repository
 
-        Log.info(c, "apply", original.asCanonicalNameString() + " --> " + result.asCanonicalNameString());
+        Log.finer(c, "apply", original.asCanonicalNameString() + " --> " + result.asCanonicalNameString());
         return result;
     }
 
