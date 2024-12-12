@@ -25,6 +25,8 @@ public class ArtifactoryMirrorSubstitutor extends ImageNameSubstitutor {
 
     private static final Class<?> c = ArtifactoryMirrorSubstitutor.class;
 
+    private static final String MIRROR_PREFIX = "wasliberty-";
+
     private static final Map<String, String> REGISTRY_MAP = new HashMap<>();
     static {
         REGISTRY_MAP.put("NONE", "wasliberty-infrastructure-docker");
@@ -39,6 +41,11 @@ public class ArtifactoryMirrorSubstitutor extends ImageNameSubstitutor {
     public DockerImageName apply(final DockerImageName original) {
 
         final String repository;
+
+        // Docker image was already defined in a mirror (only valid for WebSphere Liberty tests)
+        if (original.getRepository().startsWith(MIRROR_PREFIX)) {
+            return original; // Already in a mirror, return original
+        }
 
         if (original.getRegistry().isEmpty()) {
             repository = REGISTRY_MAP.get("NONE") + "/" + original.getRepository();
