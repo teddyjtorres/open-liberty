@@ -111,8 +111,7 @@ public class JMS1AsyncSend extends ClientMain {
             Util.LOG("Sending Message with CompletionListener");
             producer.send(sentMessage, completionListener);
             
-            Util.LOG("Message sent");
-            Util.TRACE("sentMessage: " + sentMessage);
+            Util.LOG("Message sent. Waiting for CompletionListener to be invoked");
 
             if (!completionListener.waitFor(1, 0)) {
                 throw new TestException("Completion listener not notified, sent:" + sentMessage + " completionListener.formattedState:" + completionListener.formattedState());
