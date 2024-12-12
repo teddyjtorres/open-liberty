@@ -34,7 +34,7 @@ steps:
   projectName: prohibitedTermsCheck
   timeoutInMinutes: 120
 
-- stepName: DHE Server Files Check
+- stepName: DHE Server Artifacts Check
   workType: Jenkins
   projectName: dheServerCheck
   timeoutInMinutes: 120
