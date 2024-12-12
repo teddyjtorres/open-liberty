@@ -810,6 +810,7 @@ public class DataJPATestServlet extends FATServlet {
 
     /**
      * Verify that escape characters can be used to correctly match results.
+     * TODO PostgreSQL fails due to https://github.com/OpenLiberty/open-liberty/issues/30400
      */
     @Test
     public void testEscapeCharacters() {
