@@ -35,7 +35,6 @@ wasliberty-infrastructure-docker/mongo:6.0.6
 wasliberty-infrastructure-docker/openzipkin/zipkin-slim:2.23
 wasliberty-infrastructure-docker/otel/opentelemetry-collector-contrib:0.103.0
 wasliberty-infrastructure-docker/otel/opentelemetry-collector:0.74.0
-wasliberty-infrastructure-docker/postgres:17.0-alpine
 wasliberty-infrastructure-docker/ryanesch/acme-boulder:1.2
 wasliberty-infrastructure-docker/seleniarm/standalone-chromium:4.8.3
 wasliberty-infrastructure-docker/selenium/standalone-chrome:4.8.3
