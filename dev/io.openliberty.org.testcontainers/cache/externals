@@ -30,10 +30,10 @@ letsencrypt/pebble-challtestsrv:v2.3.1
 letsencrypt/pebble:v2.3.1
 mariadb:10.3
 mcr.microsoft.com/mssql/server:2019-CU28-ubuntu-20.04
-mongo:6.0.6
 openzipkin/zipkin-slim:2.23
 otel/opentelemetry-collector-contrib:0.103.0
 otel/opentelemetry-collector:0.74.0
+public.ecr.aws/docker/library/mongo:6.0.6
 public.ecr.aws/docker/library/postgres:17.0-alpine
 ryanesch/acme-boulder:1.2
 seleniarm/standalone-chromium:4.8.3
