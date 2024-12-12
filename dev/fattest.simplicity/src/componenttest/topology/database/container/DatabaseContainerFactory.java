@@ -136,7 +136,6 @@ public class DatabaseContainerFactory {
 
                     //Accept License agreement
                     db2.acceptLicense();
-
                     //Add startup timeout since DB2 tends to take longer than the default 3 minutes on build machines.
                     // TODO figure out if there is a way to create a 'fast-start' image that has the database already created.
                     db2.withStartupTimeout(getContainerTimeout(5, 25));
@@ -151,7 +150,6 @@ public class DatabaseContainerFactory {
 
                     //Keep behavior the same as we did before by using a SID instead of pluggable db
                     oracle.usingSid();
-
                     //Add startup timeout since Oracle tends to take longer than the default 3 minutes on build machines.
                     oracle.withStartupTimeout(getContainerTimeout(3, 25));
 
@@ -165,7 +163,7 @@ public class DatabaseContainerFactory {
                     // then this value may need to be increased.
                     PostgreSQLContainer postgre = dbContainerType.cast(cont);
 
-                    postgre.withConfigOption("max_prepared_transactions", "5");
+                    postgre.withCommand("postgres -c max_prepared_transactions=5");
 
                     break;
                 case SQLServer:

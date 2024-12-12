@@ -98,14 +98,11 @@ public class DatabaseContainerFactoryTest {
         assertTrue(postgresql.getClass().isAssignableFrom(PostgreSQLContainer.class));
         PostgreSQLContainer _postgresql = (PostgreSQLContainer) postgresql;
 
-        // NOTE: the testcontainer constructor sets fsync=off, but our custom class
-        // does not overwrite the command until the configure() step which is required
-        // for us to be able to customize the command prior to start but after initialization.
         String[] cmdParts = _postgresql.getCommandParts();
         assertEquals(3, cmdParts.length);
         assertEquals("postgres", cmdParts[0]);
         assertEquals("-c", cmdParts[1]);
-        assertEquals("fsync=off", cmdParts[2]);
+        assertEquals("max_prepared_transactions=5", cmdParts[2]);
     }
 
     @Test
