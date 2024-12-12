@@ -21,4 +21,4 @@ Subsystem-Name: Jakarta Connectors 2.0 Inbound Security
 kind=ga
 edition=base
 WLP-Platform: jakartaee-9.1
-WLP-InstantOn-Enabled: true; type:=beta
+WLP-InstantOn-Enabled: true
