@@ -151,6 +151,13 @@ public interface Voters extends BasicRepository<Voter, Integer> {
     List<Voter> findByAddressOrderBySSN(int ssn, Sort<Voter> sort);
 
     /**
+     * This invalid method places the Order special parameter ahead of
+     * the query parameter.
+     */
+    List<Voter> findFirst5ByAddress(Order<Voter> order,
+                                    String address);
+
+    /**
      * This invalid method defines an ordering for results of a delete operation
      * but has a return type that disallows returning results.
      */
@@ -229,6 +236,15 @@ public interface Voters extends BasicRepository<Voter, Integer> {
      */
     @Find
     Optional<NameAndZipCode> nameAndZipCode(@By("ssn") int socialSecurityNumber);
+
+    /**
+     * This invalid method places the PageRequest and Order special parameters
+     * before the query parameter.
+     */
+    @Find
+    Page<Voter> occupantsOf(PageRequest pageReq,
+                            Order<Voter> order,
+                            @By("address") String homeAddress);
 
     /**
      * This invalid method has Limit and PageRequest parameters and returns a Page.

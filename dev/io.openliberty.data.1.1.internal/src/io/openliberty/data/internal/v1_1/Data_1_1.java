@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -43,7 +44,11 @@ import io.openliberty.data.repository.update.Assign;
 import io.openliberty.data.repository.update.Divide;
 import io.openliberty.data.repository.update.Multiply;
 import io.openliberty.data.repository.update.SubtractFrom;
+import jakarta.data.Limit;
+import jakarta.data.Order;
+import jakarta.data.Sort;
 import jakarta.data.exceptions.MappingException;
+import jakarta.data.page.PageRequest;
 
 /**
  * Capability that is specific to the version of Jakarta Data.
@@ -74,6 +79,12 @@ public class Data_1_1 implements DataVersionCompatibility {
         FUNCTION_CALLS.put(Extract.Field.WEEK.name(), "EXTRACT (WEEK FROM ");
         FUNCTION_CALLS.put(Extract.Field.YEAR.name(), "EXTRACT (YEAR FROM ");
     }
+
+    private static final Set<Class<?>> SPECIAL_PARAM_TYPES = //
+                    Set.of(Limit.class, Order.class,
+                           Sort.class, Sort[].class,
+                           PageRequest.class // TODO , Restriction.class
+                    );
 
     @Override
     @Trivial
@@ -321,5 +332,23 @@ public class Data_1_1 implements DataVersionCompatibility {
             if (anno instanceof Or)
                 return true;
         return false;
+    }
+
+    @Override
+    @Trivial
+    public String specialParamsForFind() {
+        return "Limit, Order, Sort, Sort[], PageRequest, Restriction";
+    }
+
+    @Override
+    @Trivial
+    public String specialParamsForFindAndDelete() {
+        return "Limit, Order, Sort, Sort[], Restriction";
+    }
+
+    @Override
+    @Trivial
+    public Set<Class<?>> specialParamTypes() {
+        return SPECIAL_PARAM_TYPES;
     }
 }

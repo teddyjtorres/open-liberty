@@ -71,7 +71,9 @@ public class DataErrPathsTest extends FATServletClient {
                                    "CWWKD1096E.*discardInOrder", // OrderBy annotation without return type
                                    "CWWKD1097E.*discardLimited", // Limit parameter on Delete method
                                    "CWWKD1097E.*discardOrdered", // Order parameter on Delete method
-                                   "CWWKD1097E.*discardSorted" // Sort parameter on Delete method
+                                   "CWWKD1097E.*discardSorted", // Sort parameter on Delete method
+                                   "CWWKD1098E.*findFirst5ByAddress", // Order after query params
+                                   "CWWKD1098E.*occupantsOf" // PageRequest/Order after query params
                     };
 
     @Server("io.openliberty.data.internal.fat.errpaths")

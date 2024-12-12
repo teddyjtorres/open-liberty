@@ -13,7 +13,6 @@
 package io.openliberty.data.internal.persistence;
 
 import static io.openliberty.data.internal.persistence.Util.SORT_PARAM_TYPES;
-import static io.openliberty.data.internal.persistence.Util.SPECIAL_PARAM_TYPES;
 import static io.openliberty.data.internal.persistence.Util.lifeCycleReturnTypes;
 import static io.openliberty.data.internal.persistence.cdi.DataExtension.exc;
 import static jakarta.data.repository.By.ID;
@@ -1872,10 +1871,11 @@ public class QueryInfo {
         Boolean isNamePresent = null; // unknown
         Parameter[] params = null;
 
+        Set<Class<?>> specParamTypes = compat.specialParamTypes();
         Class<?>[] paramTypes = method.getParameterTypes();
         int numAttributeParams = paramTypes.length;
         while (numAttributeParams > 0 &&
-               SPECIAL_PARAM_TYPES.contains(paramTypes[numAttributeParams - 1])) {
+               specParamTypes.contains(paramTypes[numAttributeParams - 1])) {
             numAttributeParams--;
             if (!isFindOrDelete) // special parameter is not allowed
                 throw exc(UnsupportedOperationException.class,
@@ -2016,14 +2016,23 @@ public class QueryInfo {
                         switch (type) {
                             case FIND:
                             case FIND_AND_DELETE:
+                                String specParams = type == Type.FIND //
+                                                ? compat.specialParamsForFind() //
+                                                : compat.specialParamsForFindAndDelete();
+                                // look for mispositioned special parameter
+                                if (specParamTypes.contains(params[p].getType()))
+                                    throw exc(UnsupportedOperationException.class,
+                                              "CWWKD1098.spec.param.position.err",
+                                              method.getName(),
+                                              repositoryInterface.getName(),
+                                              params[p].getType().getName(),
+                                              specParams);
                                 throw exc(UnsupportedOperationException.class,
                                           "CWWKD1012.fd.missing.param.anno",
                                           p + 1,
                                           method.getName(),
                                           repositoryInterface.getName(),
-                                          type == Type.FIND //
-                                                          ? List.of("Limit", "PageRequest", "Order", "Sort", "Sort[]") //
-                                                          : List.of("Limit", "Order", "Sort", "Sort[]"));
+                                          specParams);
                             case DELETE:
                             case COUNT:
                             case EXISTS:
@@ -2724,6 +2733,8 @@ public class QueryInfo {
             Tr.entry(this, tc, "init", entityInfos, this);
 
         try {
+            DataVersionCompatibility compat = repository.provider.compat;
+
             entityInfo = entityInfos.size() == 1 //
                             ? entityInfos.values().iterator().next().join() //
                             : null; // defer to processing of Query value
@@ -2747,15 +2758,19 @@ public class QueryInfo {
             OrderBy[] orderBy = method.getAnnotationsByType(OrderBy.class);
 
             // experimental annotation types
-            Annotation count = repository.provider.compat.getCountAnnotation(method);
-            Annotation exists = repository.provider.compat.getExistsAnnotation(method);
+            Annotation count = compat.getCountAnnotation(method);
+            Annotation exists = compat.getExistsAnnotation(method);
 
-            Annotation methodTypeAnno = validateAnnotationCombinations(delete, insert, update, save,
-                                                                       find, query, orderBy,
-                                                                       count, exists);
+            Annotation methodTypeAnno = //
+                            validateAnnotationCombinations(delete, insert, update, save,
+                                                           find, query, orderBy,
+                                                           count, exists);
 
             if (query != null) { // @Query annotation
-                initQueryLanguage(query.value(), entityInfos, repository.primaryEntityInfoFuture);
+                initQueryLanguage(query.value(),
+                                  entityInfos,
+                                  repository.primaryEntityInfoFuture,
+                                  compat);
             } else if (save != null) { // @Save annotation
                 setType(Save.class, Type.SAVE);
             } else if (insert != null) { // @Insert annotation
@@ -2909,10 +2924,14 @@ public class QueryInfo {
      *
      * @param ql                      Query.value() might be JPQL or JDQL
      * @param entityInfos             map of entity name to entity information.
-     * @param primaryEntityInfoFuture future for the repository's primary entity type if it has one, otherwise null.
+     * @param primaryEntityInfoFuture future for the repository's primary entity
+     *                                    type if it has one, otherwise null.
+     * @param compat                  isolates Jakarta Data version-dependent behavior
      */
-    private void initQueryLanguage(String ql, Map<String, CompletableFuture<EntityInfo>> entityInfos,
-                                   CompletableFuture<EntityInfo> primaryEntityInfoFuture) {
+    private void initQueryLanguage(String ql,
+                                   Map<String, CompletableFuture<EntityInfo>> entityInfos,
+                                   CompletableFuture<EntityInfo> primaryEntityInfoFuture,
+                                   DataVersionCompatibility compat) {
         final boolean trace = TraceComponent.isAnyTracingEnabled();
 
         boolean isCursoredPage = CursoredPage.class.equals(multiType);
@@ -3359,8 +3378,9 @@ public class QueryInfo {
         int qlParamNameCount = qlParamNames.size();
         boolean hasExtraParam = false;
         Parameter[] params = method.getParameters();
+        Set<Class<?>> specParamTypes = compat.specialParamTypes();
         for (int i = 0; i < params.length &&
-                        !SPECIAL_PARAM_TYPES.contains(params[i].getType()); //
+                        !specParamTypes.contains(params[i].getType()); //
                         jpqlParamCount = ++i) {
             Param param = params[i].getAnnotation(Param.class);
             String paramName = null;

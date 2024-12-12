@@ -970,3 +970,13 @@ CWWKD1097.param.incompat=CWWKD1097E: The {0} method of the {1} repository \
 CWWKD1097.param.incompat.explanation=Order, Sort, and Limit parameters are \
  not compatible with the type of repository operation.
 CWWKD1097.param.incompat.useraction=Remove the Order, Sort, or Limit parameter.
+
+CWWKD1098.spec.param.position.err=CWWKD1098E: The {0} method of the {1} repository \
+ has a {2} parameter that is positioned before the query parameters. \
+ Parameter types that have special meaning in Jakarta Data ({3}) must be \
+ positioned after the other parameters in the repository method signature.
+CWWKD1098.spec.param.position.err.explanation=When special Jakarta Data defined \
+ parameter types are included in a repository method signture, they must be \
+ positioned after all of the query parameters.
+CWWKD1098.spec.param.position.err.useraction=Move the special Jakarta Data defined \
+ parameter types to positions at the end of the repository method signature.

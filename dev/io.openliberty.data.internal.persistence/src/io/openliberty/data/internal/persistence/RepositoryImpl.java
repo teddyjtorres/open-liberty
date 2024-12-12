@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
@@ -634,6 +635,19 @@ public class RepositoryImpl<R> implements InvocationHandler {
                                               method.getName(),
                                               repositoryInterface.getName());
                             } else {
+                                // look for mispositioned special parameter
+                                Set<Class<?>> specParamTypes = //
+                                                provider.compat.specialParamTypes();
+                                Class<?>[] paramTypes = method.getParameterTypes();
+                                for (int j = 0; j < queryInfo.jpqlParamCount; j++)
+                                    if (specParamTypes.contains(paramTypes[j]))
+                                        throw exc(UnsupportedOperationException.class,
+                                                  "CWWKD1098.spec.param.position.err",
+                                                  method.getName(),
+                                                  repositoryInterface.getName(),
+                                                  paramTypes[j].getName(),
+                                                  provider.compat.specialParamsForFind());
+
                                 throw exc(DataException.class,
                                           "CWWKD1023.extra.param",
                                           method.getName(),

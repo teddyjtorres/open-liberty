@@ -25,10 +25,8 @@ import java.util.Set;
 
 import com.ibm.websphere.ras.annotation.Trivial;
 
-import jakarta.data.Limit;
 import jakarta.data.Order;
 import jakarta.data.Sort;
-import jakarta.data.page.PageRequest;
 import jakarta.data.repository.Delete;
 import jakarta.data.repository.Find;
 import jakarta.data.repository.Insert;
@@ -72,13 +70,6 @@ public class Util {
      */
     static final Set<Class<?>> SORT_PARAM_TYPES = //
                     Set.of(Order.class, Sort.class, Sort[].class);
-
-    /**
-     * Valid types for repository method parameters after the query parameters.
-     */
-    static final Set<Class<?>> SPECIAL_PARAM_TYPES = //
-                    Set.of(Limit.class, Order.class, PageRequest.class,
-                           Sort.class, Sort[].class);
 
     /**
      * Valid types for when a repository method computes an update count

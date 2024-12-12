@@ -616,6 +616,26 @@ public class DataErrPathsTestServlet extends FATServlet {
     }
 
     /**
+     * Tests an error path where a Query by Method Name repository method
+     * attempts to place the special parameters ahead of the query parameters.
+     */
+    @Test
+    public void testMethodNameQueryWithSpecialParametersFirst() {
+        try {
+            List<Voter> found = voters
+                            .findFirst5ByAddress(Order.by(Sort.asc(ID)),
+                                                 "4051 E River Rd NE, Rochester, MN 55906");
+            fail("Should fail when special parameters are positioned elsewhere" +
+                 " than at the end. Instead: " + found);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1098E:") ||
+                !x.getMessage().contains("findFirst5ByAddress"))
+                throw x;
+        }
+    }
+
+    /**
      * Verify an error is raised for a repository method that has a Param annotation
      * that specifies a name value that does not match the name of a named parameter
      * from the query.
@@ -777,6 +797,27 @@ public class DataErrPathsTestServlet extends FATServlet {
                 x.getMessage().contains("findByAddressOrderByName"))
                 ; // expected
             else
+                throw x;
+        }
+    }
+
+    /**
+     * Tests an error path where a paremeter-based query method attempts to place
+     * the special parameters ahead of the query parameters.
+     */
+    @Test
+    public void testParameterBasedQueryWithSpecialParametersFirst() {
+        try {
+            Page<Voter> page = voters
+                            .occupantsOf(PageRequest.ofSize(9),
+                                         Order.by(Sort.asc(ID)),
+                                         "4051 E River Rd NE, Rochester, MN 55906");
+            fail("Should fail when special parameters are positioned elsewhere" +
+                 " than at the end. Instead: " + page);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1098E:") ||
+                !x.getMessage().contains("occupantsOf"))
                 throw x;
         }
     }
