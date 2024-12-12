@@ -20,8 +20,8 @@ Bundle-Description:  Jakarta Faces, MyFaces 4.1 API
 Implementation-Version: 4.1.0
 
 Export-Package: \
-    jakarta.faces.*; version=${Implementation-Version}, \
-    org.apache.myfaces.core.api.shared.*; version=${Implementation-Version}
+    jakarta.faces.*; version=${Implementation-Version}
+
 
 DynamicImport-Package: \
     io.openliberty.faces40.internal.spi, \
