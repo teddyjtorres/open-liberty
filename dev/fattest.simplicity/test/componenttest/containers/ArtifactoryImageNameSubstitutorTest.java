@@ -182,6 +182,78 @@ public class ArtifactoryImageNameSubstitutorTest {
         }
     }
 
+    // Priority 4: Always use Artifactory if using remote docker host.
+    // Break down chained substitutor step by step and verify the results
+    @Test
+    public void testRegistryMirrorSwap() throws Exception {
+        //Using our remote docker host
+        setArtifactoryRegistryAvailable(true);
+        setDockerClientStrategy(new EnvironmentAndSystemPropertyClientProviderStrategy());
+
+        // Step 1 of chained substitutor MIRROR
+        DockerImageName mongoAWS = DockerImageName.parse("public.ecr.aws/docker/library/mongo:6.0.6");
+        DockerImageName mirrorSwap = new ArtifactoryMirrorSubstitutor().apply(mongoAWS);
+        DockerImageName expectedSwap = DockerImageName.parse("wasliberty-aws-docker-remote/docker/library/mongo:6.0.6");
+
+        assertEquals(expectedSwap, mirrorSwap);
+
+        // Step 2 of chained substitutor REGISTRY
+        DockerImageName registryAppend = new ArtifactoryRegistrySubstitutor().apply(mirrorSwap);
+        DockerImageName expectedAppend = DockerImageName.parse("example.com/wasliberty-aws-docker-remote/docker/library/mongo:6.0.6");
+
+        assertEquals(expectedAppend, registryAppend);
+
+        // Combined use of chained substitutor
+        DockerImageName actualFull = new ArtifactoryImageNameSubstitutor().apply(mongoAWS);
+
+        assertEquals(expectedAppend, actualFull);
+    }
+
+    // Priority 4: Always use Artifactory if using remote docker host.
+    // Verify that if a public registry was explicitly set on an image, we do not have a mirror, and intend to use artifactory that we fail.
+    @Test
+    public void testRegistryAppendError() throws Exception {
+        //Using our remote docker host
+        setArtifactoryRegistryAvailable(true);
+        setDockerClientStrategy(new EnvironmentAndSystemPropertyClientProviderStrategy());
+
+        // If a developer attempts to use an unsupported registry, make sure we throw an error
+        DockerImageName unknownRegistry = DockerImageName.parse("quay.io/testcontainers/ryuk:1.0.0");
+
+        try {
+            DockerImageName transformed = new ArtifactoryImageNameSubstitutor().apply(unknownRegistry);
+            fail("Should not have been able to subsititute registry " + unknownRegistry.getRegistry() + " for " + transformed.getRegistry());
+        } catch (RuntimeException e) {
+            //expected
+        } catch (Exception e) {
+            fail("Incorrect exception was thrown by ArtifactoryImageNameSubstitutor: " + e.getMessage());
+        }
+    }
+
+    // Priority 4: Always use Artifactory if using remote docker host.
+    // Verify workaround behavior that should be removed in the future.
+    @Test //TODO remove once all existing supported registries have corresponding Artifactory mirrors
+    public void testRegistryAppendErrorSkip() throws Exception {
+        //Using our remote docker host
+        setArtifactoryRegistryAvailable(true);
+        setDockerClientStrategy(new EnvironmentAndSystemPropertyClientProviderStrategy());
+
+        DockerImageName db2 = DockerImageName.parse("icr.io/db2_community/db2:11.5.9.0");
+        DockerImageName sqlserver = DockerImageName.parse("mcr.microsoft.com/mssql/server:2019-CU28-ubuntu-20.04");
+
+        try {
+            assertEquals(db2, new ArtifactoryImageNameSubstitutor().apply(db2));
+        } catch (RuntimeException e) {
+            fail("icr.io should not have caused a failure from ArtifactoryImageNameSubstitutor: " + e.getMessage());
+        }
+
+        try {
+            assertEquals(sqlserver, new ArtifactoryImageNameSubstitutor().apply(sqlserver));
+        } catch (RuntimeException e) {
+            fail("mcr.microsoft.com should not have caused a failure from ArtifactoryImageNameSubstitutor" + e.getMessage());
+        }
+    }
+
     // Priority 5: System property artifactory.force.external.repo (NOTE: only honor this property if set to true)
     // Priority 6: If Artifactory registry is available assume user wants to use that.
     @Test
@@ -222,6 +294,25 @@ public class ArtifactoryImageNameSubstitutorTest {
         expected = DockerImageName.parse("openliberty:1.0.0");
         assertEquals(expected, new ArtifactoryImageNameSubstitutor().apply(expected));
 
+    }
+
+    // Ensure that the asCompatibleSubsituteFor configuration is maintained during substitution.
+    @Test
+    public void testCompatibleSubstitutionIsMaintained() throws Exception {
+        //Using our remote docker host
+        setArtifactoryRegistryAvailable(true);
+        setDockerClientStrategy(new EnvironmentAndSystemPropertyClientProviderStrategy());
+
+        //Create a DockerImageName for an image in a public registry that is compatibile with an image in DockerHub
+        DockerImageName original = DockerImageName.parse("postgres:17.0-alpine");
+        DockerImageName input = DockerImageName.parse("public.ecr.aws/docker/library/postgres:17.0-alpine")
+                        .asCompatibleSubstituteFor(original);
+        assertTrue("Input should have been compatibile with original", input.isCompatibleWith(original));
+
+        DockerImageName expected = DockerImageName.parse("example.com/wasliberty-aws-docker-remote/docker/library/postgres:17.0-alpine");
+        DockerImageName output = new ArtifactoryImageNameSubstitutor().apply(input);
+        assertEquals(expected, output);
+        assertTrue("Output should have been compatibile with original", output.isCompatibleWith(original));
     }
 
     private static void setDockerClientStrategy(DockerClientProviderStrategy strategy) throws Exception {

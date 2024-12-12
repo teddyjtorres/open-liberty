@@ -39,7 +39,6 @@ public class ArtifactoryRegistry {
      * remote docker hosts.
      */
     static final String artifactoryRegistryKey = "fat.test.artifactory.docker.server";
-
     static final String artifactoryRegistryUser = "fat.test.artifactory.download.user";
     static final String artifactoryRegistryToken = "fat.test.artifactory.download.token";
 

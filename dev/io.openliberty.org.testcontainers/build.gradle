@@ -26,8 +26,7 @@ task assembleTestContainerData(type: JavaExec) {
     }
     
     // Setup environment to mock external state
-    environment "TESTCONTAINERS_IMAGE_SUBSTITUTOR", "componenttest.containers.ArtifactoryImageNameSubstitutor"
-    environment "MOCK_ARTIFACTORY_BEHAVIOR", "true"
+    environment "TESTCONTAINERS_IMAGE_SUBSTITUTOR", "componenttest.containers.ArtifactoryMirrorSubstitutor"
     
     classpath = configurations.runtime.plus(sourceSets.main.runtimeClasspath)
     main = "io.openliberty.org.testcontainers.generate.CacheFiles"
