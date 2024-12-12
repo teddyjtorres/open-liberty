@@ -206,7 +206,7 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
                 newBuffer.flip();
 
                 if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                    Tr.debug(tc, "close, saved unread data [" + newBuffer.remaining() + "] from isc buffer [" + currentBuffer + "] to vc statemap [" + newBuffer + "]");
+                    Tr.debug(tc, "close, saved [" + newBuffer.remaining() + "] unread data from isc buffer [" + currentBuffer + "] to vc statemap [" + newBuffer + "]");
                 }
 
                 currentBuffer = null;
