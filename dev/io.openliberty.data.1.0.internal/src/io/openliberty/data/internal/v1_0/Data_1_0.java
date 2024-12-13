@@ -82,7 +82,7 @@ public class Data_1_0 implements DataVersionCompatibility {
     @Override
     @Trivial
     public String[] getUpdateAttributeAndOperation(Annotation[] annos) {
-        throw new UnsupportedOperationException(); // unreachable
+        return null; // let the caller raise an appropriate error
     }
 
     @Override

@@ -1083,12 +1083,13 @@ public class DataTestServlet extends FATServlet {
 
         try {
             Optional<Package> pkg = packages.deleteFirst();
-            fail("Expected packages.deleteFirst() to ignore the 'first' keyword and fail to return a signular result.");
+            fail("Expected packages.deleteFirst() to ignore the 'first' keyword" +
+                 " and fail to return a signular result. Instead returned: " + pkg);
         } catch (NonUniqueResultException e) {
             // pass
         }
 
-        Package pkg = packages.deleteFirst5ByWidthLessThan(11.0f);
+        Package pkg = packages.deleteFirst5ByWidthLessThan(10.5f);
         assertEquals(10004, pkg.id);
 
         List<Package> pkgs = packages.deleteFirst2();
@@ -1950,6 +1951,46 @@ public class DataTestServlet extends FATServlet {
         deleted = packages.destroy(Limit.of(4), sort);
         assertEquals("Deleted " + Arrays.toString(deleted), 1, deleted.length);
         assertEquals(remaining.iterator().next(), Integer.valueOf(((Package) deleted[0]).id));
+    }
+
+    /**
+     * Find-and-delete repository operation that sorts entities according to the
+     * OrderBy method name keyword. Also cover the same scenario, but with the
+     * OrderBy annotation.
+     */
+    @Test
+    public void testFindAndDeleteWithOrderBy() {
+        String testName = "TestFindAndDeleteWithOrderByKeyword";
+        //                        id   length   width   height  description
+        packages.save(new Package(517, 1165.0f, 1044.0f, 517.0f, testName));
+        packages.save(new Package(527, 625.0f, 336.0f, 527.0f, testName));
+        packages.save(new Package(533, 925.0f, 756.0f, 533.0f, testName));
+        packages.save(new Package(551, 601.0f, 240.0f, 551.0f, testName));
+        packages.save(new Package(559, 1009.0f, 840.0f, 559.0f, testName));
+        packages.save(new Package(583, 1465.0f, 1344.0f, 583.0f, testName));
+        packages.save(new Package(589, 661.0f, 300.0f, 589.0f, testName));
+
+        Package[] removed = packages.deleteByDescriptionOrderByWidthDesc(testName,
+                                                                         Limit.of(3));
+        assertEquals(List.of(583, 517, 559),
+                     Stream.of(removed)
+                                     .map(pkg -> pkg.id)
+                                     .collect(Collectors.toList()));
+
+        assertEquals(List.of(551, 589),
+                     packages.deleteByDescriptionOrderByWidthAsc(testName,
+                                                                 Limit.of(2)));
+
+        // remaining entities are:
+        //         id   length  width   height  description
+        // Package(527, 625.0f, 336.0f, 527.0f, testName))
+        // Package(533, 925.0f, 756.0f, 533.0f, testName))
+
+        assertEquals(List.of(533),
+                     packages.removeIfDescriptionMatches(testName, Limit.of(1)));
+
+        assertEquals(List.of(527),
+                     packages.removeIfDescriptionMatches(testName, Limit.of(10)));
     }
 
     /**

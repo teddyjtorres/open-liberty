@@ -45,6 +45,10 @@ public interface Packages extends BasicRepository<Package, Integer> {
 
     Package[] deleteByDescriptionEndsWith(String ending, Sort<?>... sorts);
 
+    List<Integer> deleteByDescriptionOrderByWidthAsc(String desc, Limit limit);
+
+    Package[] deleteByDescriptionOrderByWidthDesc(String desc, Limit limit);
+
     void deleteByIdIn(Iterable<Integer> ids);
 
     @Query("DELETE FROM Package")
@@ -93,6 +97,10 @@ public interface Packages extends BasicRepository<Package, Integer> {
 
     @OrderBy(value = "id")
     List<Integer> findIdByWidthRounded(int width);
+
+    @Delete
+    @OrderBy(value = "length", descending = true)
+    List<Integer> removeIfDescriptionMatches(String description, Limit limit);
 
     @Delete
     Package take(@By("id") int packageNum);

@@ -238,13 +238,16 @@ public class QueryInfo {
     int[] sortPositions = NONE;
 
     /**
-     * Ordered list of Sort criteria, which can be defined statically via the OrderBy annotation or keyword,
-     * or dynamically via PageRequest Sort parameters or Sort parameters to the repository method,
+     * Ordered list of Sort criteria, which can be defined
+     * statically via the OrderBy annotation or keyword, or
+     * dynamically via Sort parameters to the repository method,
      * or a combination of both static and dynamic.
-     * If the Query annotation is used, it will be unknown whether its value hard-codes Sort criteria,
-     * in which case this field gets set to any additional sort criteria that is added statically or dynamically,
+     * If the Query annotation is used, it will be unknown whether it
+     * hard-codes Sort criteria, in which case this field gets set to
+     * any additional sort criteria that is added statically or dynamically,
      * or lacking either of those, an empty list.
-     * If none of the above, the value of this field is null, which can also mean it has not been initialized yet.
+     * If none of the above, the value of this field is null,
+     * which can also mean it has not been initialized yet.
      */
     List<Sort<Object>> sorts;
 
@@ -1964,6 +1967,19 @@ public class QueryInfo {
                         }
                     }
                 }
+
+                if (first)
+                    // No parameters are annotated to indicate update.
+                    // Raise an error that considers this an invalid life cycle
+                    // operation attempt. In the future, we could raise an error
+                    // that also mentions the possibility of invalid parameter-based
+                    // update operation.
+                    throw exc(UnsupportedOperationException.class,
+                              "CWWKD1009.lifecycle.param.err",
+                              method.getName(),
+                              repositoryInterface.getName(),
+                              method.getParameterCount(),
+                              Update.class.getSimpleName());
             } else {
                 type = Type.FIND;
                 q = generateSelectClause().append(" FROM ").append(entityInfo.name).append(' ').append(o);
@@ -2781,6 +2797,13 @@ public class QueryInfo {
 
             // The @OrderBy annotation from Jakarta Data provides sort criteria statically
             if (orderBy.length > 0) {
+                // disallow on incompatible operations
+                if (type != Type.FIND && type != Type.FIND_AND_DELETE)
+                    throw exc(UnsupportedOperationException.class,
+                              "CWWKD1096.orderby.incompat",
+                              method.getName(),
+                              repositoryInterface.getName());
+
                 if (sorts != null) // also has an OrderBy keyword
                     throw exc(UnsupportedOperationException.class,
                               "CWWKD1090.orderby.conflict",
@@ -2826,8 +2849,7 @@ public class QueryInfo {
 
             jpql = q == null ? jpql : q.toString();
 
-            if (type == null)
-                throw excUnsupportedMethod();
+            validate();
 
             if (trace && tc.isEntryEnabled())
                 Tr.exit(this, tc, "init", new Object[] { this, entityInfo });
@@ -3816,11 +3838,12 @@ public class QueryInfo {
     }
 
     /**
-     * Parses the number (if any) following findFirst or deleteFirst.
+     * Parses the number (if any) following findFirst.
      *
-     * @param start     starting position after findFirst or deleteFirst
-     * @param endBefore index of first occurrence of "By" in the method name, or otherwise the method name length.
-     * @return next starting position after the find/deleteFirst(#).
+     * @param start     starting position after findFirst.
+     * @param endBefore index of first occurrence of "By" in the method name,
+     *                      or otherwise the method name length.
+     * @return next starting position after the findFirst(#).
      */
     private int parseFirst(int start, int endBefore) {
         String methodName = method.getName();
@@ -4306,15 +4329,6 @@ public class QueryInfo {
     void setParameters(jakarta.persistence.Query query, Object... args) throws Exception {
         final boolean trace = TraceComponent.isAnyTracingEnabled();
 
-        if (args != null && args.length < jpqlParamCount)
-            throw exc(DataException.class,
-                      "CWWKD1021.insufficient.params",
-                      method.getName(),
-                      repositoryInterface.getName(),
-                      args.length,
-                      jpqlParamCount,
-                      jpql);
-
         Iterator<String> namedParams = jpqlParamNames.iterator();
         for (int i = 0, p = 0; i < jpqlParamCount; i++) {
             Object arg = args[i];
@@ -4330,19 +4344,6 @@ public class QueryInfo {
                     Tr.debug(this, tc, "set ?" + (p + 1) + ' ' + loggable(arg));
                 query.setParameter(++p, arg);
             }
-        }
-
-        if (args != null &&
-            jpqlParamCount < args.length &&
-            type != Type.FIND &&
-            type != Type.FIND_AND_DELETE) {
-            throw exc(DataException.class,
-                      "CWWKD1022.too.many.params",
-                      method.getName(),
-                      repositoryInterface.getName(),
-                      jpqlParamCount,
-                      args.length,
-                      jpql);
         }
     }
 
@@ -4729,6 +4730,55 @@ public class QueryInfo {
         if (trace && tc.isEntryEnabled())
             Tr.exit(this, tc, "update", numUpdated);
         return numUpdated;
+    }
+
+    /**
+     * Validate this instance. This is invoked at the end of initialization.
+     */
+    @Trivial
+    private void validate() {
+        if (type == null)
+            throw excUnsupportedMethod();
+
+        int methodParamCount = method.getParameterCount();
+        if (jpql != null &&
+            methodParamCount < jpqlParamCount &&
+            type != Type.DELETE_WITH_ENTITY_PARAM &&
+            type != Type.UPDATE_WITH_ENTITY_PARAM &&
+            type != Type.UPDATE_WITH_ENTITY_PARAM_AND_RESULT)
+            throw exc(UnsupportedOperationException.class,
+                      "CWWKD1021.insufficient.params",
+                      method.getName(),
+                      repositoryInterface.getName(),
+                      methodParamCount,
+                      jpqlParamCount,
+                      jpql);
+
+        if (jpql != null &&
+            jpqlParamCount < methodParamCount &&
+            type != Type.FIND &&
+            type != Type.FIND_AND_DELETE) {
+
+            if (type == Type.DELETE) {
+                Class<?>[] paramTypes = method.getParameterTypes();
+                for (int i = jpqlParamCount; i < methodParamCount; i++)
+                    if (Util.SORT_PARAM_TYPES.contains(paramTypes[i]) ||
+                        Limit.class.equals(paramTypes[i]))
+                        throw exc(UnsupportedOperationException.class,
+                                  "CWWKD1097.param.incompat",
+                                  method.getName(),
+                                  repositoryInterface.getName(),
+                                  paramTypes[i].getSimpleName());
+            }
+
+            throw exc(UnsupportedOperationException.class,
+                      "CWWKD1022.too.many.params",
+                      method.getName(),
+                      repositoryInterface.getName(),
+                      jpqlParamCount,
+                      methodParamCount,
+                      jpql);
+        }
     }
 
     /**

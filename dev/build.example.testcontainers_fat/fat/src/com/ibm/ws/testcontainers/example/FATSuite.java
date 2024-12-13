@@ -17,6 +17,7 @@ import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.utility.DockerImageName;
 
 import componenttest.containers.TestContainerSuite;
 import componenttest.rules.repeater.FeatureReplacementAction;
@@ -43,6 +44,9 @@ public class FATSuite extends TestContainerSuite {
     public static RepeatTests r = RepeatTests.with(FeatureReplacementAction.NO_REPLACEMENT().fullFATOnly())
                     .andWith(FeatureReplacementAction.EE9_FEATURES());
 
+    private static final DockerImageName PostgreSQLImage = DockerImageName.parse("public.ecr.aws/docker/library/postgres:17.0-alpine")
+                    .asCompatibleSubstituteFor("postgres:17.0-alpine");
+
     /*
      * If you want to use the same container for the entire test suite you can
      * declare it here. Using the @ClassRule annotation will start the container
@@ -51,6 +55,6 @@ public class FATSuite extends TestContainerSuite {
      * In this example suite I am going to use a different container for each example.
      */
     @ClassRule
-    public static PostgreSQLContainer<?> container = new PostgreSQLContainer<>("postgres:17.0-alpine");
+    public static PostgreSQLContainer<?> container = new PostgreSQLContainer<>(PostgreSQLImage);
 
 }

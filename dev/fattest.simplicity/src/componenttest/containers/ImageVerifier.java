@@ -63,17 +63,11 @@ public final class ImageVerifier {
         expectedImages = Collections.unmodifiableSet(_expectedImages);
     }
 
-    public static DockerImageName collectImage(DockerImageName image) {
-        return collectImage(image, null);
-    }
-
-    public static DockerImageName collectImage(DockerImageName image, DockerImageName output) {
+    public static void collectImage(DockerImageName image) {
         if (!expectedImages.contains(image)) {
             Log.info(c, "collectImage", "Found an unknown image: " + image);
             forgottenImages.add(image);
         }
-
-        return output != null ? output : image;
     }
 
     public static void assertImages() throws IllegalStateException {

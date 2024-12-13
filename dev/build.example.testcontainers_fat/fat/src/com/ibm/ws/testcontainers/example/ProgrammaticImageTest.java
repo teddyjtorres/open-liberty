@@ -82,12 +82,13 @@ public class ProgrammaticImageTest {
      * @see DockerfileTest
      */
 
+    private static final DockerImageName postgresql = ImageNameSubstitutor
+                    .instance() //
+                    .apply(DockerImageName.parse("public.ecr.aws/docker/library/postgres:17.0-alpine"));
+
     @ClassRule
     public static GenericContainer<?> container = new GenericContainer<>(//
-                    new ImageFromDockerfile().withDockerfileFromBuilder(builder -> builder.from(//
-                                                                                                ImageNameSubstitutor.instance()
-                                                                                                                .apply(DockerImageName.parse("postgres:17.0-alpine"))
-                                                                                                                .asCanonicalNameString()) //
+                    new ImageFromDockerfile().withDockerfileFromBuilder(builder -> builder.from(postgresql.asCanonicalNameString())//
                                     .copy("/docker-entrypoint-initdb.d/initDB.sql", "/docker-entrypoint-initdb.d/initDB.sql")
                                     .build())
                                     .withFileFromFile("/docker-entrypoint-initdb.d/initDB.sql", new File("lib/LibertyFATTestFiles/postgres/scripts/initDB.sql"), 644))

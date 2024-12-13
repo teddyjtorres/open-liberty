@@ -12,10 +12,12 @@
  *******************************************************************************/
 package test.jakarta.data.errpaths.web;
 
+import static jakarta.data.repository.By.ID;
 import static org.junit.Assert.fail;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletionException;
@@ -23,12 +25,14 @@ import java.util.stream.Stream;
 
 import jakarta.annotation.Resource;
 import jakarta.annotation.sql.DataSourceDefinition;
+import jakarta.data.Limit;
 import jakarta.data.Order;
 import jakarta.data.Sort;
 import jakarta.data.exceptions.DataException;
 import jakarta.data.exceptions.MappingException;
 import jakarta.data.page.Page;
 import jakarta.data.page.PageRequest;
+import jakarta.data.page.PageRequest.Cursor;
 import jakarta.inject.Inject;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
@@ -157,6 +161,111 @@ public class DataErrPathsTestServlet extends FATServlet {
             if (x.getMessage() == null ||
                 !x.getMessage().startsWith("CWWKD1019E:") ||
                 !x.getMessage().contains("livingAt"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository method that attempts to
+     * delete a page of results by specifying a PageRequest on a Delete operation.
+     */
+    @Test
+    public void testDeletePageOfResults() {
+        try {
+            voters.discardPage("701 Silver Creek Rd NE, Rochester, MN 55906",
+                               PageRequest.ofSize(15));
+            fail("Should not be able to perform a delete operation by supplying"
+                 + " a PageRequest.");
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1022E:") ||
+                !x.getMessage().contains("discardPage"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository method that specifies a
+     * Limit parameter on a Delete operation with void return type.
+     */
+    @Test
+    public void testDeleteWithLimitParameterButNoResult() {
+        try {
+            voters.discardLimited("701 Silver Creek Rd NE, Rochester, MN 55906",
+                                  Limit.of(3));
+            fail("Should not be able to define an Limit parameter on a method that" +
+                 " deletes entities but does not return them");
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1097E:") ||
+                !x.getMessage().contains("discardLimited"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository method that specifies an
+     * OrderBy annotation on a Delete operation with void return type.
+     */
+    @Test
+    public void testDeleteWithOrderByAnnotationButNoResult() {
+        try {
+            voters.discardInOrder("701 Silver Creek Rd NE, Rochester, MN 55906");
+            fail("Should not be able to define an Order parameter on a method that" +
+                 " deletes entities but does not return them");
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1096E:") ||
+                !x.getMessage().contains("discardInOrder"))
+                throw x;
+        }
+    }
+
+    @Test
+    public void testDeleteWithOrderByKeywordButNoResult() {
+        try {
+            voters.deleteByAddressOrderByName("701 Silver Creek Rd NE, Rochester, MN 55906");
+            fail("Should not be able to define an OrderBy keyword on a method that" +
+                 " deletes entities but does not return them");
+        } catch (MappingException x) {
+            // expected
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository method that specifies an
+     * Order parameter on a Delete operation with void return type.
+     */
+    @Test
+    public void testDeleteWithOrderParameterButNoResult() {
+        try {
+            voters.discardOrdered("701 Silver Creek Rd NE, Rochester, MN 55906",
+                                  Order.by(Sort.desc(ID)));
+            fail("Should not be able to define an Order parameter on a method that" +
+                 " deletes entities but does not return them");
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1097E:") ||
+                !x.getMessage().contains("discardOrdered"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository method that specifies a
+     * Sort parameter on a Delete operation with int return type.
+     */
+    @Test
+    public void testDeleteWithSortParameterButNoResult() {
+        try {
+            int count = voters.discardSorted("701 Silver Creek Rd NE, Rochester, MN 55906",
+                                             Sort.asc("ssn"));
+            fail("Should not be able to define a Sort parameter on a method that" +
+                 " deletes entities and returns an update count: " + count);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1097E:") ||
+                !x.getMessage().contains("discardSorted"))
                 throw x;
         }
     }
@@ -331,6 +440,136 @@ public class DataErrPathsTestServlet extends FATServlet {
     }
 
     /**
+     * Use a repository method with multiple entity parameters, which is not
+     * allowed for life cycle methods such as Insert.
+     */
+    @Test
+    public void testLifeCycleInsertMethodWithMultipleParameters() {
+        List<Voter> list = List //
+                        .of(new Voter(999887777, "New Voter 1", //
+                                        LocalDate.of(1999, Month.DECEMBER, 9), //
+                                        "213 13th Ave NW, Rochester, MN 55901"),
+
+                            new Voter(777665555, "New Voter 2", //
+                                            LocalDate.of(1987, Month.NOVEMBER, 7), //
+                                            "300 7th St SW, Rochester, MN 55902"));
+
+        try {
+            list = voters.addSome(list, Limit.of(1));
+            fail("Did not reject Insert method with multiple parameters. Result: " +
+                 list);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1009E") ||
+                !x.getMessage().contains("addSome"))
+                throw x;
+        }
+    }
+
+    /**
+     * Use a repository method with no parameters, which is not
+     * allowed for life cycle methods such as Insert.
+     */
+    @Test
+    public void testLifeCycleInsertMethodWithoutParameters() {
+        try {
+            Voter[] added = voters.addNothing();
+            fail("Did not reject Insert method without parameters. Result: " +
+                 Arrays.toString(added));
+
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1009E") ||
+                !x.getMessage().contains("addNothing"))
+                throw x;
+        }
+    }
+
+    /**
+     * Use a repository method with multiple entity parameters, which is not
+     * allowed for life cycle methods such as Save.
+     */
+    @Test
+    public void testLifeCycleSaveMethodWithMultipleParameters() {
+        Voter v = new Voter(123445678, "Updated Name", //
+                        LocalDate.of(1951, Month.SEPTEMBER, 25), //
+                        "4051 E River Rd NE, Rochester, MN 55906");
+        try {
+            Voter saved = voters.storeInDatabase(v, PageRequest.ofSize(5));
+
+            fail("Did not reject Save life cycle method that has" +
+                 " multiple parameters. Result: " + saved);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1009E") ||
+                !x.getMessage().contains("storeInDatabase"))
+                throw x;
+        }
+    }
+
+    /**
+     * Use a repository method with no parameters, which is not
+     * allowed for life cycle methods such as Save.
+     */
+    @Test
+    public void testLifeCycleSaveMethodWithoutParameters() {
+        try {
+            voters.storeNothing();
+            fail("Did not reject Save method without parameters.");
+
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1009E") ||
+                !x.getMessage().contains("storeNothing"))
+                throw x;
+        }
+    }
+
+    /**
+     * Use a repository method with multiple entity parameters, which are not
+     * allowed for life cycle methods such as Update.
+     */
+    @Test
+    public void testLifeCycleUpdateMethodWithMultipleParameters() {
+        Voter v1 = new Voter(123445678, "New Name 1", //
+                        LocalDate.of(1951, Month.SEPTEMBER, 25), //
+                        "4051 E River Rd NE, Rochester, MN 55906");
+        Voter v2 = new Voter(987665432, "New Name 2", //
+                        LocalDate.of(1971, Month.OCTOBER, 1), //
+                        "701 Silver Creek Rd NE, Rochester, MN 55906");
+        try {
+            List<Voter> list = voters.changeBoth(v1, v2);
+
+            fail("Did not reject Update life cycle method that has" +
+                 " multiple parameters. Result: " + list);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1009E") ||
+                !x.getMessage().contains("changeBoth"))
+                throw x;
+        }
+    }
+
+    /**
+     * Use a repository method with no parameters, which is not
+     * allowed for life cycle methods such as Update.
+     */
+    @Test
+    public void testLifeCycleUpdateMethodWithoutParameters() {
+        try {
+            voters.changeNothing();
+
+            fail("Did not reject Update life cycle method that has" +
+                 " no parameters.");
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1009E") ||
+                !x.getMessage().contains("changeNothing"))
+                throw x;
+        }
+    }
+
+    /**
      * Verify an error is raised for a repository method that has a Param annotation
      * that specifies a name value that does not match the name of a named parameter
      * from the query.
@@ -403,6 +642,30 @@ public class DataErrPathsTestServlet extends FATServlet {
                 x.getMessage().contains(PageRequest.class.getName()))
                 ; // expected
             else
+                throw x;
+        }
+    }
+
+    /**
+     * Supply a PageRequest that has a Cursor to a repository method that returns
+     * an offset-based Page rather than a CursoredPage. Expect an error.
+     */
+    @Test
+    public void testOffsetPageRequestedWithCursor() {
+        Order<Voter> nameAsc = Order.by(Sort.asc("name"), Sort.asc("ssn"));
+        PageRequest after123456789 = PageRequest.ofSize(4) //
+                        .afterCursor(Cursor.forKey("Voter Name", 123456789));
+        try {
+            Page<Voter> page = voters //
+                            .atAddress("770 W Silver Lake Dr NE, Rochester, MN 55906",
+                                       after123456789,
+                                       nameAsc);
+            fail("Obtained an offset page from a PageRequest that contains a" +
+                 " Cursor: " + page);
+        } catch (IllegalArgumentException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1035E:") ||
+                !x.getMessage().contains("atAddress"))
                 throw x;
         }
     }

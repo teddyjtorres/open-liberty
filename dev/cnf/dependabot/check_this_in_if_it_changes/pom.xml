@@ -2384,7 +2384,7 @@
     <dependency>
       <groupId>org.apache.myfaces.core</groupId>
       <artifactId>myfaces-api</artifactId>
-      <version>4.1.0-RC3</version>
+      <version>4.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.myfaces.core</groupId>
@@ -2409,7 +2409,7 @@
     <dependency>
       <groupId>org.apache.myfaces.core</groupId>
       <artifactId>myfaces-impl</artifactId>
-      <version>4.1.0-RC3</version>
+      <version>4.1.0</version>
     </dependency>
     <dependency>
       <groupId>org.apache.neethi</groupId>
@@ -2479,7 +2479,7 @@
     <dependency>
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-el-api</artifactId>
-      <version>10.1.11</version>
+      <version>10.1.31</version>
     </dependency>
     <dependency>
       <groupId>org.apache.tomcat</groupId>
@@ -2494,7 +2494,7 @@
     <dependency>
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-jasper-el</artifactId>
-      <version>10.1.11</version>
+      <version>10.1.31</version>
     </dependency>
     <dependency>
       <groupId>org.apache.tomcat</groupId>
@@ -2934,7 +2934,7 @@
     <dependency>
       <groupId>org.eclipse.microprofile.fault-tolerance</groupId>
       <artifactId>microprofile-fault-tolerance-api</artifactId>
-      <version>4.1</version>
+      <version>4.1.1</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.microprofile.graphql</groupId>

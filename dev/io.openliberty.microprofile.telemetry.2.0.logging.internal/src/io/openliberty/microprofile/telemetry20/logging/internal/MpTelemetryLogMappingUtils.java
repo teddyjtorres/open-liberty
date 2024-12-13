@@ -240,8 +240,8 @@ public class MpTelemetryLogMappingUtils {
      * Maps the Audit log events to the OpenTelemetry Logs Data Model.
      *
      * @param builder   The OpenTelemetry LogRecordBuilder, which is used to construct the LogRecord.
-     * @param eventType The object originating from logging source which contains necessary fields.
-     * @param event     The type of event
+     * @param eventType The type of event
+     * @param event     The object originating from logging source which contains necessary fields.
      */
     private static void mapAuditLogsToOpenTelemetry(LogRecordBuilder builder, String eventType, Object event) {
         GenericData genData = (GenericData) event;

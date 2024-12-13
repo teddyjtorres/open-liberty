@@ -512,7 +512,9 @@ public class VersionlessTest {
             }
         });
 
-        VersionlessFeatureCreator creator = new VersionlessFeatureCreator();
+        versionlessFeatures.get("mpMetrics").addFeaturePlatformAndKind("mpMetrics-5.1", "microProfile-7.0", "io.openliberty.mpMetrics-5.1", "ga");
+
+        VersionlessFeatureCreator creator = new VersionlessFeatureCreator(featureRepo);
 
         String createdFeatures = "";
 
