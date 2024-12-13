@@ -16,7 +16,8 @@ bVersion=1.0
 src: \
 	fat/src,\
 	test-applications/JavaGlobalInjectIntoServletEJB.jar/src,\
-	test-applications/JavaGlobalInjectIntoServletWeb.war/src
+	test-applications/JavaGlobalInjectIntoServletWeb.war/src,\
+	test-applications/StatefulLifecycleTx.war/src
 
 fat.project: true
 
