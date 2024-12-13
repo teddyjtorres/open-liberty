@@ -12,6 +12,9 @@
  *******************************************************************************/
 package test.jakarta.data.jpa;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.jboss.shrinkwrap.api.spec.WebArchive;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
@@ -27,6 +30,7 @@ import componenttest.annotation.Server;
 import componenttest.annotation.TestServlet;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.database.container.DatabaseContainerFactory;
+import componenttest.topology.database.container.DatabaseContainerType;
 import componenttest.topology.database.container.DatabaseContainerUtil;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -53,8 +57,16 @@ public class DataJPATestCheckpoint extends FATServletClient {
         WebArchive war = ShrinkHelper.buildDefaultApp("DataJPATestApp", "test.jakarta.data.jpa.web");
         ShrinkHelper.exportAppToServer(server, war);
 
+        Map<String, String> envVars = new HashMap<>();
+        envVars.put("DB_DRIVER", DatabaseContainerType.valueOf(testContainer).getDriverName());
+
         server.setCheckpoint(CheckpointPhase.AFTER_APP_START, false, null);
         server.startServer();
+
+        //Server started, application started, checkpoint taken, server is now stopped.
+        //Configure environment variable used by servlet
+        server.addEnvVarsForCheckpoint(envVars);
+
         server.checkpointRestore();
     }
 
