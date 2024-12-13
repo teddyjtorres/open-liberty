@@ -977,6 +977,6 @@ CWWKD1098.spec.param.position.err=CWWKD1098E: The {0} method of the {1} reposito
  positioned after the other parameters in the repository method signature.
 CWWKD1098.spec.param.position.err.explanation=When special Jakarta Data defined \
  parameter types are included in a repository method signture, they must be \
- positioned after all of the query parameters.
+ positioned after all the query parameters.
 CWWKD1098.spec.param.position.err.useraction=Move the special Jakarta Data defined \
  parameter types to positions at the end of the repository method signature.
