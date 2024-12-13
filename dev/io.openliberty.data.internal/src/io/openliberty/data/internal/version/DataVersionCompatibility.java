@@ -14,6 +14,7 @@ package io.openliberty.data.internal.version;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Set;
 
 /**
  * Interface for version-dependent capability, available as an OSGi service.
@@ -101,4 +102,28 @@ public interface DataVersionCompatibility {
      * @return True if any of the annotations represent Or. Otherwise false.
      */
     boolean hasOrAnnotation(Annotation[] annos);
+
+    /**
+     * Returns the names of special parameter types that are valid for repository
+     * find operations.
+     *
+     * @return names of valid special parameter types.
+     */
+    String specialParamsForFind();
+
+    /**
+     * Returns the names of special parameter types that are valid for repository
+     * find-and-delete operations.
+     *
+     * @return names of valid special parameter types.
+     */
+    String specialParamsForFindAndDelete();
+
+    /**
+     * Returns the Jakarta Data defined parameter types with special meaning
+     * that can be used on repository methods after the query parameters.
+     *
+     * @return the Jakarta Data defined special parameter types.
+     */
+    Set<Class<?>> specialParamTypes();
 }

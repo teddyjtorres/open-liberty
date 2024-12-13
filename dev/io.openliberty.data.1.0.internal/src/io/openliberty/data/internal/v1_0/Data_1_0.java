@@ -14,6 +14,7 @@ package io.openliberty.data.internal.v1_0;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.util.Set;
 
 import org.osgi.service.component.annotations.Component;
 import org.osgi.service.component.annotations.ConfigurationPolicy;
@@ -21,6 +22,10 @@ import org.osgi.service.component.annotations.ConfigurationPolicy;
 import com.ibm.websphere.ras.annotation.Trivial;
 
 import io.openliberty.data.internal.version.DataVersionCompatibility;
+import jakarta.data.Limit;
+import jakarta.data.Order;
+import jakarta.data.Sort;
+import jakarta.data.page.PageRequest;
 
 /**
  * Capability that is specific to the version of Jakarta Data.
@@ -29,6 +34,11 @@ import io.openliberty.data.internal.version.DataVersionCompatibility;
            configurationPolicy = ConfigurationPolicy.IGNORE,
            service = DataVersionCompatibility.class)
 public class Data_1_0 implements DataVersionCompatibility {
+
+    private static final Set<Class<?>> SPECIAL_PARAM_TYPES = //
+                    Set.of(Limit.class, Order.class, PageRequest.class,
+                           Sort.class, Sort[].class);
+
     @Override
     @Trivial
     public StringBuilder appendCondition(StringBuilder q, int qp,
@@ -89,5 +99,23 @@ public class Data_1_0 implements DataVersionCompatibility {
     @Trivial
     public boolean hasOrAnnotation(Annotation[] annos) {
         return false;
+    }
+
+    @Override
+    @Trivial
+    public String specialParamsForFind() {
+        return "Limit, PageRequest, Order, Sort, Sort[]";
+    }
+
+    @Override
+    @Trivial
+    public String specialParamsForFindAndDelete() {
+        return "Limit, Order, Sort, Sort[]";
+    }
+
+    @Override
+    @Trivial
+    public Set<Class<?>> specialParamTypes() {
+        return SPECIAL_PARAM_TYPES;
     }
 }
