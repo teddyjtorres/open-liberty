@@ -20,6 +20,7 @@ import java.time.Month;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Stream;
 
@@ -352,6 +353,43 @@ public class DataErrPathsTestServlet extends FATServlet {
             if (x.getMessage() == null ||
                 !x.getMessage().startsWith("CWWKD1092E:") ||
                 !x.getMessage().contains("changeAll"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised when an exists Query by Method Name method
+     * tries to return a true/false value as int.
+     */
+    @Test
+    public void testExistsAsInt() {
+        try {
+            int found = voters.existsByAddress("4051 E River Rd NE, Rochester, MN 55906");
+            fail("Should not be able to use an exists query that returns a" +
+                 " numeric value rather than boolean. Result: " + found);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1003E:") ||
+                !x.getMessage().contains("boolean")) // recommended type
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised when an exists Query by Method Name method
+     * tries to return a true/false value as a Long value that is wrapped in
+     * a CompletableFuture.
+     */
+    @Test
+    public void testExistsAsLong() {
+        try {
+            CompletableFuture<Long> cf = voters.existsByName("Vincent");
+            fail("Should not be able to use an exists query that returns a" +
+                 " numeric value rather than boolean. Future: " + cf);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1003E:") ||
+                !x.getMessage().contains("CompletableFuture<java.lang.Long>"))
                 throw x;
         }
     }

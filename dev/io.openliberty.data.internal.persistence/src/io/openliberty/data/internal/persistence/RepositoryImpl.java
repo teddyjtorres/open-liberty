@@ -1085,18 +1085,7 @@ public class RepositoryImpl<R> implements InvocationHandler {
                     }
                     case EXISTS: {
                         em = entityInfo.builder.createEntityManager();
-
-                        jakarta.persistence.Query query = em.createQuery(queryInfo.jpql);
-                        query.setMaxResults(1);
-                        queryInfo.setParameters(query, args);
-
-                        returnValue = !query.getResultList().isEmpty();
-
-                        if (Optional.class.equals(returnType)) {
-                            returnValue = Optional.of(returnValue);
-                        } else if (CompletableFuture.class.equals(returnType) || CompletionStage.class.equals(returnType)) {
-                            returnValue = CompletableFuture.completedFuture(returnValue);
-                        }
+                        returnValue = queryInfo.exists(em, args);
                         break;
                     }
                     case RESOURCE_ACCESS: {

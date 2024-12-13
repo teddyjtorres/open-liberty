@@ -40,6 +40,8 @@ public class DataErrPathsTest extends FATServletClient {
     private static final String[] EXPECTED_ERROR_MESSAGES = //
                     new String[] {
                                    "CWWJP9991W.*4002", // 2 persistence units attempt to autocreate same table
+                                   "CWWKD1003E.*existsByAddress", // exists method returning int
+                                   "CWWKD1003E.*existsByName", // exists method returning CompletableFuture<Long>
                                    "CWWKD1006E.*removeBySSN", // delete method attempts to return record
                                    "CWWKD1009E.*addNothing", // Insert method without parameters
                                    "CWWKD1009E.*addSome", // Insert method with multiple parameters
