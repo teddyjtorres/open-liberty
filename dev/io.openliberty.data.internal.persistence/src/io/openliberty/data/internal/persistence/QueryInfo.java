@@ -1034,14 +1034,24 @@ public class QueryInfo {
     }
 
     /**
-     * Constructs the MappingException for the error where one or more of the
-     * named parameters required by a JDQL or JPQL query are not specified by the
-     * method parameters.
+     * Check if the cause of the lacking named parameter is a mispositioned
+     * special parameter. If so, raises UnsupportedOperationException.
      *
-     * @return MappingException.
+     * Otherwise, constructs a MappingException for the error where one or more
+     * of the named parameters required by a JDQL or JPQL query are not specified
+     * by the method parameters
+     *
+     * @param lacking query named parameters for which no method parameters were
+     *                    found.
+     * @return MappingException for a missing named parameter.
+     * @throws UnsupportedOperationException if there is a mispositioned special
+     *                                           parameter.
      */
     @Trivial
     private MappingException excLackingMethodArgNamedParams(Set<String> lacking) {
+
+        validateParameterPositions();
+
         String first = null;
         StringBuilder all = new StringBuilder();
         for (String name : lacking) {
@@ -2016,17 +2026,10 @@ public class QueryInfo {
                         switch (type) {
                             case FIND:
                             case FIND_AND_DELETE:
+                                validateParameterPositions();
                                 String specParams = type == Type.FIND //
                                                 ? compat.specialParamsForFind() //
                                                 : compat.specialParamsForFindAndDelete();
-                                // look for mispositioned special parameter
-                                if (specParamTypes.contains(params[p].getType()))
-                                    throw exc(UnsupportedOperationException.class,
-                                              "CWWKD1098.spec.param.position.err",
-                                              method.getName(),
-                                              repositoryInterface.getName(),
-                                              params[p].getType().getName(),
-                                              specParams);
                                 throw exc(UnsupportedOperationException.class,
                                           "CWWKD1012.fd.missing.param.anno",
                                           p + 1,
@@ -4863,6 +4866,34 @@ public class QueryInfo {
                         : iusdce == 1 //
                                         ? (delete != null ? delete : count != null ? count : exists) //
                                         : (q == 1 ? query : f == 1 ? find : null);
+    }
+
+    /**
+     * Confirm that special parameters are positioned after all other parameters.
+     *
+     * @throws UnupportedOperationException if a special parameter is ahead of
+     *                                          a query parameter.
+     */
+    @Trivial
+    void validateParameterPositions() {
+        DataVersionCompatibility compat = entityInfo.builder.provider.compat;
+
+        Class<?>[] paramTypes = method.getParameterTypes();
+        Set<Class<?>> specParamTypes = compat.specialParamTypes();
+        int specParamIndex = Integer.MAX_VALUE, otherParamIndex = -1;
+        for (int i = 0; i < paramTypes.length; i++)
+            if (specParamTypes.contains(paramTypes[i]))
+                specParamIndex = i < specParamIndex ? i : specParamIndex;
+            else
+                otherParamIndex = i;
+
+        if (specParamIndex < otherParamIndex)
+            throw exc(UnsupportedOperationException.class,
+                      "CWWKD1098.spec.param.position.err",
+                      method.getName(),
+                      repositoryInterface.getName(),
+                      paramTypes[specParamIndex].getName(),
+                      compat.specialParamsForFind());
     }
 
     /**

@@ -72,8 +72,12 @@ public class DataErrPathsTest extends FATServletClient {
                                    "CWWKD1097E.*discardLimited", // Limit parameter on Delete method
                                    "CWWKD1097E.*discardOrdered", // Order parameter on Delete method
                                    "CWWKD1097E.*discardSorted", // Sort parameter on Delete method
-                                   "CWWKD1098E.*findFirst5ByAddress", // Order after query params
-                                   "CWWKD1098E.*occupantsOf" // PageRequest/Order after query params
+                                   "CWWKD1098E.*findFirst5ByAddress", // Order ahead of query params
+                                   "CWWKD1098E.*occupantsOf", // PageRequest/Order ahead of query params
+                                   "CWWKD1098E.*withNameLongerThan", // Limit ahead of query params
+                                   "CWWKD1098E.*withNameShorterThan", // Sort ahead of query params
+                                   "CWWKD1099E.*findFirst2", // Limit incompatible with First
+                                   "CWWKD1099E.*findFirst3" // PageRequest incompatible with First
                     };
 
     @Server("io.openliberty.data.internal.fat.errpaths")

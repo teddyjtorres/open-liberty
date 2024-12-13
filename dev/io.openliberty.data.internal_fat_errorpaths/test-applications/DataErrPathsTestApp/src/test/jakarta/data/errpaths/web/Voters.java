@@ -151,6 +151,18 @@ public interface Voters extends BasicRepository<Voter, Integer> {
     List<Voter> findByAddressOrderBySSN(int ssn, Sort<Voter> sort);
 
     /**
+     * This invalid method has both a First keyword and a Limit parameter.
+     */
+    @OrderBy("ssn")
+    Voter[] findFirst2(Limit limit);
+
+    /**
+     * This invalid method has both a First keyword and a PageRequest parameter.
+     */
+    @OrderBy("ssn")
+    Page<Voter> findFirst3(PageRequest pageRequest);
+
+    /**
      * This invalid method places the Order special parameter ahead of
      * the query parameter.
      */
@@ -320,4 +332,18 @@ public interface Voters extends BasicRepository<Voter, Integer> {
      */
     @Query("WHERE LENGTH(address) < ?1 ORDER BY ssn ASC")
     List<Voter> withAddressShorterThan(@Param("maxLength") int maxAddressLength);
+
+    /**
+     * This invalid method places the Limit special parameter ahead of
+     * the query parameter.
+     */
+    @Query("WHERE LENGTH(name) > :min ORDER BY ssn ASC")
+    List<Voter> withNameLongerThan(Limit limit, @Param("min") int minLength);
+
+    /**
+     * This invalid method places the Sort special parameter ahead of
+     * the query parameter.
+     */
+    @Query("WHERE LENGTH(name) < ?1")
+    List<Voter> withNameShorterThan(Sort<Voter> sort, int maxLength);
 }
