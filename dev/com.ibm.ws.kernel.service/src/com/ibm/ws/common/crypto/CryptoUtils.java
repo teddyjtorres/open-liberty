@@ -63,14 +63,13 @@ public class CryptoUtils {
     public static String OPENJCE_PLUS_PROVIDER = "com.ibm.crypto.plus.provider.OpenJCEPlus";
     public static String OPENJCE_PLUS_FIPS_PROVIDER = "com.ibm.crypto.plus.provider.OpenJCEPlusFIPS";
 
-   
     public static final String IBMJCE_NAME = "IBMJCE";
     public static final String IBMJCE_PLUS_FIPS_NAME = "IBMJCEPlusFIPS";
     public static final String OPENJCE_PLUS_NAME = "OpenJCEPlus";
     public static final String OPENJCE_PLUS_FIPS_NAME = "OpenJCEPlusFIPS";
 
     public static final String USE_FIPS_PROVIDER = "com.ibm.jsse2.usefipsprovider";
-    public static final String USE_FIPS_PROVIDER_NAME = IBMJCE_PLUS_FIPS_NAME;
+    public static final String USE_FIPS_PROVIDER_NAME = "com.ibm.jsse2.usefipsProviderName";
 
     public static final String SIGNATURE_ALGORITHM_SHA1WITHRSA = "SHA1withRSA";
     public static final String SIGNATURE_ALGORITHM_SHA256WITHRSA = "SHA256withRSA";
@@ -176,7 +175,7 @@ public class CryptoUtils {
             }
 
             if (ibmJCEPlusFIPSProviderAvailable) {
-                if(!fipsEnabled){
+                if (!fipsEnabled) {
                     ibmJCEPlusFIPSProviderAvailable = false;
                 } else {
                     ibmJCEPlusFIPSAvailable = true;
@@ -212,7 +211,7 @@ public class CryptoUtils {
             }
 
             if (openJCEPlusFIPSProviderAvailable) {
-                if(!fipsEnabled || !isSemeruFips()){
+                if (!fipsEnabled || !isSemeruFips()) {
                     openJCEPlusFIPSProviderAvailable = false;
                 } else {
                     openJCEPlusFIPSAvailable = true;
@@ -340,7 +339,7 @@ public class CryptoUtils {
     }
 
     static String getFipsLevel() {
-        String result  = getProperty("com.ibm.fips.mode", "disabled");
+        String result = getProperty("com.ibm.fips.mode", "disabled");
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(tc, "getFipsLevel: " + result);
         }
@@ -353,19 +352,19 @@ public class CryptoUtils {
 
     public static boolean isFips140_3Enabled() {
 
-        boolean result =  ("140-3".equals(FIPSLevel) || "true".equals(getProperty("global.fips_140-3", "false")) || isSemeruFips())
-               && isRunningBetaMode();
-            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                Tr.debug(tc, "isFips140_3Enabled: " + result);
-            }
+        boolean result = ("140-3".equals(FIPSLevel) || "true".equals(getProperty("global.fips_140-3", "false")) || isSemeruFips())
+                         && isRunningBetaMode();
+        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+            Tr.debug(tc, "isFips140_3Enabled: " + result);
+        }
         return result;
     }
 
     public static boolean isFips140_2Enabled() {
-        //Not sure who set 140-2 
+        //JDK set the fip mode default to 140-2
         //boolean result = "140-2".equals(FIPSLevel) && isRunningBetaMode();
-        boolean result = "true".equals(getProperty(USE_FIPS_PROVIDER, "false")) && 
-                             IBMJCE_PLUS_FIPS_NAME.equalsIgnoreCase(getProperty(USE_FIPS_PROVIDER_NAME, "NO_PROVIDER_NAME"));
+        boolean result = !isFips140_3Enabled() && "true".equals(getProperty(USE_FIPS_PROVIDER, "false")) &&
+                         IBMJCE_PLUS_FIPS_NAME.equalsIgnoreCase(getProperty(USE_FIPS_PROVIDER_NAME, "NO_PROVIDER_NAME"));
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(tc, "isFips140_2Enabled: " + result);
         }
