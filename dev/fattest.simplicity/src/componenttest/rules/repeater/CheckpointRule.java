@@ -12,7 +12,9 @@ package componenttest.rules.repeater;
 import static componenttest.custom.junit.runner.CheckpointSupportFilter.CHECKPOINT_ONLY_PROPERTY_NAME;
 import static org.junit.Assert.assertNotNull;
 
+import java.io.BufferedWriter;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -42,6 +44,7 @@ import io.openliberty.checkpoint.spi.CheckpointPhase;
  */
 public class CheckpointRule implements TestRule {
     private static final AtomicBoolean IS_ACTIVE = new AtomicBoolean();
+    public static final String ID = "CHECKPOINT_RULE";
 
     /**
      * Returns true if the test is running with the checkpoint scenario
@@ -394,7 +397,7 @@ public class CheckpointRule implements TestRule {
             setJvmOptions();
             configureBootStrapProperties();
 
-            String logName = "CHECKPOINT_RULE_" + consoleLogName;
+            String logName = ID + "_" + consoleLogName;
             log("checkpointSetup", "Configuring checkpoint phase '" + checkpointPhase + "' with log name: " + logName);
             CheckpointInfo checkpointInfo = new CheckpointInfo(checkpointPhase, true, postCheckpointLambda);
             server.setConsoleLogName(logName);
@@ -447,8 +450,12 @@ public class CheckpointRule implements TestRule {
             bootStrapProperties.remove("websphere.java.security.norethrow");
             bootStrapProperties.remove("websphere.java.security.unique");
 
-            try (OutputStream out = new FileOutputStream(server.getServerBootstrapPropertiesFile().getAbsolutePath())) {
-                bootStrapProperties.store(out, "");
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(server.getServerBootstrapPropertiesFile().getAbsolutePath()))) {
+                for (String key : bootStrapProperties.stringPropertyNames()) {
+                    String value = bootStrapProperties.getProperty(key);
+                    writer.write(key + "=" + value);
+                    writer.newLine();
+                }
             }
         }
 

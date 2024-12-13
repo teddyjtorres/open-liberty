@@ -285,7 +285,11 @@ public class OpenTelemetryLogHandler implements SynchronousHandler {
         for (String source : sourceList) {
             String sourceName = getSourceName(source);
             if (!sourceName.equals("")) {
-                sourceIDList.add(getSourceName(source) + "|" + CollectorConstants.MEMORY);
+                if (!sourceName.contains("audit")) {
+                    sourceIDList.add(getSourceName(source) + "|" + CollectorConstants.MEMORY);
+                } else {
+                    sourceIDList.add(getSourceName(source) + "|" + CollectorConstants.SERVER);
+                }
             }
         }
         return sourceIDList;
@@ -295,12 +299,14 @@ public class OpenTelemetryLogHandler implements SynchronousHandler {
      * Get the fully qualified source string from the config value
      */
     private String getSourceName(String source) {
-        if (source.equals(CollectorConstants.MESSAGES_CONFIG_VAL))
+        if (source.equalsIgnoreCase(CollectorConstants.MESSAGES_CONFIG_VAL))
             return CollectorConstants.MESSAGES_SOURCE;
-        else if (source.equals(CollectorConstants.TRACE_CONFIG_VAL))
+        else if (source.equalsIgnoreCase(CollectorConstants.TRACE_CONFIG_VAL))
             return CollectorConstants.TRACE_SOURCE;
-        else if (source.equals(CollectorConstants.FFDC_CONFIG_VAL))
+        else if (source.equalsIgnoreCase(CollectorConstants.FFDC_CONFIG_VAL))
             return CollectorConstants.FFDC_SOURCE;
+        else if (MpTelemetryLogMappingUtils.isBetaModeCheck() && source.equalsIgnoreCase(CollectorConstants.AUDIT_CONFIG_VAL))
+            return CollectorConstants.AUDIT_LOG_SOURCE;
 
         return "";
     }
@@ -318,6 +324,8 @@ public class OpenTelemetryLogHandler implements SynchronousHandler {
             return CollectorConstants.TRACE_SOURCE;
         } else if (sourceName.equals(CollectorConstants.FFDC_SOURCE)) {
             return CollectorConstants.FFDC_SOURCE;
+        } else if (MpTelemetryLogMappingUtils.isBetaModeCheck() && sourceName.contains(CollectorConstants.AUDIT_LOG_SOURCE)) {
+            return CollectorConstants.AUDIT_LOG_SOURCE;
         } else {
             return "";
         }

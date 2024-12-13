@@ -44,6 +44,7 @@ import javax.naming.NamingException;
 import org.junit.Test;
 
 import componenttest.app.FATServlet;
+import test.jakarta.data.errpaths.web.Voters.NameAndZipCode;
 
 @DataSourceDefinition(name = "java:app/jdbc/DerbyDataSource",
                       className = "org.apache.derby.jdbc.EmbeddedXADataSource",
@@ -322,8 +323,9 @@ public class DataErrPathsTestServlet extends FATServlet {
                  "insert two entities. Instead returned: " + inserted);
         } catch (ClassCastException x) {
             if (x.getMessage() == null ||
-                !x.getMessage().startsWith("CWWKD1046E:") ||
-                !x.getMessage().contains("register"))
+                !x.getMessage().startsWith("CWWKD1094E:") ||
+                !x.getMessage().contains("register") ||
+                !x.getMessage().contains("Voter[]"))
                 throw x;
         }
     }
@@ -468,6 +470,24 @@ public class DataErrPathsTestServlet extends FATServlet {
     }
 
     /**
+     * Tests an error path where a repository method attempts to remove an entity
+     * but return it as a record instead.
+     */
+    @Test
+    public void testRemoveAsSubsetOfEntity() {
+        try {
+            NameAndZipCode removed = voters.removeBySSN(789001234).orElseThrow();
+            fail("Should not be able to remove an entity as a record: " +
+                 removed);
+        } catch (MappingException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1006E") ||
+                !x.getMessage().contains("NameAndZipCode"))
+                throw x;
+        }
+    }
+
+    /**
      * Tests an error path where the application specifies the repository dataStore
      * to be a JNDI name that does not exist.
      */
@@ -565,6 +585,22 @@ public class DataErrPathsTestServlet extends FATServlet {
                 !x.getMessage().startsWith("CWWKD1077E:") ||
                 !x.getMessage().contains("<dataSource id=\"DefaultDataSource\""))
                 throw x;
+        }
+    }
+
+    /**
+     * Tests an error path where a repository method attempts to return a subset of
+     * an entity as a record where the record component names do not all match the
+     * entity attribute names.
+     */
+    @Test
+    public void testReturnInvalidSubsetOfEntity() {
+        try {
+            NameAndZipCode result = voters.nameAndZipCode(789001234).orElseThrow();
+            fail("Should not be able to obtain result as a record with" +
+                 " component names that do not all match entity attributes: " +
+                 result);
+        } catch (MappingException x) {
         }
     }
 

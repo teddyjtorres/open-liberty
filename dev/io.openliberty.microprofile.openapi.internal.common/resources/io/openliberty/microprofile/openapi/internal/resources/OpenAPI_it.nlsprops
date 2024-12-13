@@ -157,3 +157,7 @@ OPENAPI_VERSION_NOT_SUPPORTED_CWWK06182W.useraction=Aggiornare l'attributo openA
 OPENAPI_INFO_INVALID_SERVERXML_CWWKO1683W=CWWKO1683W: L'elemento di configurazione mpOpenAPI info nel file server.xml non \u00e8 valido. Devono essere impostati entrambi gli attributi title e version. L'elemento info viene ignorato.
 OPENAPI_INFO_INVALID_SERVERXML_CWWKO1683W.explanation=I campi title e version sono propriet\u00e0 obbligatorie nell'oggetto info di un documento OpenAPI. Quando si configura l'oggetto info, \u00e8 necessario fornire un valore per gli attributi title e version.
 OPENAPI_INFO_INVALID_SERVERXML_CWWKO1683W.useraction=Assicurarsi che gli attributi title e version siano impostati su valori validi nell'elemento info mpOpenAPI.
+
+OPENAPI_MERGE_UNUSED_INCLUDE_SERVERXML_CWWKO1684W=CWWKO1684W: L''elemento di configurazione {0} include{1}", ma non corrisponde ad alcuna applicazione o modulo web distribuito.
+OPENAPI_MERGE_UNUSED_INCLUDE_SERVERXML_CWWKO1684W.explanation=Il server \u00e8 configurato per creare la documentazione OpenAPI per il nome dell'applicazione o del modulo, ma non sono stati distribuiti moduli web o applicazioni con tale nome.
+OPENAPI_MERGE_UNUSED_INCLUDE_SERVERXML_CWWKO1684W.useraction=Verificare che tutte le applicazioni siano state avviate correttamente e che i nomi nella configurazione siano stati specificati correttamente.

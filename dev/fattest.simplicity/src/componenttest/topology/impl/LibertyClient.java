@@ -760,6 +760,51 @@ public class LibertyClient {
 
         Log.info(c, method, "Starting Client with command: " + cmd);
 
+        if (isFIPS140_3EnabledAndSupported()) {
+            String clientSecurityDir = clientRoot + File.separator + "resources" + File.separator + "security";
+            File ltpaFIPSKeys = new File(clientSecurityDir, "ltpaFIPS.keys");
+            File ltpaKeys = new File(clientSecurityDir, "ltpa.keys");
+        
+            if (!ltpaKeys.exists() && !ltpaFIPSKeys.exists()) {
+                Log.info(this.getClass(), "startClientWithArgs", 
+                        "FIPS 140-3 global build properties are set for client " + getClientName() 
+                        + ", but neither ltpa.keys nor ltpaFIPS.keys is found in " + clientSecurityDir);
+            } else {
+                Log.info(this.getClass(), "startClientWithArgs", 
+                        "FIPS 140-3 global build properties are set for client " + getClientName() 
+                        + ", swapping ltpaFIPS.keys into ltpa.keys");
+        
+                try {
+                    // Delete ltpa.keys if it exists
+                    if (ltpaKeys.exists()) {
+                        if (!ltpaKeys.delete()) {
+                            Log.info(this.getClass(), "startClientWithArgs", "Failed to delete existing ltpa.keys.");
+                        } else {
+                            Log.info(this.getClass(), "startClientWithArgs", "Waiting for 1 second after deleting ltpa.keys.");
+                            Thread.sleep(1000);
+                        }
+                    }
+        
+                    // Rename ltpaFIPS.keys to ltpa.keys if ltpaFIPS.keys exists
+                    if (ltpaFIPSKeys.exists()) {
+                        if (!ltpaFIPSKeys.renameTo(ltpaKeys)) {
+                            Log.info(this.getClass(), "startClientWithArgs", "Failed to rename ltpaFIPS.keys to ltpa.keys.");
+                        } else {
+                            Log.info(this.getClass(), "startClientWithArgs", "Waiting for 1 second after rename.");
+                            Thread.sleep(1000);
+                        }
+                    
+                        // Log the content of ltpa.keys
+                        String content = FileUtils.readFile(ltpaKeys.getAbsolutePath());
+                        Log.info(this.getClass(), "printLtpaKeys", "Content of ltpa.keys: " + content);
+                    }
+        
+                } catch (Exception e) {
+                    Log.info(this.getClass(), "startClientWithArgs", "Error during ltpa.keys handling: " + e.getMessage());
+                }
+            }
+        }        
+
         ProgramOutput output;
         if (executeAsync) {
             if (!(machine instanceof LocalMachine)) {

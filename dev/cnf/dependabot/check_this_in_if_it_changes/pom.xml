@@ -2484,7 +2484,7 @@
     <dependency>
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-el-api</artifactId>
-      <version>11.0.0-M26</version>
+      <version>11.0.1</version>
     </dependency>
     <dependency>
       <groupId>org.apache.tomcat</groupId>
@@ -2499,7 +2499,7 @@
     <dependency>
       <groupId>org.apache.tomcat</groupId>
       <artifactId>tomcat-jasper-el</artifactId>
-      <version>11.0.0-M26</version>
+      <version>11.0.1</version>
     </dependency>
     <dependency>
       <groupId>org.apache.wink</groupId>
@@ -3214,7 +3214,7 @@
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>org.eclipse.persistence.core</artifactId>
-      <version>5.0.0-B03</version>
+      <version>5.0.0-B04</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
@@ -3234,7 +3234,7 @@
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>org.eclipse.persistence.jpa.jpql</artifactId>
-      <version>5.0.0-B03</version>
+      <version>5.0.0-B04</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
@@ -3254,7 +3254,7 @@
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>org.eclipse.persistence.jpa.modelgen.processor</artifactId>
-      <version>5.0.0-B03</version>
+      <version>5.0.0-B04</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
@@ -3274,7 +3274,7 @@
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>org.eclipse.persistence.jpa</artifactId>
-      <version>5.0.0-B03</version>
+      <version>5.0.0-B04</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
@@ -3284,12 +3284,12 @@
     <dependency>
       <groupId>org.eclipse.persistence</groupId>
       <artifactId>org.eclipse.persistence.json</artifactId>
-      <version>5.0.0-B03</version>
+      <version>5.0.0-B04</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.platform</groupId>
       <artifactId>org.eclipse.osgi</artifactId>
-      <version>3.18.600</version>
+      <version>3.21.0</version>
     </dependency>
     <dependency>
       <groupId>org.eclipse.transformer</groupId>

@@ -165,24 +165,24 @@ public class CryptoUtils {
         if (ibmJCEPlusFIPSProviderChecked) {
             return ibmJCEPlusFIPSAvailable;
         } else {
-            ibmJCEPlusFIPSAvailable = JavaInfo.isSystemClassAvailable(IBMJCE_PLUS_FIPS_PROVIDER);
+            boolean ibmJCEPlusFIPSProviderAvailable = JavaInfo.isSystemClassAvailable(IBMJCE_PLUS_FIPS_PROVIDER);
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                 Tr.debug(tc, "ibmJCEPlusFIPSProvider: " + IBMJCE_PLUS_FIPS_PROVIDER);
+                Tr.debug(tc, "ibmJCEPlusFIPSProviderAvailable: " + ibmJCEPlusFIPSProviderAvailable);
             }
 
-            ibmJCEPlusFIPSProviderChecked = true;
-            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                Tr.debug(tc, "ibmJCEPlusFIPSAvailable: " + ibmJCEPlusFIPSAvailable);
-            }
-
-            if (isRunningBetaMode() && ibmJCEPlusFIPSAvailable) {
-                ibmJCEPlusFIPSAvailable = true;
+            if (ibmJCEPlusFIPSProviderAvailable) {
+                if(!fipsEnabled){
+                    ibmJCEPlusFIPSProviderAvailable = false;
+                } else {
+                    ibmJCEPlusFIPSAvailable = true;
+                }
             } else {
                 if (fipsEnabled && !isSemeruFips()) {
-                    Tr.error(tc, "FIPS is enabled but the " + IBMJCE_PLUS_FIPS_PROVIDER + " provider is not available.");
+                    Tr.debug(tc, "FIPS is enabled but the " + IBMJCE_PLUS_FIPS_PROVIDER + " provider is not available.");
                 }
-                ibmJCEPlusFIPSAvailable = false;
             }
+            ibmJCEPlusFIPSProviderChecked = true;
             return ibmJCEPlusFIPSAvailable;
         }
     }
@@ -201,24 +201,24 @@ public class CryptoUtils {
         if (openJCEPlusFIPSProviderChecked) {
             return openJCEPlusFIPSAvailable;
         } else {
-            openJCEPlusFIPSAvailable = JavaInfo.isSystemClassAvailable(OPENJCE_PLUS_FIPS_PROVIDER);
+            boolean openJCEPlusFIPSProviderAvailable = JavaInfo.isSystemClassAvailable(OPENJCE_PLUS_FIPS_PROVIDER);
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                 Tr.debug(tc, "openJCEPlusFIPSProvider: " + OPENJCE_PLUS_FIPS_PROVIDER);
+                Tr.debug(tc, "openJCEPlusFIPSAvailable: " + openJCEPlusFIPSProviderAvailable);
             }
 
-            openJCEPlusFIPSProviderChecked = true;
-            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                Tr.debug(tc, "openJCEPlusFIPSAvailable: " + openJCEPlusFIPSAvailable);
-            }
-
-            if (isRunningBetaMode() && openJCEPlusFIPSAvailable) {
-                openJCEPlusFIPSAvailable = true;
+            if (openJCEPlusFIPSProviderAvailable) {
+                if(!fipsEnabled || !isSemeruFips()){
+                    openJCEPlusFIPSProviderAvailable = false;
+                } else {
+                    openJCEPlusFIPSAvailable = true;
+                }
             } else {
                 if (fipsEnabled && isSemeruFips()) {
-                    Tr.error(tc, "Semeru FIPS is enabled but the " + OPENJCE_PLUS_FIPS_PROVIDER + " provider is not available.");
+                    Tr.debug(tc, "Semeru FIPS is enabled but the " + OPENJCE_PLUS_FIPS_PROVIDER + " provider is not available.");
                 }
-                openJCEPlusFIPSAvailable = false;
             }
+            openJCEPlusFIPSProviderChecked = true;
             return openJCEPlusFIPSAvailable;
         }
     }
@@ -255,15 +255,7 @@ public class CryptoUtils {
 
     public static String getProvider() {
         String provider = null;
-//        if (fipsEnabled && isOpenJCEPlusFIPSAvailable()) {
-//            provider = OPENJCE_PLUS_FIPS_NAME;
-//        } else if (fipsEnabled && isIBMJCEPlusFIPSAvailable()) {
-//            provider = IBMJCE_PLUS_FIPS_NAME;
-//        } else if (isZOSandRunningJava11orHigher() && isOpenJCEPlusAvailable()) {
-//            provider = OPENJCE_PLUS_NAME;
-//        } else if (isIBMJCEAvailable()) {
-//            provider = IBMJCE_NAME;
-//        }
+
         if (fipsEnabled) {
             //Do not check the provider available or not. Later on when we use the provider, the JDK will handle it.
             if (isSemeruFips()) {
@@ -313,22 +305,6 @@ public class CryptoUtils {
     public static MessageDigest getMessageDigestForLTPA() {
         MessageDigest md1 = null;
         try {
-//            if (fipsEnabled && isOpenJCEPlusFIPSAvailable()) {
-//                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
-//                                                OPENJCE_PLUS_FIPS_NAME);
-//            } else if (fipsEnabled && isIBMJCEPlusFIPSAvailable()) {
-//                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
-//                                                IBMJCE_PLUS_FIPS_NAME);
-//            } else if (isOpenJCEPlusAvailable()) {
-//                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA,
-//                                                OPENJCE_PLUS_NAME);
-//            } else if (isIBMJCEAvailable()) {
-//                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA,
-//                                                IBMJCE_NAME);
-//            } else {
-//                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA);
-//            }
-
             if (fipsEnabled) {
                 if (isSemeruFips()) {
                     md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
@@ -337,12 +313,6 @@ public class CryptoUtils {
                     md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
                                                     IBMJCE_PLUS_FIPS_NAME);
                 }
-            } else if (isOpenJCEPlusAvailable()) {
-                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA,
-                                                OPENJCE_PLUS_NAME);
-            } else if (isIBMJCEAvailable()) {
-                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA,
-                                                IBMJCE_NAME);
             } else {
                 md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA);
             }
@@ -375,12 +345,12 @@ public class CryptoUtils {
 
     public static boolean isFips140_3Enabled() {
 
-        return isRunningBetaMode() &&
-               "140-3".equals(FIPSLevel) || "true".equalsIgnoreCase(getProperty("global.fips_140-3", "false")) || isSemeruFips();
+        return ("140-3".equals(FIPSLevel) || "true".equalsIgnoreCase(getProperty("global.fips_140-3", "false")) || isSemeruFips())
+               && isRunningBetaMode();
     }
 
     public static boolean isFips140_2Enabled() {
-        return isRunningBetaMode() && "140-2".equals(FIPSLevel);
+        return "140-2".equals(FIPSLevel) && isRunningBetaMode();
     }
 
     public static boolean isFIPSEnabled() {
@@ -401,11 +371,10 @@ public class CryptoUtils {
         if (!ProductInfo.getBetaEdition()) {
             return false;
         } else {
-            // Running beta exception, issue message if we haven't already issued one for
-            // this class
+            // Running beta exception, issue message if we haven't already issued one for this class
             if (!issuedBetaMessage) {
                 Tr.info(tc, "BETA: A beta method has been invoked for the class CryptoUtils for the first time.");
-                issuedBetaMessage = !issuedBetaMessage;
+                issuedBetaMessage = true;
             }
             return true;
         }

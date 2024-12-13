@@ -12,4 +12,6 @@
 #*******************************************************************************
 -include= jar:${fileuri;${repo;com.sun.xml.messaging.saaj:saaj-impl;1.5.3;EXACT}}!/META-INF/MANIFEST.MF,bnd.overrides
 
+src: src
+
 -buildpath: com.sun.xml.messaging.saaj:saaj-impl;version=1.5.3

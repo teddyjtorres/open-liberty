@@ -66,7 +66,7 @@ CWWKD1009.lifecycle.param.err=CWWKD1009E: La m\u00e9thode {0} de l''interface de
 CWWKD1009.lifecycle.param.err.explanation=Les m\u00e9thodes de cycle de vie doivent avoir un seul param\u00e8tre d'entit\u00e9.
 CWWKD1009.lifecycle.param.err.useraction=Mise \u00e0 jour de la m\u00e9thode de d\u00e9p\u00f4t pour avoir un seul param\u00e8tre qui est une entit\u00e9 ou un tableau de listes de l'entit\u00e9.
 
-CWWKD1010.unknown.entity.prop=CWWKD1010E: La m\u00e9thode {0} de l''interface de d\u00e9p\u00f4t {1} attend une propri\u00e9t\u00e9 d''entit\u00e9 nomm\u00e9e {2} qui ne se trouve pas dans la classe d''entit\u00e9 {3}. Les noms de propri\u00e9t\u00e9s valables pour l''entit\u00e9 sont les suivants : {4}.
+CWWKD1010.unknown.entity.prop=CWWKD1010E: Une propri\u00e9t\u00e9 d''entit\u00e9 nomm\u00e9e {0} n''est pas trouv\u00e9e sur la classe d''entit\u00e9 {1} pour la m\u00e9thode {2} de l''interface de r\u00e9f\u00e9rentiel {3}. Les noms de propri\u00e9t\u00e9s valables pour l''entit\u00e9 sont les suivants : {4}.
 CWWKD1010.unknown.entity.prop.explanation=La m\u00e9thode du r\u00e9f\u00e9rentiel tente d'utiliser une propri\u00e9t\u00e9 d'entit\u00e9 qui n'existe pas.
 CWWKD1010.unknown.entity.prop.useraction=Mettre \u00e0 jour la m\u00e9thode du r\u00e9f\u00e9rentiel pour qu'elle corresponde \u00e0 une propri\u00e9t\u00e9 valide d\u00e9finie par l'entit\u00e9.
 
@@ -392,3 +392,24 @@ CWWKD1089.unordered.pagination.useraction=Utilisez l'annotation OrderBy pour d\u
 CWWKD1090.orderby.conflict=CWWKD1090E: La m\u00e9thode {0} de l''interface du r\u00e9f\u00e9rentiel {1} ne peut pas combiner l''annotation OrderBy et le mot cl\u00e9 OrderBy.
 CWWKD1090.orderby.conflict.explanation=L'annotation OrderBy n'est pas compatible avec le mot-cl\u00e9 OrderBy.
 CWWKD1090.orderby.conflict.useraction=Utilisez uniquement l'annotation OrderBy ou le mot-cl\u00e9 OrderBy.
+
+CWWKD1091.method.name.parse.err=CWWKD1091E: Une propri\u00e9t\u00e9 d''entit\u00e9 nomm\u00e9e {0} n''est pas trouv\u00e9e sur la classe d''entit\u00e9 {1} pour la m\u00e9thode {2} de l''interface de r\u00e9f\u00e9rentiel {3}. Confirmer que la m\u00e9thode du r\u00e9f\u00e9rentiel a un nom conforme au mod\u00e8le de requ\u00eate par nom de m\u00e9thode ou qu''elle est annot\u00e9e avec l''un des \u00e9l\u00e9ments suivants : {4}. Les noms de propri\u00e9t\u00e9s valables pour l''entit\u00e9 sont les suivants : {5}.
+CWWKD1091.method.name.parse.err.explanation=Le nom de la m\u00e9thode du r\u00e9f\u00e9rentiel a \u00e9t\u00e9 analys\u00e9 selon le mod\u00e8le "Query by Method Name" car la m\u00e9thode du r\u00e9f\u00e9rentiel n'a pas d'annotation Jakarta Data indiquant le type d'op\u00e9ration.
+CWWKD1091.method.name.parse.err.useraction=Corrigez le nom de la m\u00e9thode du r\u00e9f\u00e9rentiel ou annotez la m\u00e9thode du r\u00e9f\u00e9rentiel pour indiquer une op\u00e9ration Jakarta Data telle que Query, Find ou Save.
+
+CWWKD1092.lifecycle.arg.empty=CWWKD1092E: La m\u00e9thode {0} du r\u00e9f\u00e9rentiel {1} n''accepte pas de param\u00e8tre {2} vide. La valeur du param\u00e8tre doit contenir au moins une entit\u00e9.
+CWWKD1092.lifecycle.arg.empty.explanation=M\u00e9thodes d'insertion, de mise \u00e0 jour, de sauvegarde et de suppression
+ require au moins une entit\u00e9.
+CWWKD1092.lifecycle.arg.empty.useraction=S'assurer que le tableau, la liste ou le flux fourni \u00e0 la m\u00e9thode contient au moins une entit\u00e9.
+
+CWWKD1093.fn.not.applicable=CWWKD1093E: La fonction {0} ne peut pas \u00eatre \u00e9valu\u00e9e pour l''entit\u00e9 {1} utilis\u00e9e par la m\u00e9thode {2} de l''interface du r\u00e9f\u00e9rentiel {3}. L''entit\u00e9 n''a pas de propri\u00e9t\u00e9 annot\u00e9e par {4} ou dont {0} peut \u00eatre d\u00e9duit.
+CWWKD1093.fn.not.applicable.explanation=La fonction ne peut pas \u00eatre utilis\u00e9e sur l'entit\u00e9 car l'entit\u00e9 n'a pas de propri\u00e9t\u00e9 d'ID ou de version.
+CWWKD1093.fn.not.applicable.useraction=Ne pas utiliser la fonction dans le langage de requ\u00eate ou dans les param\u00e8tres de la m\u00e9thode de d\u00e9p\u00f4t.
+
+CWWKD1094.return.mismatch=CWWKD1094E: La m\u00e9thode {0} de l''interface du r\u00e9f\u00e9rentiel {1} a le type de retour {2}, qui n''est pas capable de renvoyer le nombre d''entit\u00e9s, {3}, que la m\u00e9thode du r\u00e9f\u00e9rentiel accepte comme param\u00e8tre. Les types de retour valides pour une m\u00e9thode {4} qui accepte plusieurs entit\u00e9s sont les suivants : {5}.
+CWWKD1094.return.mismatch.explanation=Une m\u00e9thode du cycle de vie du r\u00e9f\u00e9rentiel qui renvoie des entit\u00e9s doit pouvoir renvoyer le m\u00eame nombre d'entit\u00e9s que celui accept\u00e9 par la m\u00e9thode.
+CWWKD1094.return.mismatch.useraction=Mettre \u00e0 jour la m\u00e9thode du r\u00e9f\u00e9rentiel pour utiliser un type de retour qui peut renvoyer plusieurs entit\u00e9s ou mettre \u00e0 jour la m\u00e9thode du r\u00e9f\u00e9rentiel pour n'accepter qu'une seule entit\u00e9.
+
+CWWKD1095.repo.err=CWWKD1095E: Une erreur a emp\u00each\u00e9 la mise en \u0153uvre de l''interface du r\u00e9f\u00e9rentiel {0}. L''annotation du r\u00e9f\u00e9rentiel est {1}. La classe d''entit\u00e9 primaire est {2}. L''erreur est la suivante : {3}
+CWWKD1095.repo.err.explanation=Le fournisseur int\u00e9gr\u00e9 de Jakarta Data n'est pas en mesure de fournir une instance du r\u00e9f\u00e9rentiel en raison d'une erreur.
+CWWKD1095.repo.err.useraction=Recherchez l'erreur et corrigez l'interface du r\u00e9f\u00e9rentiel, les entit\u00e9s, la configuration du magasin de donn\u00e9es ou la base de donn\u00e9es.
