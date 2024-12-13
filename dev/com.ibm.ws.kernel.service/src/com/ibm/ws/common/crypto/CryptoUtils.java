@@ -69,7 +69,7 @@ public class CryptoUtils {
     public static final String OPENJCE_PLUS_FIPS_NAME = "OpenJCEPlusFIPS";
 
     public static final String USE_FIPS_PROVIDER = "com.ibm.jsse2.usefipsprovider";
-    public static final String USE_FIPS_PROVIDER_NAME = IBMJCE_PLUS_FIPS_NAME;
+    public static final String USE_FIPS_PROVIDER_NAME = "com.ibm.jsse2.usefipsProviderName";
 
     public static final String SIGNATURE_ALGORITHM_SHA1WITHRSA = "SHA1withRSA";
     public static final String SIGNATURE_ALGORITHM_SHA256WITHRSA = "SHA256withRSA";
