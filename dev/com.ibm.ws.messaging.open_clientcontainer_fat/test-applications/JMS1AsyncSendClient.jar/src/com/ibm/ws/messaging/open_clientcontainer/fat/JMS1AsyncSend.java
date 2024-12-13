@@ -108,6 +108,9 @@ public class JMS1AsyncSend extends ClientMain {
             MessageConsumer consumer = session.createConsumer(queue);
             BasicCompletionListener completionListener = new BasicCompletionListener();
             
+            connection.start();
+            
+            
             Util.LOG("Sending Message with CompletionListener");
             producer.send(sentMessage, completionListener);
             
@@ -124,7 +127,7 @@ public class JMS1AsyncSend extends ClientMain {
 
             if (null == receivedMessage) {
                 Util.LOG("No message received.");
-                throw new TestException("Message not received, sent:" + sentMessage + " completionListener.formattedState:" + completionListener.formattedState());
+                throw new TestException("Message not received, sent:\n" + sentMessage + "\ncompletionListener.formattedState:\n" + completionListener.formattedState());
             } else {
             	Util.LOG("Message received");
                 Util.TRACE("receivedMessage:" + receivedMessage);
