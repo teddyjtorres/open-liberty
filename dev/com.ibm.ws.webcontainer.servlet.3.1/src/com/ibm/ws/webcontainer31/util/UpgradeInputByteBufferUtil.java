@@ -513,7 +513,7 @@ public class UpgradeInputByteBufferUtil {
             //don't flip here!  It will be flipped during the UpgradeReadCallback.complete
 
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()){
-                Tr.debug(tc, "initialRead, saved unread data [" + remaining + "] from statemap [" + data + "] into _buffer [" + _buffer + "]");
+                Tr.debug(tc, "initialRead, saved [" + remaining + "] unread data from statemap [" + data + "] into _buffer [" + _buffer + "]");
                 Tr.debug(tc, "initialRead, invoke callback complete [" + _tcpChannelCallback + "]");
             } 
 
