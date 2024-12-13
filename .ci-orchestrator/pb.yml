@@ -145,6 +145,8 @@ steps:
   workType: Jenkins
   projectName: dheServerCheck
   timeoutInMinutes: 120
+    githubPRApi: ${github_pr_api}
+    githubPRNumber: ${github_pr_number}
 
 - stepName: Code Checklist Creation
   workType: Jenkins
