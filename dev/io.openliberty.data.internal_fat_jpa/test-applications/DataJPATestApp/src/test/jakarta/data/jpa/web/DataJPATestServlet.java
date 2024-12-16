@@ -1760,6 +1760,16 @@ public class DataJPATestServlet extends FATServlet {
     }
 
     /**
+     * Use a repository method that uses query language to perform an exists query
+     * that returns a boolean true/false value.
+     */
+    @Test
+    public void testExistsViaQueryLanguage() {
+        assertEquals(true, businesses.isLocatedAt(2800, "37th St", "NW", "IBM"));
+        assertEquals(false, businesses.isLocatedAt(200, "1st St", "SW", "IBM"));
+    }
+
+    /**
      * Verify WithYear, WithQuarter, WithMonth, and WithDay Functions to compare different parts of a date.
      */
     @Test
@@ -1942,6 +1952,89 @@ public class DataJPATestServlet extends FATServlet {
                      list.stream()
                                      .map(c -> c.name + ":" + c.stateName)
                                      .collect(Collectors.toList()));
+    }
+
+    /**
+     * Use a repository method with query language that includes only the
+     * FROM and ORDER BY clauses and returns a Page. Verify the page count
+     * and the total count of matching entities.
+     */
+    @Test
+    public void testFromAndOrderByClausesOnlyWithPageCount() {
+
+        Page<Business> page1 = businesses.sorted(PageRequest.ofSize(5));
+
+        assertEquals(3l, page1.totalPages());
+        assertEquals(15l, page1.totalElements());
+
+        assertEquals(List.of("RAC",
+                             "IBM",
+                             "Crenlo",
+                             "Home Federal Savings Bank",
+                             "Benike Construction"),
+                     page1.stream()
+                                     .map(b -> b.name)
+                                     .collect(Collectors.toList()));
+
+        Page<Business> page2 = businesses.sorted(page1.nextPageRequest());
+
+        assertEquals(List.of("Metafile",
+                             "Think Bank",
+                             "Reichel Foods",
+                             "Custom Alarm",
+                             "Olmsted Medical"),
+                     page2.stream()
+                                     .map(b -> b.name)
+                                     .collect(Collectors.toList()));
+
+        Page<Business> page3 = businesses.sorted(page2.nextPageRequest());
+
+        assertEquals(List.of("Mayo Clinic",
+                             "Silver Lake Foods",
+                             "Cardinal",
+                             "Geotek",
+                             "HALCON"),
+                     page3.stream()
+                                     .map(b -> b.name)
+                                     .collect(Collectors.toList()));
+
+        assertEquals(false, page3.hasNext());
+    }
+
+    /**
+     * Use a repository method with query language that includes only the
+     * FROM and WHERE and ORDER BY clauses and returns a Page. Verify the
+     * page count and the total count of matching entities.
+     */
+    @Test
+    public void testFromAndWhereAndOrderByClausesOnly() {
+
+        Page<Business> page1 = businesses
+                        .withStreetDirection("NW", PageRequest.ofSize(4));
+
+        assertEquals(8l, page1.totalElements());
+        assertEquals(2l, page1.totalPages());
+
+        assertEquals(List.of("Think Bank",
+                             "Metafile",
+                             "RAC",
+                             "IBM"),
+                     page1.stream()
+                                     .map(b -> b.name)
+                                     .collect(Collectors.toList()));
+
+        Page<Business> page2 = businesses
+                        .withStreetDirection("NW", page1.nextPageRequest());
+
+        assertEquals(List.of("Crenlo",
+                             "Geotek",
+                             "Home Federal Savings Bank",
+                             "HALCON"),
+                     page2.stream()
+                                     .map(b -> b.name)
+                                     .collect(Collectors.toList()));
+
+        assertEquals(false, page2.hasNext());
     }
 
     /**

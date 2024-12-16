@@ -740,6 +740,18 @@ public class QueryInfo {
                 else if (chars.isEmpty() && Character.class.equals(toType))
                     return null;
             }
+        } else if (boolean.class.equals(toType) ||
+                   Boolean.class.equals(toType)) {
+            if (value instanceof Boolean)
+                return value;
+            else if (value instanceof CharSequence) {
+                // conversion from true/false text to boolean
+                String str = ((CharSequence) value).toString();
+                if ("true".equalsIgnoreCase(str))
+                    return true;
+                else if ("false".equalsIgnoreCase(str))
+                    return false;
+            }
         }
 
         if (failIfNotConverted) {
