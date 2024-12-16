@@ -19,7 +19,7 @@ import javax.faces.render.FacesRenderer;
 import javax.faces.render.Renderer;
 
 /*
- * No testing FATS use @FacesRenderer, so this is added to verify the annotation works.
+ * No existing FATS use @FacesRenderer, so this is added to verify the annotation works.
  */
 @FacesRenderer(componentFamily="test.component", rendererType="test.renderer")
 public class TestFacesRenderer extends Renderer {

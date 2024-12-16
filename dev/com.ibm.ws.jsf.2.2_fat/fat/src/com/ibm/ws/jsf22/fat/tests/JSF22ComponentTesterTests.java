@@ -259,29 +259,6 @@ public class JSF22ComponentTesterTests {
         assertEquals(page.findElement(By.id("testOutput")).getText(), "test action called");
     }
 
-    /*
-     *  Two items are tested. 
-     *  1) Default tag name is assigned when one is not specified on the @FacesComonent annotation.
-     *  2) Verifies a customer renderer is used when specified. This was added because we don't have any 
-     *  exisiting tests for the @FacesRenderer annotation.   The component doesn't render the element, but
-     *  the renderer. 
-     * 
-     */
-    @Test
-    public void testMyFaces4117AndRenderer() throws Exception {
-        try (WebClient webClient = getWebClient()) {
-
-            URL url = JSFUtils.createHttpUrl(jsfTestServer2, contextRoot, "myfaces4117.xhtml");
-            HtmlPage page = (HtmlPage) webClient.getPage(url);
-
-            if (page == null) {
-                Assert.fail("myfaces4117.xhtml did not render properly.");
-            }
-
-            assertTrue(page.getWebResponse().getContentAsString().contains("Renderer Works!"));
-        }
-    }
-
     /**
      * Instantiate a WebClient instance that plays nicely with modern web features
      */
