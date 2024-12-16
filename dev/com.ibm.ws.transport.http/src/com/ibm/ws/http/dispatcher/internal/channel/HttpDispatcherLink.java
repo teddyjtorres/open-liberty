@@ -198,7 +198,7 @@ public class HttpDispatcherLink extends InboundApplicationLink implements HttpIn
                 Tr.debug(tc, "close, CLOSE_NON_UPGRADED_STREAMS");
             }
 
-            // Save the remain upgrading and unread data into a VC's stateMap which will be consumed in the UpgradeInputByteBufferUtil.initialRead
+            // Save the remaining unread data into a VC's stateMap which will be consumed in the UpgradeInputByteBufferUtil.initialRead
             if (this.isc.isReadDataAvailable()) {
                 WsByteBuffer currentBuffer = this.isc.getReadBuffer();
                 WsByteBuffer newBuffer = HttpDispatcher.getBufferManager().allocate(currentBuffer.remaining());

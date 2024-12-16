@@ -166,10 +166,10 @@ public class UpgradeInputByteBufferUtil {
         
         if(amountToRead > 1){
             /*
-             * On a slow system/startup, data comes from the wire is faster than the channel can read/parse.  
+             * On a slow system/startup, data comes from the wire faster than the channel can read/parse.  
              * If so, data needs to be read from the prepared buffer (set during the first initialRead()) instead of the wire.
-             * This happens mainly on the very first POST.
-             * this method is called down from the application readListener onDataAvailable() read.
+             * This happens mainly on the very first POST request after a server cold start. 
+             * This method is called down from the application readListener onDataAvailable() read.
              */
             if (_upConn.getVirtualConnection().getStateMap().get(TransportConstants.NOT_UPGRADED_UNREAD_DATA) != null) {
                 if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()){
