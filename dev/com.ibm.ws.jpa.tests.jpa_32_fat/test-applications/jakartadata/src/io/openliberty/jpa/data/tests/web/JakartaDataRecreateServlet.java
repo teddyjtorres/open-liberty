@@ -71,6 +71,7 @@ import io.openliberty.jpa.data.tests.models.Reciept;
 import io.openliberty.jpa.data.tests.models.Segment;
 import io.openliberty.jpa.data.tests.models.Store;
 import io.openliberty.jpa.data.tests.models.Triangle;
+import io.openliberty.jpa.data.tests.models.Vehicle;
 import jakarta.annotation.Resource;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
@@ -1669,6 +1670,44 @@ public class JakartaDataRecreateServlet extends FATServlet {
         if (!errors.isEmpty()) {
             throw new AssertionError("Executing the same query returned incorrect results " + errors.size() + " out of 10 executions", errors.get(0));
         }
+    }
+
+    @Test
+    // @Ignore("Reference issue: https://github.com/OpenLiberty/open-liberty/issues/29893")
+    public void testOLGH29893() throws Exception {
+        // Prepare the test data
+        String vehicleId = "V1234"; // This is the ID that will be used
+        Vehicle vehicle = new Vehicle();
+        vehicle.setId(vehicleId);
+        vehicle.setModel("Toyota Corolla");
+        vehicle.setColor("Blue");
+
+        // Persist the vehicle
+        tx.begin();
+        em.persist(vehicle);
+        tx.commit();
+
+        // Execute the query with a case-insensitive ID
+        String idToSearch = "v1234"; // The ID with a different case
+        Vehicle result;
+
+        tx.begin();
+        try {
+            // Corrected JPQL query
+            result = em.createQuery("FROM Vehicle v WHERE LOWER(v.id) = :id", Vehicle.class)
+                            .setParameter("id", idToSearch.toLowerCase())
+                            .getSingleResult();
+            tx.commit();
+        } catch (Exception e) {
+            tx.rollback();
+            throw e;
+        }
+
+        // Assertions
+        assertNotNull(result);
+        assertEquals(vehicleId, result.getId()); // Ensure that the correct vehicle is returned
+        assertEquals("Toyota Corolla", result.getModel()); // Ensure other properties are correct
+        assertEquals("Blue", result.getColor());
     }
 
     @Test
