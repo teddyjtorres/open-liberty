@@ -985,7 +985,7 @@ CWWKD1098.spec.param.position.err.useraction=Move the special Jakarta Data defin
 CWWKD1099.first.keyword.incompat=CWWKD1099E: The {0} method of the {1} repository \
  has a name that includes the First keyword, which is incompatible with the \
  {2} parameter of the method.
-CWWKD1099.first.keyword.incompat.explanation=The First keyword cannot be used \
- in a Query by Method Name method that also has a Limit or PageRequest parameter.
+CWWKD1099.first.keyword.incompat.explanation=A Query by Method Name method \
+ that includes a Limit or PageRequest parameter cannot use the First keyword.
 CWWKD1099.first.keyword.incompat.useraction=Remove the First keyword from the \
  method name.
