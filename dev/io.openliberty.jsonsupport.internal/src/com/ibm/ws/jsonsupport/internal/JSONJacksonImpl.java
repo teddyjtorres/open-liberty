@@ -60,9 +60,7 @@ public class JSONJacksonImpl implements JSON {
     @Override
     public String stringify(Object o) throws JSONMarshallException {
         try {
-            String s = mapper.writeValueAsString(o);
-            System.out.println("The value from stringify is" + s);
-            return s;
+            return mapper.writeValueAsString(o);
         } catch (JsonMappingException e) {
             throw new JSONMarshallException("Unable to parse non-well-formed content", e);
         } catch (JsonGenerationException e) {
