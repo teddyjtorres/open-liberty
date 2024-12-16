@@ -141,6 +141,14 @@ steps:
     githubPRApi: ${github_pr_api}
     githubPRNumber: ${github_pr_number}
 
+- stepName: DHE Server Artifacts Check
+  workType: Jenkins
+  projectName: dheServerCheck
+  timeoutInMinutes: 120
+  properties:
+    githubPRApi: ${github_pr_api}
+    githubPRNumber: ${github_pr_number}
+
 - stepName: Code Checklist Creation
   workType: Jenkins
   projectName: codeCheckListBuilder
