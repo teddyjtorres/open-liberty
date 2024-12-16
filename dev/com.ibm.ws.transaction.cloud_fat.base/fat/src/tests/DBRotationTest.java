@@ -45,8 +45,8 @@ public class DBRotationTest extends CloudFATServletClient {
     private static final Class<?> c = DBRotationTest.class;
 
     protected static final int cloud2ServerPort = Integer.parseInt(System.getProperty("HTTP_secondary"));
-    protected static final int longLeaseServerPortB = 9993;
-    protected static final int longLeaseServerPortC = 9994;
+    protected static final int longLeaseServerPortB = Integer.parseInt(System.getProperty("HTTP_tertiary"));;
+    protected static final int longLeaseServerPortC = Integer.parseInt(System.getProperty("HTTP_quaternary"));;
 
     @Server("com.ibm.ws.transaction_ANYDBCLOUD001")
     public static LibertyServer s1;
@@ -136,9 +136,6 @@ public class DBRotationTest extends CloudFATServletClient {
         ShrinkHelper.exportAppToServer(longLeaseLogFailServer1, app, dO);
         ShrinkHelper.exportAppToServer(noShutdownServer1, app, dO);
         ShrinkHelper.exportAppToServer(server2nopeerlocking, app, dO);
-        ShrinkHelper.exportAppToServer(longLeaseServerA, app, dO);
-        ShrinkHelper.exportAppToServer(longLeaseServerB, app, dO);
-        ShrinkHelper.exportAppToServer(longLeaseServerC, app, dO);
     }
 
     public static void setUp(LibertyServer server) throws Exception {
