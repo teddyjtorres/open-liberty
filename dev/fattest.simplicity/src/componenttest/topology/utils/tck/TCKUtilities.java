@@ -36,23 +36,32 @@ import java.nio.channels.Channels;
 import java.nio.channels.FileChannel;
 import java.nio.channels.ReadableByteChannel;
 import java.nio.charset.Charset;
+import java.nio.file.DirectoryStream;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.PathMatcher;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.ibm.websphere.simplicity.log.Log;
 
+import componenttest.common.apiservices.Bootstrap;
+import componenttest.rules.repeater.FeatureSet;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.tck.TCKResultsInfo.TCKJarInfo;
 import componenttest.topology.utils.tck.TCKResultsInfo.Type;
@@ -864,5 +873,82 @@ public class TCKUtilities {
         assertThat("Server log has errors after starting", server.findStringsInLogs("CWWKF0001E"), empty()); // A feature definition could not be found for ...
         assertThat("Server log has errors after starting", server.findStringsInLogs("CWWKF0002E"), empty()); // A bundle could not be found for ...
         assertThat("Server log has errors after starting", server.findStringsInLogs("CWWKE0702E"), empty()); // Could not resolve module ...
+    }
+
+    private static Set<String> detectedShortNames = null;
+
+    private static Set<String> getDetectedShortNames() {
+        if (detectedShortNames != null) {
+            return detectedShortNames;
+        }
+
+        detectedShortNames = new HashSet<String>();
+        Bootstrap b;
+        try {
+            b = Bootstrap.getInstance();
+        } catch (Exception e) {
+            Log.info(c, "getDetectedShortNames", "Bootstrap.getInstance() failed. This will likely cause the current repeat to skip " + e.toString());
+            detectedShortNames = null; //if bootstrap is broken we've got bigger problems, but we can avoid caching an exception
+            return new HashSet<String>();
+        }
+
+        String installRoot = b.getValue("libertyInstallPath");
+        String libPath = installRoot + "/lib/features/";
+
+        PathMatcher matcher = FileSystems.getDefault().getPathMatcher("glob:*.mf");
+
+        try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(libPath))) {
+            for (Path path : stream) {
+                if (!Files.isDirectory(path) && matcher.matches(path.getFileName())) {
+                    Files.lines(path)
+                                    .filter(line -> line.startsWith("IBM-ShortName: "))
+                                    .map(line -> line.replaceAll("IBM-ShortName: ", ""))
+                                    .forEach(detectedShortNames::add);
+                }
+            }
+        } catch (IOException e) {
+            Log.info(c, "getDetectedShortNames", "IO exception while reading .mf Files. This will likely cause the current repeat to skip " + e.toString());
+            detectedShortNames = null; //avoid caching an exception
+            return new HashSet<String>();
+        }
+
+        return detectedShortNames;
+
+    }
+
+    /**
+     * Checks if a feature or features are present in wlp/lib/features by reading the mf files
+     * and checking if all the provided IBM-ShortName are present.
+     *
+     * @param  featureSet A FeatureSet, all the names returned by getFeatures() will be checked for a matching IBM-ShortName in a mf file
+     * @return            true if all provided IBM-ShortName can be found in a .mf file in wlp/lib/features.
+     */
+    public static boolean areFeaturesMissing(FeatureSet featureSet) {
+        return areFeaturesMissing(featureSet.getFeatures());
+    }
+
+    /**
+     * Checks if a feature or features are present in wlp/lib/features by reading the mf files
+     * and checking if all the provided IBM-ShortName are present.
+     *
+     * @param  featuresToCheck IBM-ShortNames that are required to be available on the server
+     * @return                 true if all provided IBM-ShortName can be found in a .mf file in wlp/lib/features.
+     */
+    public static boolean areFeaturesMissing(Set<String> featuresToCheck) {
+
+        final String m = "areFeaturesPresent";
+        Log.info(c, m, "checking for " + String.join(", ", featuresToCheck));
+        Set<String> shortNames = getDetectedShortNames();
+
+        for (String s : featuresToCheck) {
+            boolean result = shortNames.contains(s);
+            if (!result) {
+                Log.info(c, m, "checked for " + s + " found " + result);
+                return true;
+            }
+        }
+
+        Log.info(c, m, "found all features");
+        return false;
     }
 }
