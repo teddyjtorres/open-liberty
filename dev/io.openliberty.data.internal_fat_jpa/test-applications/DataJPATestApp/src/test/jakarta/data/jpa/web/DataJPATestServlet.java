@@ -3188,6 +3188,51 @@ public class DataJPATestServlet extends FATServlet {
     }
 
     /**
+     * Use a repository method with Page<Object> return type.
+     * The primary entity type of the repository should be used.
+     */
+    @Test
+    public void testPageOfObjectReturnType() {
+        Page<Object> page1 = businesses
+                        .findAsPageByNameBetween("Crenlo",
+                                                 "RAC",
+                                                 PageRequest.ofSize(4));
+
+        assertEquals(List.of("Metafile", // 3428
+                             "RAC", // 3100
+                             "IBM", // 2800
+                             "Custom Alarm"), // 1661
+                     page1.stream()
+                                     .map(b -> ((Business) b).name)
+                                     .collect(Collectors.toList()));
+
+        Page<Object> page2 = businesses
+                        .findAsPageByNameBetween("Crenlo",
+                                                 "RAC",
+                                                 page1.nextPageRequest());
+
+        assertEquals(List.of("Crenlo", // 1600
+                             "Geotek", // 1421
+                             "Home Federal Savings Bank", // 1016
+                             "HALCON"), // 345
+                     page2.stream()
+                                     .map(b -> ((Business) b).name)
+                                     .collect(Collectors.toList()));
+
+        Page<Object> page3 = businesses
+                        .findAsPageByNameBetween("Crenlo",
+                                                 "RAC",
+                                                 page2.nextPageRequest());
+
+        assertEquals(List.of("Olmsted Medical", // 210
+                             "Mayo Clinic"), // 200
+                     page3.stream()
+                                     .map(b -> ((Business) b).name)
+                                     .collect(Collectors.toList()));
+
+    }
+
+    /**
      * Tests entity attribute names from embeddables and MappedSuperclass that
      * can have delimiters. Includes tests for name collisions with attributes from an
      * embeddable or superinteface.
@@ -4808,5 +4853,90 @@ public class DataJPATestServlet extends FATServlet {
         } catch (OptimisticLockingFailureException x) {
             // pass
         }
+    }
+
+    /**
+     * Use a repository method with CursoredPage<?> return type.
+     * The primary entity type of the repository should be used.
+     */
+    @Test
+    public void testWildcardCursoredPageReturnType() {
+        CursoredPage<?> page1 = businesses.findAsCursoredPage("Crenlo",
+                                                              "RAC",
+                                                              PageRequest.ofSize(4));
+
+        assertEquals(List.of("Crenlo",
+                             "Custom Alarm",
+                             "Geotek",
+                             "HALCON"),
+                     page1.stream()
+                                     .map(b -> ((Business) b).name)
+                                     .collect(Collectors.toList()));
+
+        CursoredPage<?> page2 = businesses.findAsCursoredPage(
+                                                              "Crenlo",
+                                                              "RAC",
+                                                              page1.nextPageRequest());
+
+        assertEquals(List.of("Home Federal Savings Bank",
+                             "IBM",
+                             "Mayo Clinic",
+                             "Metafile"),
+                     page2.stream()
+                                     .map(b -> ((Business) b).name)
+                                     .collect(Collectors.toList()));
+
+        CursoredPage<?> page3 = businesses.findAsCursoredPage("Crenlo",
+                                                              "RAC",
+                                                              page2.nextPageRequest());
+
+        assertEquals(List.of("Olmsted Medical",
+                             "RAC"),
+                     page3.stream()
+                                     .map(b -> ((Business) b).name)
+                                     .collect(Collectors.toList()));
+
+    }
+
+    /**
+     * Use a repository method with List<?> return type.
+     * The primary entity type of the repository should be used.
+     */
+    @Test
+    public void testWildcardListReturnType() {
+        assertEquals(List.of("IBM",
+                             "Mayo Clinic",
+                             "Metafile",
+                             "Olmsted Medical",
+                             "RAC"),
+                     businesses.findAsListByNameBetween("IBM", "RAC")
+                                     .stream()
+                                     .map(b -> ((Business) b).name)
+                                     .collect(Collectors.toList()));
+    }
+
+    /**
+     * Use a repository method with Optional<?> return type.
+     * The primary entity type of the repository should be used.
+     */
+    @Test
+    public void testWildcardOptionalReturnType() {
+        Business found = (Business) businesses.findAsOptional("IBM")
+                        .orElseThrow();
+        assertEquals("IBM", found.name);
+    }
+
+    /**
+     * Use a repository method with CompletableFuture<Stream<?>> return type.
+     * The primary entity type of the repository should be used.
+     */
+    @Test
+    public void testWildcardStreamReturnType() {
+        assertEquals(List.of("Geotek",
+                             "HALCON"),
+                     businesses.findAsStreamByCity("Stewartville", "MN")
+                                     .join()
+                                     .map(b -> ((Business) b).name)
+                                     .collect(Collectors.toList()));
     }
 }

@@ -12,7 +12,11 @@
  *******************************************************************************/
 package test.jakarta.data.jpa.web;
 
+import static jakarta.data.repository.By.ID;
+
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import jakarta.data.page.CursoredPage;
@@ -28,10 +32,38 @@ import jakarta.data.repository.Save;
 import jakarta.data.repository.Update;
 
 /**
- *
+ * Repository for an entity with multiple levels of embeddables.
  */
 @Repository
 public interface Businesses extends BasicRepository<Business, Integer> {
+
+    @Query("WHERE name >= :beginAtName AND name <= :endAtName")
+    @OrderBy("name")
+    @OrderBy(ID)
+    CursoredPage<?> findAsCursoredPage(String beginAtName,
+                                       String endAtName,
+                                       PageRequest pageReq);
+
+    @OrderBy("name")
+    List<?> findAsListByNameBetween(String beginAtName, String endAtName);
+
+    @OrderBy("location.address.houseNum")
+    Object[] findAsObjectArrayByNameBetween(String beginAtName, String endAtName);
+
+    @Find
+    Optional<?> findAsOptional(String name);
+
+    @OrderBy(value = "location.address.houseNum", descending = true)
+    @OrderBy(value = ID)
+    Page<Object> findAsPageByNameBetween(String beginAtName,
+                                         String endAtName,
+                                         PageRequest pageReq);
+
+    @Find
+    @OrderBy("name")
+    @OrderBy(ID)
+    CompletableFuture<Stream<?>> findAsStreamByCity(String locationAddressCity,
+                                                    String locationAddressState);
 
     // embeddable 1 level deep
     List<Business> findByLocationLatitudeBetweenOrderByLocationLongitudeDesc(float min, float max);
