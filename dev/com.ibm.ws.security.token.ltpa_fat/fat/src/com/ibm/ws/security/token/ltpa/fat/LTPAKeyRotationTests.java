@@ -204,7 +204,7 @@ public class LTPAKeyRotationTests {
         {
             File fipsServerXml = new File(server.pathToAutoFVTTestFiles + DEFAULT_FIPS_SERVER_XML);
             File serverXml = new File(server.pathToAutoFVTTestFiles + DEFAULT_SERVER_XML);
-            fipsServerXml.renameTo(serverXml);
+            Files.move(fipsServerXml.toPath(), serverXml.toPath(), StandardCopyOption.REPLACE_EXISTING);
             server.copyFileToLibertyServerRoot(DEFAULT_SERVER_XML);
         }
 
