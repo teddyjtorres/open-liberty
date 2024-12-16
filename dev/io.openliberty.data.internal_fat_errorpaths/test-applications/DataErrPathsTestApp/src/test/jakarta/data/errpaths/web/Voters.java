@@ -15,6 +15,7 @@ package test.jakarta.data.errpaths.web;
 import java.time.Month;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import jakarta.data.Limit;
@@ -137,6 +138,18 @@ public interface Voters extends BasicRepository<Voter, Integer> {
     int discardSorted(@By("address") String mailingAddress, Sort<Voter> sort);
 
     /**
+     * This invalid method attempts to return a true/false exists results as int.
+     */
+    int existsByAddress(String homeAddress);
+
+    /**
+     * This invalid method attempts to return a true/false exists results as a
+     * Long value within a CompletableFuture. The CompletableFuture is fine, but
+     * Long does not match the true/false result type.
+     */
+    CompletableFuture<Long> existsByName(String name);
+
+    /**
      * This invalid method has a conflict between its OrderBy annotation and
      * method name keyword.
      */
@@ -149,6 +162,18 @@ public interface Voters extends BasicRepository<Voter, Integer> {
      */
     @OrderBy("name")
     List<Voter> findByAddressOrderBySSN(int ssn, Sort<Voter> sort);
+
+    /**
+     * This invalid method has both a First keyword and a Limit parameter.
+     */
+    @OrderBy("ssn")
+    Voter[] findFirst2(Limit limit);
+
+    /**
+     * This invalid method has both a First keyword and a PageRequest parameter.
+     */
+    @OrderBy("ssn")
+    Page<Voter> findFirst3(PageRequest pageRequest);
 
     /**
      * This invalid method places the Order special parameter ahead of
@@ -320,4 +345,18 @@ public interface Voters extends BasicRepository<Voter, Integer> {
      */
     @Query("WHERE LENGTH(address) < ?1 ORDER BY ssn ASC")
     List<Voter> withAddressShorterThan(@Param("maxLength") int maxAddressLength);
+
+    /**
+     * This invalid method places the Limit special parameter ahead of
+     * the query parameter.
+     */
+    @Query("WHERE LENGTH(name) > :min ORDER BY ssn ASC")
+    List<Voter> withNameLongerThan(Limit limit, @Param("min") int minLength);
+
+    /**
+     * This invalid method places the Sort special parameter ahead of
+     * the query parameter.
+     */
+    @Query("WHERE LENGTH(name) < ?1")
+    List<Voter> withNameShorterThan(Sort<Voter> sort, int maxLength);
 }

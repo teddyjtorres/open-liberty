@@ -1034,14 +1034,24 @@ public class QueryInfo {
     }
 
     /**
-     * Constructs the MappingException for the error where one or more of the
-     * named parameters required by a JDQL or JPQL query are not specified by the
-     * method parameters.
+     * Check if the cause of the lacking named parameter is a mispositioned
+     * special parameter. If so, raises UnsupportedOperationException.
      *
-     * @return MappingException.
+     * Otherwise, constructs a MappingException for the error where one or more
+     * of the named parameters required by a JDQL or JPQL query are not specified
+     * by the method parameters
+     *
+     * @param lacking query named parameters for which no method parameters were
+     *                    found.
+     * @return MappingException for a missing named parameter.
+     * @throws UnsupportedOperationException if there is a mispositioned special
+     *                                           parameter.
      */
     @Trivial
     private MappingException excLackingMethodArgNamedParams(Set<String> lacking) {
+
+        validateParameterPositions();
+
         String first = null;
         StringBuilder all = new StringBuilder();
         for (String name : lacking) {
@@ -1143,6 +1153,44 @@ public class QueryInfo {
     }
 
     /**
+     * Execute a repository exists query.
+     *
+     * @param em   entity manager.
+     * @param args method parameters.
+     * @return boolean value or CompletableFuture for a boolean value,
+     *         whichever is compatible with the method signature.
+     * @throws Exception if an error occurs.
+     */
+    @Trivial // method args have already been logged if loggable
+    Object exists(EntityManager em, Object... args) throws Exception {
+        final boolean trace = TraceComponent.isAnyTracingEnabled();
+        if (trace && tc.isEntryEnabled())
+            Tr.entry(this, tc, "exists", em);
+
+        jakarta.persistence.Query query = em.createQuery(jpql);
+        query.setMaxResults(1);
+        setParameters(query, args);
+
+        boolean found = !query.getResultList().isEmpty();
+
+        Class<?> returnType = method.getReturnType();
+        Object returnVal = CompletableFuture.class.equals(returnType) ||
+                           CompletionStage.class.equals(returnType) //
+                                           ? CompletableFuture.completedFuture(found) //
+                                           : found;
+
+        // There is no need to check if the return value is compatible
+        // because that was done when initializing the query info for EXISTS
+
+        if (trace && tc.isEntryEnabled())
+            if (returnVal instanceof CompletableFuture)
+                Tr.exit(this, tc, "exists", returnVal + ": " + found);
+            else
+                Tr.exit(this, tc, "exists", returnVal);
+        return returnVal;
+    }
+
+    /**
      * Finds and updates entities (or records) in the database.
      *
      * @param arg the entity or record, or array/Iterable/Stream of entity or record
@@ -1220,7 +1268,7 @@ public class QueryInfo {
                 returnValue = results.iterator();
             else
                 throw exc(MappingException.class,
-                          "CWWKD1003.lifecycle.rtrn.err",
+                          "CWWKD1003.rtrn.err",
                           method.getGenericReturnType().getTypeName(),
                           method.getName(),
                           repositoryInterface.getName(),
@@ -1236,7 +1284,7 @@ public class QueryInfo {
             returnValue = CompletableFuture.completedFuture(returnValue); // useful for @Asynchronous
         } else if (returnValue != null && !returnType.isInstance(returnValue)) {
             throw exc(MappingException.class,
-                      "CWWKD1003.lifecycle.rtrn.err",
+                      "CWWKD1003.rtrn.err",
                       method.getGenericReturnType().getTypeName(),
                       method.getName(),
                       repositoryInterface.getName(),
@@ -2016,17 +2064,10 @@ public class QueryInfo {
                         switch (type) {
                             case FIND:
                             case FIND_AND_DELETE:
+                                validateParameterPositions();
                                 String specParams = type == Type.FIND //
                                                 ? compat.specialParamsForFind() //
                                                 : compat.specialParamsForFindAndDelete();
-                                // look for mispositioned special parameter
-                                if (specParamTypes.contains(params[p].getType()))
-                                    throw exc(UnsupportedOperationException.class,
-                                              "CWWKD1098.spec.param.position.err",
-                                              method.getName(),
-                                              repositoryInterface.getName(),
-                                              params[p].getType().getName(),
-                                              specParams);
                                 throw exc(UnsupportedOperationException.class,
                                           "CWWKD1012.fd.missing.param.anno",
                                           p + 1,
@@ -3514,6 +3555,7 @@ public class QueryInfo {
             if (by > 0 && methodName.length() > by + 2)
                 generateWhereClause(methodName, by + 2, methodName.length(), q);
             type = Type.EXISTS;
+            validateReturnForExists();
         } else {
             throw excUnsupportedMethod();
         }
@@ -3565,6 +3607,7 @@ public class QueryInfo {
                 generateQueryByParameters(q, methodTypeAnno, countPages);
         } else if ("Exists".equals(methodTypeAnno.annotationType().getSimpleName())) {
             type = Type.EXISTS;
+            validateReturnForExists();
             q = new StringBuilder(200) //
                             .append("SELECT ID(").append(o).append(") FROM ") //
                             .append(entityInfo.name).append(' ').append(o);
@@ -3688,7 +3731,7 @@ public class QueryInfo {
                     returnValue = results.iterator();
                 else
                     throw exc(MappingException.class,
-                              "CWWKD1003.lifecycle.rtrn.err",
+                              "CWWKD1003.rtrn.err",
                               method.getGenericReturnType().getTypeName(),
                               method.getName(),
                               repositoryInterface.getName(),
@@ -3705,7 +3748,7 @@ public class QueryInfo {
             returnValue = CompletableFuture.completedFuture(returnValue);
         } else if (!resultVoid && !returnType.isInstance(returnValue)) {
             throw exc(MappingException.class,
-                      "CWWKD1003.lifecycle.rtrn.err",
+                      "CWWKD1003.rtrn.err",
                       method.getGenericReturnType().getTypeName(),
                       method.getName(),
                       repositoryInterface.getName(),
@@ -4188,7 +4231,7 @@ public class QueryInfo {
                     returnValue = results.iterator();
                 else
                     throw exc(MappingException.class,
-                              "CWWKD1003.lifecycle.rtrn.err",
+                              "CWWKD1003.rtrn.err",
                               method.getGenericReturnType().getTypeName(),
                               method.getName(),
                               repositoryInterface.getName(),
@@ -4205,7 +4248,7 @@ public class QueryInfo {
             returnValue = CompletableFuture.completedFuture(returnValue);
         } else if (!resultVoid && !returnType.isInstance(returnValue)) {
             throw exc(MappingException.class,
-                      "CWWKD1003.lifecycle.rtrn.err",
+                      "CWWKD1003.rtrn.err",
                       method.getGenericReturnType().getTypeName(),
                       method.getName(),
                       repositoryInterface.getName(),
@@ -4863,6 +4906,55 @@ public class QueryInfo {
                         : iusdce == 1 //
                                         ? (delete != null ? delete : count != null ? count : exists) //
                                         : (q == 1 ? query : f == 1 ? find : null);
+    }
+
+    /**
+     * Confirm that special parameters are positioned after all other parameters.
+     *
+     * @throws UnupportedOperationException if a special parameter is ahead of
+     *                                          a query parameter.
+     */
+    @Trivial
+    void validateParameterPositions() {
+        DataVersionCompatibility compat = entityInfo.builder.provider.compat;
+
+        Class<?>[] paramTypes = method.getParameterTypes();
+        Set<Class<?>> specParamTypes = compat.specialParamTypes();
+        int specParamIndex = Integer.MAX_VALUE, otherParamIndex = -1;
+        for (int i = 0; i < paramTypes.length; i++)
+            if (specParamTypes.contains(paramTypes[i]))
+                specParamIndex = i < specParamIndex ? i : specParamIndex;
+            else
+                otherParamIndex = i;
+
+        if (specParamIndex < otherParamIndex)
+            throw exc(UnsupportedOperationException.class,
+                      "CWWKD1098.spec.param.position.err",
+                      method.getName(),
+                      repositoryInterface.getName(),
+                      paramTypes[specParamIndex].getName(),
+                      compat.specialParamsForFind());
+    }
+
+    /**
+     * Validates that the return type is valid for an exists method.
+     */
+    @Trivial
+    private void validateReturnForExists() {
+        if ((!boolean.class.equals(singleType) &&
+             !Boolean.class.equals(singleType))
+            ||
+            (multiType != null &&
+             !CompletableFuture.class.equals(multiType) &&
+             !CompletionStage.class.equals(multiType)))
+
+            throw exc(UnsupportedOperationException.class,
+                      "CWWKD1003.rtrn.err",
+                      method.getGenericReturnType().getTypeName(),
+                      method.getName(),
+                      repositoryInterface.getName(),
+                      "exists",
+                      "boolean, Boolean");
     }
 
     /**

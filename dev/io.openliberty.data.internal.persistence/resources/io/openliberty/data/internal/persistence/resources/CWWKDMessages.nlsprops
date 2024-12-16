@@ -51,13 +51,14 @@ CWWKD1002.method.annos.err.explanation=This combination of annotations is not \
 CWWKD1002.method.annos.err.useraction=Locate the repository interface and method \
  and determine the correct combination of method annotations.
 
-CWWKD1003.lifecycle.rtrn.err=CWWKD1003E: The {0} return type of the {1} method \
+CWWKD1003.rtrn.err=CWWKD1003E: The {0} return type of the {1} method \
  of the {2} repository interface is not a valid return type for a repository \
  {3} method. Valid return types include: {4}.
-CWWKD1003.lifecycle.rtrn.err.explanation=The return type of the method is not \
- one of the supported return types for Insert, Update, and Save methods.
-CWWKD1003.lifecycle.rtrn.err.useraction=Refer to the Jakarta Data Javadoc \
- information for the Insert, Update, and Save annotations for valid return types.
+CWWKD1003.rtrn.err.explanation=The return type of the method is not \
+ one of the supported return types for the stated type of repository method.
+CWWKD1003.rtrn.err.useraction=Refer to the Jakarta Data Javadoc \
+ information for the Insert, Update, and Save annotations and the \
+ Query by Method name documentation for valid return types.
 
 CWWKD1004.general.rtrn.err=CWWKD1004E: The {0} return type of the {1} method \
  of the {2} repository interface is not a valid return type for a repository \
@@ -980,3 +981,11 @@ CWWKD1098.spec.param.position.err.explanation=When special Jakarta Data defined 
  positioned after all the query parameters.
 CWWKD1098.spec.param.position.err.useraction=Move the special Jakarta Data defined \
  parameter types to positions at the end of the repository method signature.
+
+CWWKD1099.first.keyword.incompat=CWWKD1099E: The {0} method of the {1} repository \
+ has a name that includes the First keyword, which is incompatible with the \
+ {2} parameter of the method.
+CWWKD1099.first.keyword.incompat.explanation=A Query by Method Name method \
+ that includes a Limit or PageRequest parameter cannot use the First keyword.
+CWWKD1099.first.keyword.incompat.useraction=Remove the First keyword from the \
+ method name.
