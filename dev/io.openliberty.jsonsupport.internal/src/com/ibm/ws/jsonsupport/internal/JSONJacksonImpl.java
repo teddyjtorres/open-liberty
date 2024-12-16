@@ -48,10 +48,8 @@ public class JSONJacksonImpl implements JSON {
         //set inclusion
         Include inclusion = settings.getInclusion();
         if (inclusion == Include.ALWAYS) {
-            System.out.println("=====    Inclusion is Always    =====");
             mapper.getSerializationConfig().setSerializationInclusion(Inclusion.ALWAYS);
         } else if (inclusion == Include.NON_NULL) {
-            System.out.println("=====    Inclusion is Non Null    =====");
             mapper.getSerializationConfig().setSerializationInclusion(Inclusion.NON_NULL);
         }
     }
