@@ -145,6 +145,7 @@ steps:
   workType: Jenkins
   projectName: dheServerCheck
   timeoutInMinutes: 120
+  properties:
     githubPRApi: ${github_pr_api}
     githubPRNumber: ${github_pr_number}
 
