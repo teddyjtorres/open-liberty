@@ -28,6 +28,7 @@ import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.tck.TCKResultsInfo.Type;
 import componenttest.topology.utils.tck.TCKRunner;
+import componenttest.topology.utils.tck.TCKUtilities;
 
 /**
  * This is a test class that runs a whole Maven TCK as one test FAT test.
@@ -41,7 +42,7 @@ public class Config13TCKLauncher {
     public static LibertyServer server;
 
     @ClassRule //EE7 + EE8 repeats
-    public static RepeatTests r = MicroProfileActions.repeat("Config13TCKServer", MicroProfileActions.MP14, MicroProfileActions.MP32);
+    public static RepeatTests r = MicroProfileActions.repeatWithPredicate("Config13TCKServer", TCKUtilities::areFeaturesMissing, MicroProfileActions.MP14, MicroProfileActions.MP32);
 
     @BeforeClass
     public static void setUp() throws Exception {

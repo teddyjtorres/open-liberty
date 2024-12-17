@@ -28,6 +28,7 @@ import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.tck.TCKResultsInfo.Type;
 import componenttest.topology.utils.tck.TCKRunner;
+import componenttest.topology.utils.tck.TCKUtilities;
 
 /**
  * This is a test class that runs a whole Maven TCK as one test FAT test.
@@ -39,7 +40,8 @@ public class Health40TCKLauncher {
     private static final String SERVER_NAME = "Health40TCKServer";
 
     @ClassRule
-    public static RepeatTests r = MicroProfileActions.repeat(SERVER_NAME,
+    public static RepeatTests r = MicroProfileActions.repeatWithPredicate(SERVER_NAME,
+                                                             TCKUtilities::areFeaturesMissing,
                                                              MicroProfileActions.MP70_EE10,
                                                              MicroProfileActions.MP70_EE11,
                                                              MicroProfileActions.MP61,
