@@ -14,8 +14,8 @@ package com.ibm.ws.transaction.services;
 
 import static com.ibm.ws.tx.jta.embeddable.EmbeddableTransactionSynchronizationRegistryFactory.getTransactionSynchronizationRegistry;
 import static com.ibm.ws.uow.embeddable.UOWManagerFactory.getUOWManager;
+import static java.security.AccessController.doPrivileged;
 
-import java.security.AccessController;
 import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -49,7 +49,7 @@ public class TransactionJavaColonHelper implements JavaColonNamingHelper {
 
     /**
      * DS method to activate this component.
-     * 
+     *
      * @param cContext DeclarativeService defined/populated component context
      */
     protected void activate(ComponentContext cContext) {
@@ -58,7 +58,7 @@ public class TransactionJavaColonHelper implements JavaColonNamingHelper {
 
     /**
      * DS method to deactivate this component.
-     * 
+     *
      * @param reason int representation of reason the component is stopping
      */
     protected void deactivate(int reason, ComponentContext cContext) {
@@ -130,7 +130,7 @@ public class TransactionJavaColonHelper implements JavaColonNamingHelper {
     public Collection<? extends NameClassPair> listInstances(JavaColonNamespace namespace, String nameInContext) {
 
         if (JavaColonNamespace.COMP.equals(namespace) && "".equals(nameInContext)) {
-            ArrayList<NameClassPair> retVal = new ArrayList<NameClassPair>();
+            ArrayList<NameClassPair> retVal = new ArrayList<>();
             if (userTranSvcRef != null) {
                 NameClassPair pair = new NameClassPair(nameInContext, EmbeddableUserTransactionImpl.class.getName());
                 retVal.add(pair);
@@ -154,12 +154,7 @@ public class TransactionJavaColonHelper implements JavaColonNamingHelper {
      * @throws NamingException if the decorator determines the UserTransaction is not available
      */
     protected UserTransaction getUserTransaction(boolean injection, Object injectionContext) throws NamingException {
-        final UserTransaction ut = AccessController.doPrivileged(new PrivilegedAction<UserTransaction>() {
-            @Override
-            public UserTransaction run() {
-                return userTranSvcRef.getBundle().getBundleContext().getService(userTranSvcRef);
-            }
-        });
+        final UserTransaction ut = doPrivileged((PrivilegedAction<UserTransaction>) () -> userTranSvcRef.getBundle().getBundleContext().getService(userTranSvcRef));
         final UserTransactionDecorator utd = getUserTransactionDecorator();
         if (utd == null) {
             return ut;
