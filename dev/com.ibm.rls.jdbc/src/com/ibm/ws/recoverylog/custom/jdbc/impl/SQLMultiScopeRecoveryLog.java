@@ -2849,119 +2849,84 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
      */
     private void createDBTable(Connection conn, String logIdentifierString) throws SQLException {
         if (tc.isEntryEnabled())
-            Tr.entry(tc, "createDBTable", new java.lang.Object[] { conn, this });
+            Tr.entry(tc, "createDBTable", conn, this);
 
-        Statement createTableStmt = null;
-        boolean success = false;
+        final String fullTableName = _recoveryTableName + logIdentifierString + _recoveryTableNameSuffix;
 
-        try {
-            createTableStmt = conn.createStatement();
-            String fullTableName = _recoveryTableName + logIdentifierString + _recoveryTableNameSuffix;
+        try (Statement stmt = conn.createStatement()) {
+
+            final String tableDDL;
+            final String indexDDL;
 
             switch (dbProduct) {
                 case Oracle:
-                    String oracleTableString = genericTableCreatePreString + fullTableName + oracleTablePostString;
-                    if (tc.isDebugEnabled())
-                        Tr.debug(tc, "Create Oracle Table using: " + oracleTableString);
-
-                    String oracleIndexString = indexPreString + _recoveryIndexName + logIdentifierString + _recoveryTableNameSuffix +
-                                               " ON " + fullTableName + indexPostString;
-
-                    if (tc.isDebugEnabled())
-                        Tr.debug(tc, "Create Oracle Index using: " + oracleIndexString);
-                    // Create the Oracle table
-                    createTableStmt.executeUpdate(oracleTableString);
-                    // Create index on the new table
-                    createTableStmt.executeUpdate(oracleIndexString);
+                    tableDDL = genericTableCreatePreString + fullTableName + oracleTablePostString;
+                    indexDDL = indexPreString + _recoveryIndexName + logIdentifierString + _recoveryTableNameSuffix +
+                               " ON " + fullTableName + indexPostString;
+                    createTableAndIndex(conn, stmt, tableDDL, indexDDL, true);
                     break;
+
                 case DB2:
-                    String db2TableString = genericTableCreatePreString + fullTableName + db2TablePostString;
-                    String dbName = ConfigurationProviderManager.getConfigurationProvider().getTransactionLogDBName();
-                    if (!dbName.isEmpty()) {
-                        db2TableString = db2TableString + " IN DATABASE " + dbName;
-                    }
-                    if (tc.isDebugEnabled())
-                        Tr.debug(tc, "Create DB2 Table using: " + db2TableString);
-
-                    String db2IndexString = indexPreString + _recoveryIndexName + logIdentifierString + _recoveryTableNameSuffix +
-                                            " ON " + fullTableName + indexPostString;
-                    if (tc.isDebugEnabled())
-                        Tr.debug(tc, "Create DB2 Index using: " + db2IndexString);
-                    // Create the DB2 table
-                    createTableStmt.executeUpdate(db2TableString);
-                    // Create index on the new table
-                    createTableStmt.executeUpdate(db2IndexString);
+                    final String dbName = ConfigurationProviderManager.getConfigurationProvider().getTransactionLogDBName();
+                    tableDDL = genericTableCreatePreString + fullTableName + db2TablePostString + (dbName.isEmpty() ? "" : (" IN DATABASE " + dbName));
+                    indexDDL = indexPreString + _recoveryIndexName + logIdentifierString + _recoveryTableNameSuffix +
+                               " ON " + fullTableName + indexPostString;
+                    createTableAndIndex(conn, stmt, tableDDL, indexDDL, true);
                     break;
+
                 case Postgresql:
-                    String postgreSQLTableString = genericTableCreatePreString + fullTableName + postgreSQLTablePostString;
-                    if (tc.isDebugEnabled())
-                        Tr.debug(tc, "Create PostgreSQL table using: " + postgreSQLTableString);
-
-                    String postgreSQLIndexString = indexPreString + _recoveryIndexName + logIdentifierString + _recoveryTableNameSuffix +
-                                                   " ON " + fullTableName + postgreSQLIndexPostString;
-                    if (tc.isDebugEnabled())
-                        Tr.debug(tc, "Create PostgreSQL index using: " + postgreSQLIndexString);
-                    conn.rollback();
-                    // Create the PostgreSQL table
-                    createTableStmt.execute(postgreSQLTableString);
-                    // Create index on the new table
-                    createTableStmt.execute(postgreSQLIndexString);
+                    tableDDL = genericTableCreatePreString + fullTableName + postgreSQLTablePostString;
+                    indexDDL = indexPreString + _recoveryIndexName + logIdentifierString + _recoveryTableNameSuffix +
+                               " ON " + fullTableName + postgreSQLIndexPostString;
+                    createTableAndIndex(conn, stmt, tableDDL, indexDDL, false);
                     break;
+
                 case Sqlserver:
-                    String sqlServerTableString = genericTableCreatePreString + fullTableName + sqlServerTablePostString;
-                    if (tc.isDebugEnabled())
-                        Tr.debug(tc, "Create SQL Server table using: " + sqlServerTableString);
-
-                    String sqlServerIndexString = indexPreString + _recoveryIndexName + logIdentifierString + _recoveryTableNameSuffix +
-                                                  " ON " + fullTableName + indexPostString;
-
-                    if (tc.isDebugEnabled())
-                        Tr.debug(tc, "Create SQL Server index using: " + sqlServerIndexString);
-                    conn.rollback();
-                    // Create the SQL Server table
-                    createTableStmt.execute(sqlServerTableString);
-                    // Create index on the new table
-                    createTableStmt.execute(sqlServerIndexString);
+                    tableDDL = genericTableCreatePreString + fullTableName + sqlServerTablePostString;
+                    indexDDL = indexPreString + _recoveryIndexName + logIdentifierString + _recoveryTableNameSuffix +
+                               " ON " + fullTableName + indexPostString;
+                    createTableAndIndex(conn, stmt, tableDDL, indexDDL, false);
                     break;
+
                 case Derby:
                 case Unknown:
-                    String genericTableString = genericTableCreatePreString + fullTableName + genericTablePostString;
-                    if (tc.isDebugEnabled())
-                        Tr.debug(tc, "Create Generic Table using: " + genericTableString);
-
-                    String genericIndexString = indexPreString + _recoveryIndexName + logIdentifierString + _recoveryTableNameSuffix +
-                                                " ON " + fullTableName + indexPostString;
-                    if (tc.isDebugEnabled())
-                        Tr.debug(tc, "Create Generic Index using: " + genericIndexString);
-                    // Create the DB2 table
-                    createTableStmt.executeUpdate(genericTableString);
-                    // Create index on the new table
-                    createTableStmt.executeUpdate(genericIndexString);
+                    tableDDL = genericTableCreatePreString + fullTableName + genericTablePostString;
+                    indexDDL = indexPreString + _recoveryIndexName + logIdentifierString + _recoveryTableNameSuffix +
+                               " ON " + fullTableName + indexPostString;
+                    createTableAndIndex(conn, stmt, tableDDL, indexDDL, true);
                     break;
             }
-
-            // Insert the HA Locking row
-            short serviceId = (short) _recoveryAgent.clientIdentifier();
-            long fir1 = 1;
-            if (_useNewLockingScheme) {
-                fir1 = System.currentTimeMillis();
-            }
-
-            insertLockingRow(conn, fullTableName, serviceId, fir1);
-
-            conn.commit(); // the table and index creation may not be transactional but the INSERT of the locking row IS - commit
-            success = true;
-
-        } finally {
-            if (createTableStmt != null && !createTableStmt.isClosed()) {
-                createTableStmt.close();
-            }
-            if (!success)
-                conn.rollback(); // should not be needed really
+        } catch (SQLException e) {
+            if (tc.isEntryEnabled())
+                Tr.exit(tc, "createDBTable", e);
+            throw e;
         }
+
+        // Insert the HA Locking row
+        insertLockingRow(conn, fullTableName, (short) _recoveryAgent.clientIdentifier(), _useNewLockingScheme ? Instant.now().toEpochMilli() : 1);
+
+        // The table and index creation may not be transactional but the INSERT of the locking row IS - commit
+        conn.commit(); // the table and index creation may not be transactional but the INSERT of the locking row IS - commit
 
         if (tc.isEntryEnabled())
             Tr.exit(tc, "createDBTable");
+    }
+
+    private void createTableAndIndex(Connection conn, Statement stmt, String tableDDL, String indexDDL, boolean useExecuteUpdate) throws SQLException {
+        if (tc.isEntryEnabled())
+            Tr.entry(tc, "createTableAndIndex", conn, stmt, tableDDL, indexDDL, useExecuteUpdate);
+        if (useExecuteUpdate) {
+            stmt.executeUpdate(tableDDL);
+            stmt.executeUpdate(indexDDL);
+        } else {
+            if (tc.isDebugEnabled())
+                Tr.debug(tc, "First, rollback connection.");
+            conn.rollback();
+            stmt.execute(tableDDL);
+            stmt.execute(indexDDL);
+        }
+        if (tc.isEntryEnabled())
+            Tr.exit(tc, "createTableAndIndex");
     }
 
     /**
