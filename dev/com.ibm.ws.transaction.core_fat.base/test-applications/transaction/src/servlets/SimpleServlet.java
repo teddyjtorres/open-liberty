@@ -186,6 +186,22 @@ public class SimpleServlet extends FATServlet {
         }
     }
 
+    @Test
+    public void testTransactionManagerLookup() throws Exception {
+        Object tm = new InitialContext().lookup("java:comp/TransactionManager");
+
+        if (tm instanceof TransactionManager) {
+            ((TransactionManager) tm).begin();
+            ((TransactionManager) tm).commit();
+        } else {
+            if (tm == null) {
+                throw new Exception("TransactionManager instance was null");
+            } else {
+                throw new Exception("TransactionManager lookup did not work: " + tm.getClass().getCanonicalName());
+            }
+        }
+    }
+
     /**
      * Test of basic database connectivity
      */
