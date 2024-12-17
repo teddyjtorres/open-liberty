@@ -142,7 +142,7 @@ public class SimpleServlet extends FATServlet {
         t.join();
         final Object ut = utHolder[0];
 
-        if (ut instanceof javax.transaction.UserTransaction) {
+        if (ut instanceof UserTransaction) {
             ((UserTransaction) ut).begin();
             ((UserTransaction) ut).commit();
         } else {
