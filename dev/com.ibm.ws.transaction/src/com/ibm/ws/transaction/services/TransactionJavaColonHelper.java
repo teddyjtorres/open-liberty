@@ -12,6 +12,7 @@
  */
 package com.ibm.ws.transaction.services;
 
+import static com.ibm.tx.jta.TransactionManagerFactory.getTransactionManager;
 import static com.ibm.ws.tx.jta.embeddable.EmbeddableTransactionSynchronizationRegistryFactory.getTransactionSynchronizationRegistry;
 import static com.ibm.ws.uow.embeddable.UOWManagerFactory.getUOWManager;
 import static java.security.AccessController.doPrivileged;
@@ -98,9 +99,10 @@ public class TransactionJavaColonHelper implements JavaColonNamingHelper {
         switch (namespace) {
         case COMP:
             switch (name) {
+            case "TransactionManager": return getTransactionManager();
+            case "TransactionSynchronizationRegistry": return getTransactionSynchronizationRegistry();
             // If we have a service reference we know it's safe to return a reference
             case "UserTransaction": return userTranSvcRef == null ? null : getUserTransaction(false, null);
-            case "TransactionSynchronizationRegistry": return getTransactionSynchronizationRegistry();
             default: return null;
             }
         case COMP_WS:
