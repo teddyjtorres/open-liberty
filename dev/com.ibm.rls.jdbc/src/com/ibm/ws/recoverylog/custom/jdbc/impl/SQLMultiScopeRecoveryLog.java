@@ -2608,18 +2608,13 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         if (tc.isEntryEnabled())
             Tr.entry(tc, "assertLogOwnershipAtOpenWithLatching", new java.lang.Object[] { conn, this });
 
-        Statement readForUpdateStmt = null;
-        Statement updateStmt = null;
-        ResultSet readForUpdateRS = null;
         boolean lockingRecordExists = false;
 
-        try {
-            int latchRetryCount = 0;
-            boolean needToRetryLatch = false;
-            do {
-                needToRetryLatch = false;
-                readForUpdateStmt = conn.createStatement();
-                readForUpdateRS = readHADBLock(readForUpdateStmt, _logIdentifierString);
+        int latchRetryCount = 0;
+        boolean needToRetryLatch = false;
+        do {
+            needToRetryLatch = false;
+            try (Statement readForUpdateStmt = conn.createStatement(); ResultSet readForUpdateRS = readHADBLock(readForUpdateStmt, _logIdentifierString)) {
                 if (readForUpdateRS.next()) {
                     // We found the HA Lock row
                     lockingRecordExists = true;
@@ -2646,16 +2641,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
                             if (++latchRetryCount < 3) {
                                 // set for retry,  cleanup JDBC, drop locks and sleep to allow root server to complete
                                 needToRetryLatch = true;
-                                if (readForUpdateRS != null)
-                                    try {
-                                        readForUpdateRS.close();
-                                    } catch (Exception e) {
-                                    }
-                                if (readForUpdateStmt != null)
-                                    try {
-                                        readForUpdateStmt.close();
-                                    } catch (Exception e) {
-                                    }
                                 conn.rollback();
                                 try {
                                     Thread.sleep(1000);
@@ -2667,47 +2652,27 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
                 } else {
                     lockingRecordExists = false;
                 }
-            } while (needToRetryLatch);
+            }
+        } while (needToRetryLatch);
 
-            if (lockingRecordExists) {
-                updateStmt = conn.createStatement();
-                String updateString = "UPDATE " +
-                                      _recoveryTableName + _logIdentifierString + _recoveryTableNameSuffix +
-                                      " SET SERVER_NAME = '" + _currentProcessServerName +
-                                      "', RUSECTION_ID = " + _reservedConnectionActiveSectionIDUnset + " WHERE RU_ID = -1";
+        if (lockingRecordExists) {
+            try (Statement updateStmt = conn.createStatement()) {
+                final String updateString = "UPDATE " +
+                                            _recoveryTableName + _logIdentifierString + _recoveryTableNameSuffix +
+                                            " SET SERVER_NAME = '" + _currentProcessServerName +
+                                            "', RUSECTION_ID = " + _reservedConnectionActiveSectionIDUnset + " WHERE RU_ID = -1";
 
                 if (tc.isDebugEnabled())
                     Tr.debug(tc, "Updating HA Lock using update string - " + updateString);
-                int ret = updateStmt.executeUpdate(updateString);
+                final int ret = updateStmt.executeUpdate(updateString);
                 if (tc.isDebugEnabled())
                     Tr.debug(tc, "Have updated HA Lock row with return: " + ret);
-
-            } else {
-                // Is this entirely necessary? We didn't find the HA Lock row in the table, perhaps we should barf
-                // YES IT IS NECESSARY - we may be running against a table created before the locking row was added (which we now INSERT if/when
-                // we create the table... and here (if is already exists without the locking row)
-                short serviceId = (short) 1;
-                String fullTableName = _recoveryTableName + _logIdentifierString + _recoveryTableNameSuffix;
-                insertLockingRow(conn, fullTableName, serviceId, _reservedConnectionActiveSectionIDUnset);
             }
-
-        } finally {
-            // tidy up JDBC objects (but DON'T end the tran)
-            if (readForUpdateRS != null)
-                try {
-                    readForUpdateRS.close();
-                } catch (Exception e) {
-                }
-            if (readForUpdateStmt != null)
-                try {
-                    readForUpdateStmt.close();
-                } catch (Exception e) {
-                }
-            if (updateStmt != null)
-                try {
-                    updateStmt.close();
-                } catch (Exception e) {
-                }
+        } else {
+            // Is this entirely necessary? We didn't find the HA Lock row in the table, perhaps we should barf
+            // YES IT IS NECESSARY - we may be running against a table created before the locking row was added (which we now INSERT if/when
+            // we create the table... and here (if is already exists without the locking row)
+            insertLockingRow(conn, _recoveryTableName + _logIdentifierString + _recoveryTableNameSuffix, (short) 1, _reservedConnectionActiveSectionIDUnset);
         }
 
         if (tc.isEntryEnabled())
@@ -2726,13 +2691,9 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.entry(tc, "assertLogOwnershipAtOpenPeerLocking", conn, this);
 
         boolean takeLock = false;
-        Statement readForUpdateStmt = null;
-        ResultSet readForUpdateRS = null;
-        Statement updateStmt = null;
 
-        try {
-            readForUpdateStmt = conn.createStatement();
-            readForUpdateRS = readHADBLock(readForUpdateStmt, _logIdentifierString, "--assertLogOwnershipAtOpenPeerLocking");
+        try (Statement readForUpdateStmt = conn.createStatement();
+                        ResultSet readForUpdateRS = readHADBLock(readForUpdateStmt, _logIdentifierString, "--assertLogOwnershipAtOpenPeerLocking")) {
             if (readForUpdateRS.next()) {
                 // We found the HA Lock row
                 String storedServerName = readForUpdateRS.getString(1);
@@ -2774,62 +2735,35 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
                 }
 
                 if (takeLock) {
-                    updateStmt = conn.createStatement();
-                    // Claim the logs by updating the server name and timestamp.
-                    long fir1 = System.currentTimeMillis();
-                    String updateString = "UPDATE " +
-                                          _recoveryTableName + _logIdentifierString + _recoveryTableNameSuffix +
-                                          " SET SERVER_NAME = '" + _currentProcessServerName +
-                                          "', RUSECTION_ID = " + fir1 +
-                                          " WHERE RU_ID = -1";
+                    try (Statement updateStmt = conn.createStatement()) {
+                        // Claim the logs by updating the server name and timestamp.
+                        long fir1 = System.currentTimeMillis();
+                        String updateString = "UPDATE " +
+                                              _recoveryTableName + _logIdentifierString + _recoveryTableNameSuffix +
+                                              " SET SERVER_NAME = '" + _currentProcessServerName +
+                                              "', RUSECTION_ID = " + fir1 +
+                                              " WHERE RU_ID = -1";
 
-                    if (tc.isDebugEnabled())
-                        Tr.debug(tc, "Updating HA Lock using update string - " + updateString);
-                    int ret = updateStmt.executeUpdate(updateString);
-                    if (tc.isDebugEnabled())
-                        Tr.debug(tc, "Have updated HA Lock row with return: " + ret);
+                        if (tc.isDebugEnabled())
+                            Tr.debug(tc, "Updating HA Lock using update string - " + updateString);
+                        int ret = updateStmt.executeUpdate(updateString);
+                        if (tc.isDebugEnabled())
+                            Tr.debug(tc, "Have updated HA Lock row with return: " + ret);
+                    }
                 }
             } else {
                 // This is unexpected under the new locking scheme
-                if (_isHomeServer) {
-                    short serviceId = (short) 1;
-                    String fullTableName = _recoveryTableName + _logIdentifierString + _recoveryTableNameSuffix;
-                    long fir1 = System.currentTimeMillis();
-                    insertLockingRow(conn, fullTableName, serviceId, fir1);
+                if (_isHomeServer || ConfigurationProviderManager.getConfigurationProvider().peerRecoveryPrecedence()) {
+                    insertLockingRow(conn, _recoveryTableName + _logIdentifierString + _recoveryTableNameSuffix, (short) 1, Instant.now().toEpochMilli());
                 } else {
-                    // Handle peer server cases
-                    if (ConfigurationProviderManager.getConfigurationProvider().peerRecoveryPrecedence()) {
-                        short serviceId = (short) 1;
-                        String fullTableName = _recoveryTableName + _logIdentifierString + _recoveryTableNameSuffix;
-                        long fir1 = System.currentTimeMillis();
-                        insertLockingRow(conn, fullTableName, serviceId, fir1);
-                    } else {
-                        // In this case instantiate a PeerLostLogOwnershipException which is less "noisy" than its parent InternalLogException
-                        PeerLostLogOwnershipException ple = new PeerLostLogOwnershipException("No lock row but this is peer recovery", null);
-                        markFailed(ple, false, true); // second parameter "false" as we do not wish to fire out error messages
-                        if (tc.isEntryEnabled())
-                            Tr.exit(tc, "assertLogOwnershipAtOpenPeerLocking", ple);
-                        throw ple;
-                    }
+                    // In this case instantiate a PeerLostLogOwnershipException which is less "noisy" than its parent InternalLogException
+                    final PeerLostLogOwnershipException ple = new PeerLostLogOwnershipException("No lock row but this is peer recovery", null);
+                    markFailed(ple, false, true); // second parameter "false" as we do not wish to fire out error messages
+                    if (tc.isEntryEnabled())
+                        Tr.exit(tc, "assertLogOwnershipAtOpenPeerLocking", ple);
+                    throw ple;
                 }
             }
-        } finally {
-            // tidy up JDBC objects (but DON'T end the tran)
-            if (readForUpdateRS != null)
-                try {
-                    readForUpdateRS.close();
-                } catch (Exception e) {
-                }
-            if (readForUpdateStmt != null)
-                try {
-                    readForUpdateStmt.close();
-                } catch (Exception e) {
-                }
-            if (updateStmt != null)
-                try {
-                    updateStmt.close();
-                } catch (Exception e) {
-                }
         }
 
         if (tc.isEntryEnabled())
