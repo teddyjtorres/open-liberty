@@ -164,5 +164,5 @@ public class TransactionJavaColonHelper implements JavaColonNamingHelper {
             return utd.decorateUserTransaction(ut, injection, injectionContext);
         }
     }
-
 }
+
