@@ -17,17 +17,16 @@ import jakarta.persistence.Id;
 public class Vehicle {
 
     @Id
-    private String id; // Add id field (with @Id annotation for JPA)
+    private String id; 
 
     private String make;
     private String model;
     private int numSeats;
     private float price;
     private String vinId;
-    private String color; // Add color field
+    private String color; 
 
-    // Getters and setters for the fields
-
+   
     public String getId() {
         return id;
     }

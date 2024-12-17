@@ -1672,41 +1672,38 @@ public class JakartaDataRecreateServlet extends FATServlet {
         }
     }
 
+   
     @Test
-    // @Ignore("Reference issue: https://github.com/OpenLiberty/open-liberty/issues/29893")
+   //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/29893
     public void testOLGH29893() throws Exception {
-        // Prepare the test data
-        String vehicleId = "V1234"; // This is the ID that will be used
+        String vehicleId = "V1234";
         Vehicle vehicle = new Vehicle();
         vehicle.setId(vehicleId);
         vehicle.setModel("Toyota Corolla");
         vehicle.setColor("Blue");
 
-        // Persist the vehicle
         tx.begin();
         em.persist(vehicle);
         tx.commit();
 
-        // Execute the query with a case-insensitive ID
-        String idToSearch = "v1234"; // The ID with a different case
+        
+        String idToSearch = "v1234"; 
         Vehicle result;
 
         tx.begin();
         try {
-            // Corrected JPQL query
-            result = em.createQuery("FROM Vehicle v WHERE LOWER(v.id) = :id", Vehicle.class)
-                            .setParameter("id", idToSearch.toLowerCase())
-                            .getSingleResult();
+            result = em.createQuery("FROM Vehicle WHERE LOWER(ID(THIS)) = ?1", Vehicle.class)
+                        .setParameter(1, idToSearch.toLowerCase())
+                        .getSingleResult();
             tx.commit();
         } catch (Exception e) {
             tx.rollback();
             throw e;
         }
 
-        // Assertions
         assertNotNull(result);
-        assertEquals(vehicleId, result.getId()); // Ensure that the correct vehicle is returned
-        assertEquals("Toyota Corolla", result.getModel()); // Ensure other properties are correct
+        assertEquals(vehicleId, result.getId()); 
+        assertEquals("Toyota Corolla", result.getModel()); 
         assertEquals("Blue", result.getColor());
     }
 
