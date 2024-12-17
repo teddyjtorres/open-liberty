@@ -1,16 +1,19 @@
-/*******************************************************************************
- * Copyright (c) 2010, 2014 IBM Corporation and others.
+/*
+ * Copyright (c) 2010, 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
- *******************************************************************************/
+ */
 package com.ibm.ws.transaction.services;
+
+import static com.ibm.ws.tx.jta.embeddable.EmbeddableTransactionSynchronizationRegistryFactory.getTransactionSynchronizationRegistry;
+import static com.ibm.ws.uow.embeddable.UOWManagerFactory.getUOWManager;
 
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -32,9 +35,7 @@ import com.ibm.tx.jta.embeddable.impl.EmbeddableUserTransactionImpl;
 import com.ibm.ws.container.service.naming.JavaColonNamingHelper;
 import com.ibm.ws.container.service.naming.NamingConstants.JavaColonNamespace;
 import com.ibm.ws.tx.embeddable.EmbeddableWebSphereUserTransaction;
-import com.ibm.ws.tx.jta.embeddable.EmbeddableTransactionSynchronizationRegistryFactory;
 import com.ibm.ws.uow.embeddable.UOWManager;
-import com.ibm.ws.uow.embeddable.UOWManagerFactory;
 import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
 
 /**
@@ -94,20 +95,21 @@ public class TransactionJavaColonHelper implements JavaColonNamingHelper {
     /** {@inheritDoc} */
     @Override
     public Object getObjectInstance(JavaColonNamespace namespace, String name) throws NamingException {
-
-        // If we have a service reference we know it's safe to return a reference
-        if (userTranSvcRef != null) {
-            if (JavaColonNamespace.COMP.equals(namespace) && "UserTransaction".equals(name)) {
-                return getUserTransaction(false, null);
+        switch (namespace) {
+        case COMP:
+            switch (name) {
+            // If we have a service reference we know it's safe to return a reference
+            case "UserTransaction": return userTranSvcRef == null ? null : getUserTransaction(false, null);
+            case "TransactionSynchronizationRegistry": return getTransactionSynchronizationRegistry();
+            default: return null;
             }
+        case COMP_WS:
+            switch (name) {
+            case "UOWManager": return getUOWManager();
+            default: return null;
+            }
+        default: return null;
         }
-        if (JavaColonNamespace.COMP.equals(namespace) && "TransactionSynchronizationRegistry".equals(name)) {
-            return EmbeddableTransactionSynchronizationRegistryFactory.getTransactionSynchronizationRegistry();
-        }
-        if (JavaColonNamespace.COMP_WS.equals(namespace) && "UOWManager".equals(name)) {
-            return UOWManagerFactory.getUOWManager();
-        }
-        return null;
     }
 
     /** {@inheritDoc} */
@@ -145,14 +147,13 @@ public class TransactionJavaColonHelper implements JavaColonNamingHelper {
 
     /**
      * Helper method for use with injection TransactionObjectFactoruy.
-     * 
+     *
      * @param injection if the UserTransaction is being obtained for injection
      * @param injectionContext the injection target context if injection is true, or null if unspecified
      * @return UserTransaction object with decorator applied if present
      * @throws NamingException if the decorator determines the UserTransaction is not available
      */
-    protected UserTransaction getUserTransaction(boolean injection, Object injectionContext) throws NamingException
-    {
+    protected UserTransaction getUserTransaction(boolean injection, Object injectionContext) throws NamingException {
         final UserTransaction ut = AccessController.doPrivileged(new PrivilegedAction<UserTransaction>() {
             @Override
             public UserTransaction run() {
