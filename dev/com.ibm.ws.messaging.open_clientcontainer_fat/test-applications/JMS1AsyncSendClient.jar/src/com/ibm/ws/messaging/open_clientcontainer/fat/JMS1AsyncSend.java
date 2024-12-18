@@ -467,15 +467,20 @@ public class JMS1AsyncSend extends ClientMain {
 
     @ClientTest
     public void testJMS1AsyncSendNoDestination() throws JMSException, TestException {
+    	
+    	Util.CODEPATH();
 
         try (QueueConnection queueConnection = queueConnectionFactory_.createQueueConnection();
         	 QueueSession session = queueConnection.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
         	
+        	Util.TRACE("Creating test objects");
+        	
             TextMessage sentMessage = session.createTextMessage(methodName() + " at " + new Date());
             MessageProducer producer = session.createProducer(null);
-
             BasicCompletionListener completionListener = new BasicCompletionListener();
+
             try {
+            	Util.LOG("Test no destination method 1");
                 producer.send(sentMessage, completionListener);
                 throw new TestException("UnsupportedOperationException 1 not thrown");
             } catch (UnsupportedOperationException e) {
@@ -483,6 +488,7 @@ public class JMS1AsyncSend extends ClientMain {
                 Util.TRACE(e);
             }
             try {
+            	Util.LOG("Test null destination method 1");
                 producer.send(null, sentMessage, completionListener);
                 throw new TestException("InvalidDestinationException 1 not thrown");
             } catch (InvalidDestinationException e) {
@@ -490,6 +496,7 @@ public class JMS1AsyncSend extends ClientMain {
                 Util.TRACE(e);
             }
             try {
+            	Util.LOG("Test no destination method 2");
                 producer.send(sentMessage, DeliveryMode.PERSISTENT, 0, 10000, completionListener);
                 throw new TestException("UnsupportedOperationException 2 not thrown");
             } catch (UnsupportedOperationException e) {
@@ -497,12 +504,19 @@ public class JMS1AsyncSend extends ClientMain {
                 Util.TRACE(e);
             }
             try {
+            	Util.LOG("Test null destination method 2");
                 producer.send(null, sentMessage, DeliveryMode.PERSISTENT, 0, 10000, completionListener);
                 throw new TestException("InvalidDestinationException 2 not thrown");
             } catch (InvalidDestinationException e) {
                 // Expected Exception.
                 Util.TRACE(e);
             }
+        }
+        catch (JMSException | TestException e) {
+        	
+        	Util.LOG("Exception thrown during test", e);
+        	throw e;
+        	
         }
 
         reportSuccess();
