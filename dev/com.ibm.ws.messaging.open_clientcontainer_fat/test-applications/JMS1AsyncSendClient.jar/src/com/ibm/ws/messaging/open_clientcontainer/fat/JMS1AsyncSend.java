@@ -468,7 +468,9 @@ public class JMS1AsyncSend extends ClientMain {
     @ClientTest
     public void testJMS1AsyncSendNoDestination() throws JMSException, TestException {
 
-        try (QueueSession session = queueConnection_.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
+        try (QueueConnection queueConnection = queueConnectionFactory_.createQueueConnection();
+        	 QueueSession session = queueConnection.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
+        	
             TextMessage sentMessage = session.createTextMessage(methodName() + " at " + new Date());
             MessageProducer producer = session.createProducer(null);
 
