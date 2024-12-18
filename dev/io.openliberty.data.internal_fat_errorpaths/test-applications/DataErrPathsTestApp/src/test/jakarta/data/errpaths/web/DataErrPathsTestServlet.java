@@ -210,6 +210,135 @@ public class DataErrPathsTestServlet extends FATServlet {
 
     /**
      * Verify an error is raised for a repository method that attempts to
+     * return a CursoredPage with the OrderBy annotation omitted
+     * and no other sort criteria present.
+     */
+    @Test
+    public void testCursoredPageOrderByOmitted() {
+        try {
+            CursoredPage<Voter> page = //
+                            voters.selectByLastName("TestCursoredPageOrderByOmitted",
+                                                    PageRequest.ofSize(23));
+            fail("Should not be able to retrieve a CursoredPage when OrderBy is" +
+                 " omitted from the Query method and there is no other sort." +
+                 " criteria. Found: " + page);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1100E:") ||
+                !x.getMessage().contains("Sort[]"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository method that attempts to
+     * return a CursoredPage with an ORDER BY clause present.
+     */
+    @Test
+    public void testCursoredPageOrderClauseIncluded() {
+        String firstName = "TestCursoredPageOrderClauseIncluded";
+        try {
+            CursoredPage<Voter> page = //
+                            voters.selectByFirstName(firstName,
+                                                     PageRequest.ofSize(24),
+                                                     Order.by(Sort.desc(ID)));
+            fail("Should not be able to retrieve a CursoredPage when ORDER BY is" +
+                 " included in the Query value. Found: " + page);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1033E:") ||
+                !x.getMessage().contains("ORDER BY"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository method that attempts to
+     * return a CursoredPage with NULL ordering.
+     */
+    @Test
+    public void testCursoredPageOrderNull() {
+        LocalDate date = LocalDate.of(2024, 12, 20);
+        try {
+            CursoredPage<Voter> page = //
+                            voters.selectByBirthday(date,
+                                                    PageRequest.ofSize(20),
+                                                    null);
+            fail("Should not be able to retrieve a CursoredPage with results that" +
+                 " have a NULL order: " + page);
+        } catch (NullPointerException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1087E:") ||
+                !x.getMessage().contains("jakarta.data.Order"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository method that attempts to
+     * return a CursoredPage with NULL sorting.
+     */
+    @Test
+    public void testCursoredPageSortNull() {
+        try {
+            CursoredPage<Voter> page = //
+                            voters.selectByName("Vincent",
+                                                PageRequest.ofSize(33),
+                                                null);
+            fail("Should not be able to retrieve a CursoredPage with results that" +
+                 " have a NULL value for the Sort parameter: " + page);
+        } catch (NullPointerException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1087E:") ||
+                !x.getMessage().contains("jakarta.data.Sort"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository method that attempts to
+     * return an unordered CursoredPage.
+     */
+    @Test
+    public void testCursoredPageUnordered() {
+        LocalDate date = LocalDate.of(2024, 12, 19);
+        try {
+            CursoredPage<Voter> page = //
+                            voters.selectByBirthday(date,
+                                                    PageRequest.ofSize(19),
+                                                    Order.by());
+            fail("Should not be able to retrieve a CursoredPage with results that" +
+                 " are not ordered: " + page);
+        } catch (IllegalArgumentException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1088E:") ||
+                !x.getMessage().contains("jakarta.data.Order"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository method that attempts to
+     * return an unsorted CursoredPage.
+     */
+    @Test
+    public void testCursoredPageUnsorted() {
+        String address = "701 Silver Creek Rd NE, Rochester, MN 55906";
+        try {
+            CursoredPage<Voter> page = //
+                            voters.selectByAddress(address, PageRequest.ofSize(3));
+            fail("Should not be able to retrieve a CursoredPage with results that" +
+                 " are not sorted: " + page);
+        } catch (IllegalArgumentException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1088E:") ||
+                !x.getMessage().contains("Sort[]"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository method that attempts to
      * delete a page of results by specifying a PageRequest on a Delete operation.
      */
     @Test

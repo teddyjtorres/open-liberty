@@ -5234,6 +5234,37 @@ public class DataTestServlet extends FATServlet {
     }
 
     /**
+     * Tests a repository method that returns a Page with a single boolean
+     * result on it.
+     */
+    @Test
+    public void testSingularResultPageOfBoolean() {
+        PageRequest pageReq = PageRequest.ofSize(6);
+        Page<Boolean> page = primes.pageOfExists(pageReq);
+
+        assertEquals(List.of(true), page.content());
+        assertEquals(false, page.hasNext());
+        assertEquals(false, page.hasPrevious());
+        assertEquals(1L, page.totalElements());
+        assertEquals(1L, page.totalPages());
+    }
+
+    /**
+     * Tests a repository method that returns a Page with a single numeric
+     * result on it.
+     */
+    @Test
+    public void testSingularResultPageNumeric() {
+        Page<Long> page = primes.pageOfCountUpTo(20L, PageRequest.ofSize(4));
+
+        assertEquals(List.of(8L), page.content());
+        assertEquals(false, page.hasNext());
+        assertEquals(false, page.hasPrevious());
+        assertEquals(1L, page.totalElements());
+        assertEquals(1L, page.totalPages());
+    }
+
+    /**
      * A repository might define a method that returns a Page with a Limit parameter.
      */
     @Test

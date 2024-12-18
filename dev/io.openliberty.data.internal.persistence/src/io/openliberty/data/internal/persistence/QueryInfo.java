@@ -4847,15 +4847,25 @@ public class QueryInfo {
         }
 
         if (type == Type.FIND &&
-            CursoredPage.class.equals(multiType) &&
-            !singleType.equals(entityInfo.getType()))
-            throw exc(UnsupportedOperationException.class,
-                      "CWWKD1037.cursor.rtrn.mismatch",
-                      singleType.getSimpleName(),
-                      method.getName(),
-                      repositoryInterface.getName(),
-                      entityInfo.getType().getName(),
-                      method.getGenericReturnType().getTypeName());
+            CursoredPage.class.equals(multiType)) {
+
+            if (!singleType.equals(entityInfo.getType()))
+                throw exc(UnsupportedOperationException.class,
+                          "CWWKD1037.cursor.rtrn.mismatch",
+                          singleType.getSimpleName(),
+                          method.getName(),
+                          repositoryInterface.getName(),
+                          entityInfo.getType().getName(),
+                          method.getGenericReturnType().getTypeName());
+
+            if (sortPositions == NONE_QUERY_LANGUAGE_ONLY && sorts == null)
+                throw exc(UnsupportedOperationException.class,
+                          "CWWKD1100.cursor.requires.sort",
+                          method.getName(),
+                          repositoryInterface.getName(),
+                          method.getGenericReturnType().getTypeName(),
+                          "Order, Sort, Sort[]");
+        }
     }
 
     /**

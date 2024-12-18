@@ -333,6 +333,36 @@ public interface Voters extends BasicRepository<Voter, Integer> {
                            String city, // extra, unused parameter
                            String stateCode); // extra, unused parameter
 
+    @Find
+    CursoredPage<Voter> selectByAddress(@By("address") String homeAddress,
+                                        PageRequest pageReq,
+                                        Sort<?>... sorts);
+
+    @Find
+    CursoredPage<Voter> selectByBirthday(@By("birthday") LocalDate date,
+                                         PageRequest pageReq,
+                                         Order<Voter> order);
+
+    /**
+     * This invalid method includes an ORDER BY clause with cursor pagination.
+     */
+    @Query("WHERE name LIKE (:fname || ' %') ORDER BY name ASC, ssn ASC")
+    CursoredPage<Voter> selectByFirstName(@Param("fname") String lastName,
+                                          PageRequest pageReq,
+                                          Order<Voter> order);
+
+    /**
+     * This invalid method lacks an OrderBy annotation or any sort parameters.
+     */
+    @Query("WHERE name LIKE ('% ' || :lname)")
+    CursoredPage<Voter> selectByLastName(@Param("lname") String lastName,
+                                         PageRequest pageReq);
+
+    @Find
+    CursoredPage<Voter> selectByName(@By("name") String name,
+                                     PageRequest pageReq,
+                                     Sort<Voter> sort);
+
     /**
      * Invalid method. A method with a life cycle annotation must have exactly
      * 1 parameter.
