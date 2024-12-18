@@ -1770,6 +1770,16 @@ public class DataJPATestServlet extends FATServlet {
     }
 
     /**
+     * Use a repository method that uses query language to perform an exists query
+     * that returns a boolean true/false value.
+     */
+    @Test
+    public void testExistsViaQueryLanguage() {
+        assertEquals(true, businesses.isLocatedAt(2800, "37th St", "NW", "IBM"));
+        assertEquals(false, businesses.isLocatedAt(200, "1st St", "SW", "IBM"));
+    }
+
+    /**
      * Verify WithYear, WithQuarter, WithMonth, and WithDay Functions to compare different parts of a date.
      */
     @Test
@@ -1952,6 +1962,89 @@ public class DataJPATestServlet extends FATServlet {
                      list.stream()
                                      .map(c -> c.name + ":" + c.stateName)
                                      .collect(Collectors.toList()));
+    }
+
+    /**
+     * Use a repository method with query language that includes only the
+     * FROM and ORDER BY clauses and returns a Page. Verify the page count
+     * and the total count of matching entities.
+     */
+    @Test
+    public void testFromAndOrderByClausesOnlyWithPageCount() {
+
+        Page<Business> page1 = businesses.sorted(PageRequest.ofSize(5));
+
+        assertEquals(3l, page1.totalPages());
+        assertEquals(15l, page1.totalElements());
+
+        assertEquals(List.of("RAC",
+                             "IBM",
+                             "Crenlo",
+                             "Home Federal Savings Bank",
+                             "Benike Construction"),
+                     page1.stream()
+                                     .map(b -> b.name)
+                                     .collect(Collectors.toList()));
+
+        Page<Business> page2 = businesses.sorted(page1.nextPageRequest());
+
+        assertEquals(List.of("Metafile",
+                             "Think Bank",
+                             "Reichel Foods",
+                             "Custom Alarm",
+                             "Olmsted Medical"),
+                     page2.stream()
+                                     .map(b -> b.name)
+                                     .collect(Collectors.toList()));
+
+        Page<Business> page3 = businesses.sorted(page2.nextPageRequest());
+
+        assertEquals(List.of("Mayo Clinic",
+                             "Silver Lake Foods",
+                             "Cardinal",
+                             "Geotek",
+                             "HALCON"),
+                     page3.stream()
+                                     .map(b -> b.name)
+                                     .collect(Collectors.toList()));
+
+        assertEquals(false, page3.hasNext());
+    }
+
+    /**
+     * Use a repository method with query language that includes only the
+     * FROM and WHERE and ORDER BY clauses and returns a Page. Verify the
+     * page count and the total count of matching entities.
+     */
+    @Test
+    public void testFromAndWhereAndOrderByClausesOnly() {
+
+        Page<Business> page1 = businesses
+                        .withStreetDirection("NW", PageRequest.ofSize(4));
+
+        assertEquals(8l, page1.totalElements());
+        assertEquals(2l, page1.totalPages());
+
+        assertEquals(List.of("Think Bank",
+                             "Metafile",
+                             "RAC",
+                             "IBM"),
+                     page1.stream()
+                                     .map(b -> b.name)
+                                     .collect(Collectors.toList()));
+
+        Page<Business> page2 = businesses
+                        .withStreetDirection("NW", page1.nextPageRequest());
+
+        assertEquals(List.of("Crenlo",
+                             "Geotek",
+                             "Home Federal Savings Bank",
+                             "HALCON"),
+                     page2.stream()
+                                     .map(b -> b.name)
+                                     .collect(Collectors.toList()));
+
+        assertEquals(false, page2.hasNext());
     }
 
     /**
@@ -3102,6 +3195,51 @@ public class DataJPATestServlet extends FATServlet {
         assertEquals(LocalDate.of(2020, 4, 4), d4.license.issuedOn);
 
         drivers.deleteByFullNameEndsWith(" TestOneToOne");
+    }
+
+    /**
+     * Use a repository method with Page<Object> return type.
+     * The primary entity type of the repository should be used.
+     */
+    @Test
+    public void testPageOfObjectReturnType() {
+        Page<Object> page1 = businesses
+                        .findAsPageByNameBetween("Crenlo",
+                                                 "RAC",
+                                                 PageRequest.ofSize(4));
+
+        assertEquals(List.of("Metafile", // 3428
+                             "RAC", // 3100
+                             "IBM", // 2800
+                             "Custom Alarm"), // 1661
+                     page1.stream()
+                                     .map(b -> ((Business) b).name)
+                                     .collect(Collectors.toList()));
+
+        Page<Object> page2 = businesses
+                        .findAsPageByNameBetween("Crenlo",
+                                                 "RAC",
+                                                 page1.nextPageRequest());
+
+        assertEquals(List.of("Crenlo", // 1600
+                             "Geotek", // 1421
+                             "Home Federal Savings Bank", // 1016
+                             "HALCON"), // 345
+                     page2.stream()
+                                     .map(b -> ((Business) b).name)
+                                     .collect(Collectors.toList()));
+
+        Page<Object> page3 = businesses
+                        .findAsPageByNameBetween("Crenlo",
+                                                 "RAC",
+                                                 page2.nextPageRequest());
+
+        assertEquals(List.of("Olmsted Medical", // 210
+                             "Mayo Clinic"), // 200
+                     page3.stream()
+                                     .map(b -> ((Business) b).name)
+                                     .collect(Collectors.toList()));
+
     }
 
     /**
@@ -4725,5 +4863,90 @@ public class DataJPATestServlet extends FATServlet {
         } catch (OptimisticLockingFailureException x) {
             // pass
         }
+    }
+
+    /**
+     * Use a repository method with CursoredPage<?> return type.
+     * The primary entity type of the repository should be used.
+     */
+    @Test
+    public void testWildcardCursoredPageReturnType() {
+        CursoredPage<?> page1 = businesses.findAsCursoredPage("Crenlo",
+                                                              "RAC",
+                                                              PageRequest.ofSize(4));
+
+        assertEquals(List.of("Crenlo",
+                             "Custom Alarm",
+                             "Geotek",
+                             "HALCON"),
+                     page1.stream()
+                                     .map(b -> ((Business) b).name)
+                                     .collect(Collectors.toList()));
+
+        CursoredPage<?> page2 = businesses.findAsCursoredPage(
+                                                              "Crenlo",
+                                                              "RAC",
+                                                              page1.nextPageRequest());
+
+        assertEquals(List.of("Home Federal Savings Bank",
+                             "IBM",
+                             "Mayo Clinic",
+                             "Metafile"),
+                     page2.stream()
+                                     .map(b -> ((Business) b).name)
+                                     .collect(Collectors.toList()));
+
+        CursoredPage<?> page3 = businesses.findAsCursoredPage("Crenlo",
+                                                              "RAC",
+                                                              page2.nextPageRequest());
+
+        assertEquals(List.of("Olmsted Medical",
+                             "RAC"),
+                     page3.stream()
+                                     .map(b -> ((Business) b).name)
+                                     .collect(Collectors.toList()));
+
+    }
+
+    /**
+     * Use a repository method with List<?> return type.
+     * The primary entity type of the repository should be used.
+     */
+    @Test
+    public void testWildcardListReturnType() {
+        assertEquals(List.of("IBM",
+                             "Mayo Clinic",
+                             "Metafile",
+                             "Olmsted Medical",
+                             "RAC"),
+                     businesses.findAsListByNameBetween("IBM", "RAC")
+                                     .stream()
+                                     .map(b -> ((Business) b).name)
+                                     .collect(Collectors.toList()));
+    }
+
+    /**
+     * Use a repository method with Optional<?> return type.
+     * The primary entity type of the repository should be used.
+     */
+    @Test
+    public void testWildcardOptionalReturnType() {
+        Business found = (Business) businesses.findAsOptional("IBM")
+                        .orElseThrow();
+        assertEquals("IBM", found.name);
+    }
+
+    /**
+     * Use a repository method with CompletableFuture<Stream<?>> return type.
+     * The primary entity type of the repository should be used.
+     */
+    @Test
+    public void testWildcardStreamReturnType() {
+        assertEquals(List.of("Geotek",
+                             "HALCON"),
+                     businesses.findAsStreamByCity("Stewartville", "MN")
+                                     .join()
+                                     .map(b -> ((Business) b).name)
+                                     .collect(Collectors.toList()));
     }
 }
