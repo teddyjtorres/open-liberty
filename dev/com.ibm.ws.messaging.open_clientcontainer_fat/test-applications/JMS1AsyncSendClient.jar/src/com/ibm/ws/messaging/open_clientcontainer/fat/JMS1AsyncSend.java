@@ -184,8 +184,8 @@ public class JMS1AsyncSend extends ClientMain {
 	  
 	  Util.CODEPATH();
 
-      try ( QueueConnection connection = queueConnectionFactory_.createQueueConnection();
-    		QueueSession queueSession = queueConnection_.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {  
+      try ( QueueConnection queueConnection = queueConnectionFactory_.createQueueConnection();
+    		QueueSession queueSession = queueConnection.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {  
           
     	  Util.TRACE("Getting Test objects");
     	  
