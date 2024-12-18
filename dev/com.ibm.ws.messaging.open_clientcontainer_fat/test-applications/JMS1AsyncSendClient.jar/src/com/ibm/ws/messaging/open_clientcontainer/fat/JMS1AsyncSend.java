@@ -448,20 +448,31 @@ public class JMS1AsyncSend extends ClientMain {
     @ClientTest
     public void testJMS1AsyncSendNullListener() throws JMSException, TestException {
         
+    	Util.CODEPATH();
+    	
         try (QueueConnection queueConnection = queueConnectionFactory_.createQueueConnection();
         	 QueueSession session = queueConnection.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
 
+        	Util.TRACE("Creating test objects");
+        	
         	Queue queue = session.createTemporaryQueue();
             TextMessage sentMessage = session.createTextMessage(methodName() + " at " + new Date());
             MessageProducer producer = session.createProducer(queue);
             
             try {
+            	Util.LOG("Sending message with null CompletionListener");
                 producer.send(sentMessage, null);
                 throw new TestException("IllegalArgumentException not thrown.");
             } catch (IllegalArgumentException e) {
                 // Expected Exception.
                 Util.TRACE(e);
             }
+        }
+        catch (JMSException | TestException e) {
+        	
+        	Util.LOG("Exception thrown during test", e);
+        	throw e;
+        	
         }
         
         reportSuccess();
