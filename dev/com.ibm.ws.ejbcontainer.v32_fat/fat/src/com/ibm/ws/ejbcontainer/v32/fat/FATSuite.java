@@ -18,19 +18,19 @@ import org.junit.runners.Suite.SuiteClasses;
 
 import com.ibm.ws.ejbcontainer.v32.fat.tests.JavaGlobalInjectIntoServletTest;
 //import com.ibm.ws.ejbcontainer.v32.fat.tests.PassivationTest;
-//import com.ibm.ws.ejbcontainer.v32.fat.tests.SingletonLifecycleTxTest;
-//import com.ibm.ws.ejbcontainer.v32.fat.tests.StatefulLifecycleTxTest;
+import com.ibm.ws.ejbcontainer.v32.fat.tests.SingletonLifecycleTxTest;
+import com.ibm.ws.ejbcontainer.v32.fat.tests.StatefulLifecycleTxTest;
 
 import componenttest.custom.junit.runner.AlwaysPassesTest;
 
 @RunWith(Suite.class)
 @SuiteClasses({
                 AlwaysPassesTest.class,
-                JavaGlobalInjectIntoServletTest.class //,
+                JavaGlobalInjectIntoServletTest.class,
 //                TODO: enable these once tests are ported to Liberty
 //                PassivationTest.class,
-//                SingletonLifecycleTxTest.class,
-//                StatefulLifecycleTxTest.class
+                SingletonLifecycleTxTest.class,
+                StatefulLifecycleTxTest.class
 })
 public class FATSuite {
 }

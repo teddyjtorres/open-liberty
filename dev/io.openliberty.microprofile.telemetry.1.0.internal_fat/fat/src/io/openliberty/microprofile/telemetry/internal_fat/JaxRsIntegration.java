@@ -131,7 +131,6 @@ public class JaxRsIntegration extends FATServletClient {
         WebArchive w3cTraceContextApp = ShrinkWrap.create(WebArchive.class, W3C_TRACE_CONTEXT_PROPAGATOR_APP_NAME + ".war")
                         .addClass(W3CTraceContextPropagatorTestServlet.class);
 
-        //TO-DO: tests to create or read the tracestate header
         PropertiesAsset w3cTraceBaggageAppConfig = new PropertiesAsset()
                         .include(appConfig)
                         .addProperty("otel.propagators", "tracecontext, baggage");
@@ -309,6 +308,68 @@ public class JaxRsIntegration extends FATServletClient {
             assertEquals(TEST_PASSED, readspans.run(String.class));
         } else {
             HttpRequest readspans = new HttpRequest(server, "/" + APP_NAME + "/endpoints/readspanswithspan/" + traceId);
+            assertEquals(TEST_PASSED, readspans.run(String.class));
+        }
+    }
+
+    @Test
+    public void testTraceState() throws Exception {
+        HttpRequest pokeJax = new HttpRequest(server, "/" + APP_NAME + "/endpoints/traceState");
+        String traceId = readTraceId(pokeJax);
+
+        if (RepeatTestFilter.isRepeatActionActive(MicroProfileActions.MP60_ID)) {
+            HttpRequest readspans = new HttpRequest(server, "/" + APP_NAME + "/endpoints/readspans/" + traceId);
+            assertEquals(TEST_PASSED, readspans.run(String.class));
+        } else if (RepeatTestFilter.isRepeatActionActive(TelemetryActions.MP14_MPTEL20_ID) || RepeatTestFilter.isRepeatActionActive(TelemetryActions.MP41_MPTEL20_ID)
+                   || RepeatTestFilter.isRepeatActionActive(TelemetryActions.MP50_MPTEL20_ID) ||
+                   RepeatTestFilter.isRepeatActionActive(TelemetryActions.MP61_MPTEL20_ID) || RepeatTestFilter.isRepeatActionActive(MicroProfileActions.MP70_EE10_ID)
+                   || RepeatTestFilter.isRepeatActionActive(MicroProfileActions.MP70_EE11_ID)) {
+            HttpRequest readspans = new HttpRequest(server, "/" + APP_NAME + "/endpoints/readspansmptel20/" + traceId);
+            assertEquals(TEST_PASSED, readspans.run(String.class));
+        } else {
+            HttpRequest readspans = new HttpRequest(server, "/" + APP_NAME + "/endpoints/readspansmptel11/" + traceId);
+            assertEquals(TEST_PASSED, readspans.run(String.class));
+        }
+
+    }
+
+    @Test
+    public void testTraceStateFromHeaders() throws Exception {
+        //Manually creates the tracestate header with the HTTP request header. 
+        //Liberty and OpenTelemetry then turn it into a TraceState object on the current span by the time it gets to this method JaxRsEndpoints.testTraceStateFromHeaders
+        HttpRequest pokeJax = new HttpRequest(server, "/" + APP_NAME + "/endpoints/traceStateFromHeaders").requestProp("tracestate", "key_1=value.1")
+                        .requestProp("traceparent", "00-4bf92f3577b34da6a3ce929d0e0e4736-00f067aa0ba902b7-01");
+        String traceId = readTraceId(pokeJax);
+        if (RepeatTestFilter.isRepeatActionActive(MicroProfileActions.MP60_ID)) {
+            HttpRequest readspans = new HttpRequest(server, "/" + APP_NAME + "/endpoints/readspans/" + traceId);
+            assertEquals(TEST_PASSED, readspans.run(String.class));
+        } else if (RepeatTestFilter.isRepeatActionActive(TelemetryActions.MP14_MPTEL20_ID) || RepeatTestFilter.isRepeatActionActive(TelemetryActions.MP41_MPTEL20_ID)
+                   || RepeatTestFilter.isRepeatActionActive(TelemetryActions.MP50_MPTEL20_ID) ||
+                   RepeatTestFilter.isRepeatActionActive(TelemetryActions.MP61_MPTEL20_ID) || RepeatTestFilter.isRepeatActionActive(MicroProfileActions.MP70_EE10_ID)
+                   || RepeatTestFilter.isRepeatActionActive(MicroProfileActions.MP70_EE11_ID)) {
+            HttpRequest readspans = new HttpRequest(server, "/" + APP_NAME + "/endpoints/readspansmptel20/" + traceId);
+            assertEquals(TEST_PASSED, readspans.run(String.class));
+        } else {
+            HttpRequest readspans = new HttpRequest(server, "/" + APP_NAME + "/endpoints/readspansmptel11/" + traceId);
+            assertEquals(TEST_PASSED, readspans.run(String.class));
+        }
+    }
+
+    @Test
+    public void testEmptyTraceState() throws Exception {
+        HttpRequest pokeJax = new HttpRequest(server, "/" + APP_NAME + "/endpoints/emptyTraceState");
+        String traceId = readTraceId(pokeJax);
+        if (RepeatTestFilter.isRepeatActionActive(MicroProfileActions.MP60_ID)) {
+            HttpRequest readspans = new HttpRequest(server, "/" + APP_NAME + "/endpoints/readspans/" + traceId);
+            assertEquals(TEST_PASSED, readspans.run(String.class));
+        } else if (RepeatTestFilter.isRepeatActionActive(TelemetryActions.MP14_MPTEL20_ID) || RepeatTestFilter.isRepeatActionActive(TelemetryActions.MP41_MPTEL20_ID)
+                   || RepeatTestFilter.isRepeatActionActive(TelemetryActions.MP50_MPTEL20_ID) ||
+                   RepeatTestFilter.isRepeatActionActive(TelemetryActions.MP61_MPTEL20_ID) || RepeatTestFilter.isRepeatActionActive(MicroProfileActions.MP70_EE10_ID)
+                   || RepeatTestFilter.isRepeatActionActive(MicroProfileActions.MP70_EE11_ID)) {
+            HttpRequest readspans = new HttpRequest(server, "/" + APP_NAME + "/endpoints/readspansmptel20/" + traceId);
+            assertEquals(TEST_PASSED, readspans.run(String.class));
+        } else {
+            HttpRequest readspans = new HttpRequest(server, "/" + APP_NAME + "/endpoints/readspansmptel11/" + traceId);
             assertEquals(TEST_PASSED, readspans.run(String.class));
         }
     }

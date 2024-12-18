@@ -21,6 +21,7 @@ import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -129,6 +130,11 @@ public abstract class CloudFATServletClient extends CloudTestBase {
         checkLogAbsence();
     }
 
+    @After
+    public void after() throws IOException {
+        XAResourceImpl.resetWakeUp();
+    }
+
     @Before
     public void before() {
         TxTestContainerSuite.dropTables("was_leases_log");
@@ -175,6 +181,10 @@ public abstract class CloudFATServletClient extends CloudTestBase {
 
             // Now start server1
             FATUtils.startServers(_runner, longLeaseCompeteServer1);
+
+            // Wake up server2 which will be sleeping in recover
+            Log.info(getClass(), "testAggressiveTakeover1", "Wake up " + server2fastcheck.getServerName());
+            XAResourceImpl.wakeUp();
 
             assertNotNull("Peer recovery was not interrupted",
                           server2fastcheck.waitForStringInTrace("WTRN0107W: Server with identity cloud0021 attempted but failed to recover the logs of peer server cloud0011",

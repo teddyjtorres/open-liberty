@@ -20,6 +20,7 @@ import java.time.Month;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Stream;
 
@@ -357,6 +358,43 @@ public class DataErrPathsTestServlet extends FATServlet {
     }
 
     /**
+     * Verify an error is raised when an exists Query by Method Name method
+     * tries to return a true/false value as int.
+     */
+    @Test
+    public void testExistsAsInt() {
+        try {
+            int found = voters.existsByAddress("4051 E River Rd NE, Rochester, MN 55906");
+            fail("Should not be able to use an exists query that returns a" +
+                 " numeric value rather than boolean. Result: " + found);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1003E:") ||
+                !x.getMessage().contains("boolean")) // recommended type
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised when an exists Query by Method Name method
+     * tries to return a true/false value as a Long value that is wrapped in
+     * a CompletableFuture.
+     */
+    @Test
+    public void testExistsAsLong() {
+        try {
+            CompletableFuture<Long> cf = voters.existsByName("Vincent");
+            fail("Should not be able to use an exists query that returns a" +
+                 " numeric value rather than boolean. Future: " + cf);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1003E:") ||
+                !x.getMessage().contains("CompletableFuture<java.lang.Long>"))
+                throw x;
+        }
+    }
+
+    /**
      * Verify an error is raised for a repository method that has extra Param
      * annotations that do not correspond to any named parameters in the query.
      */
@@ -435,6 +473,90 @@ public class DataErrPathsTestServlet extends FATServlet {
                 !x.getMessage().startsWith("CWWKD1094E:") ||
                 !x.getMessage().contains("register") ||
                 !x.getMessage().contains("Voter[]"))
+                throw x;
+        }
+    }
+
+    /**
+     * A repository method with the First keyword and a Limit parameter
+     * must raise an error.
+     */
+    @Test
+    public void testIntermixFirstAndLimit() {
+        try {
+            Voter[] found = voters.findFirst2(Limit.of(3));
+
+            fail("Did not reject repository method that has both a First keyword" +
+                 " and a Limit parameter. Instead found: " + Arrays.toString(found));
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1099E") ||
+                !x.getMessage().contains("Limit"))
+                throw x;
+        }
+    }
+
+    /**
+     * A repository method with the First keyword and a PageRequest parameter
+     * must raise an error.
+     */
+    @Test
+    public void testIntermixFirstAndPageRequest() {
+        try {
+            Page<Voter> page = voters.findFirst3(PageRequest.ofSize(2));
+
+            fail("Did not reject repository method that has both a First keyword" +
+                 " and a PageRequest parameter. Instead found: " + page);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1099E") ||
+                !x.getMessage().contains("PageRequest"))
+                throw x;
+        }
+    }
+
+    /**
+     * A repository method with both Limit and PageRequest parameters
+     * must raise an error.
+     */
+    @Test
+    public void testIntermixLimitAndPage() {
+        try {
+            List<Voter> found = voters
+                            .inhabiting("4051 E River Rd NE, Rochester, MN 55906",
+                                        Limit.of(8),
+                                        Order.by(Sort.asc(ID)),
+                                        PageRequest.ofSize(13));
+
+            fail("Did not reject repository method that has both a Limit and" +
+                 " PageRequest. Instead found: " + found);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1018E") ||
+                !x.getMessage().contains("inhabiting"))
+                throw x;
+        }
+    }
+
+    /**
+     * A repository method returning Page, with both PageRequest and Limit
+     * parameters must raise an error.
+     */
+    @Test
+    public void testIntermixPageAndLimit() {
+        try {
+            Page<Voter> page = voters
+                            .occupying("4051 E River Rd NE, Rochester, MN 55906",
+                                       PageRequest.ofPage(4),
+                                       Order.by(Sort.asc(ID)),
+                                       Limit.of(14));
+
+            fail("Did not reject repository method that has both a PageReaquest" +
+                 " and Limit. Instead found: " + page);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1018E") ||
+                !x.getMessage().contains("occupying"))
                 throw x;
         }
     }
@@ -570,6 +692,26 @@ public class DataErrPathsTestServlet extends FATServlet {
     }
 
     /**
+     * Tests an error path where a Query by Method Name repository method
+     * attempts to place the special parameters ahead of the query parameters.
+     */
+    @Test
+    public void testMethodNameQueryWithSpecialParametersFirst() {
+        try {
+            List<Voter> found = voters
+                            .findFirst5ByAddress(Order.by(Sort.asc(ID)),
+                                                 "4051 E River Rd NE, Rochester, MN 55906");
+            fail("Should fail when special parameters are positioned elsewhere" +
+                 " than at the end. Instead: " + found);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1098E:") ||
+                !x.getMessage().contains("findFirst5ByAddress"))
+                throw x;
+        }
+    }
+
+    /**
      * Verify an error is raised for a repository method that has a Param annotation
      * that specifies a name value that does not match the name of a named parameter
      * from the query.
@@ -604,6 +746,50 @@ public class DataErrPathsTestServlet extends FATServlet {
             if (x.getMessage() == null ||
                 !x.getMessage().startsWith("CWWKD1084E:") ||
                 !x.getMessage().contains("bornIn"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository find method that defines two
+     * Limit parameters.
+     */
+    @Test
+    public void testMultipleLimits() {
+        try {
+            List<Voter> found = voters
+                            .livesAt("701 Silver Creek Rd NE, Rochester, MN 55906",
+                                     Limit.of(2),
+                                     Order.by(Sort.asc(ID)),
+                                     Limit.range(5, 9));
+            fail("Find method with multiple Limits must raise error." +
+                 " Instead found: " + found);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1017E:") ||
+                !x.getMessage().contains("livesAt"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository find method that defines two
+     * PageRequest parameters.
+     */
+    @Test
+    public void testMultiplePageRequests() {
+        try {
+            Page<Voter> page = voters
+                            .residesAt("701 Silver Creek Rd NE, Rochester, MN 55906",
+                                       PageRequest.ofSize(7),
+                                       Order.by(Sort.asc(ID)),
+                                       PageRequest.ofPage(3));
+            fail("Find method with multiple PageRequests must raise error." +
+                 " Instead found: " + page);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1017E:") ||
+                !x.getMessage().contains("residesAt"))
                 throw x;
         }
     }
@@ -692,6 +878,27 @@ public class DataErrPathsTestServlet extends FATServlet {
     }
 
     /**
+     * Tests an error path where a paremeter-based query method attempts to place
+     * the special parameters ahead of the query parameters.
+     */
+    @Test
+    public void testParameterBasedQueryWithSpecialParametersFirst() {
+        try {
+            Page<Voter> page = voters
+                            .occupantsOf(PageRequest.ofSize(9),
+                                         Order.by(Sort.asc(ID)),
+                                         "4051 E River Rd NE, Rochester, MN 55906");
+            fail("Should fail when special parameters are positioned elsewhere" +
+                 " than at the end. Instead: " + page);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1098E:") ||
+                !x.getMessage().contains("occupantsOf"))
+                throw x;
+        }
+    }
+
+    /**
      * Verify an error is raised when a repository method specifies both an
      * OrderBy annotation and the method's name includes the OrderBy keyword.
      * The method also has a Sort parameter.
@@ -728,6 +935,44 @@ public class DataErrPathsTestServlet extends FATServlet {
             if (x.getMessage() == null ||
                 !x.getMessage().startsWith("CWWKD1086E:") ||
                 !x.getMessage().contains("(maxLength)"))
+                throw x;
+        }
+    }
+
+    /**
+     * Tests an error path where a Query by Method Name repository method
+     * attempts to place the special parameters ahead of the query parameters.
+     */
+    @Test
+    public void testQueryWithSpecialParameterAheadOfQueryNamedParameter() {
+        try {
+            List<Voter> found = voters.withNameLongerThan(Limit.of(16),
+                                                          5);
+            fail("Should fail when special parameters are positioned elsewhere" +
+                 " than at the end. Instead: " + found);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1098E:") ||
+                !x.getMessage().contains("withNameLongerThan"))
+                throw x;
+        }
+    }
+
+    /**
+     * Tests an error path where a Query by Method Name repository method
+     * attempts to place the special parameters ahead of the query parameters.
+     */
+    @Test
+    public void testQueryWithSpecialParameterAheadOfQueryPositionalParameter() {
+        try {
+            List<Voter> found = voters.withNameShorterThan(Sort.asc(ID),
+                                                           17);
+            fail("Should fail when special parameters are positioned elsewhere" +
+                 " than at the end. Instead: " + found);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1098E:") ||
+                !x.getMessage().contains("withNameShorterThan"))
                 throw x;
         }
     }

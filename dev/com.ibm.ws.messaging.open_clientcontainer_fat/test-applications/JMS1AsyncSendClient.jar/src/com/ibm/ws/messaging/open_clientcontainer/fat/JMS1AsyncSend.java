@@ -1,5 +1,5 @@
 /* ============================================================================
- * Copyright (c) 2019, 2023 IBM Corporation and others.
+ * Copyright (c) 2019, 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -94,35 +94,62 @@ public class JMS1AsyncSend extends ClientMain {
 
     @ClientTest
     public void testJMS1AsyncSend() throws JMSException, TestException {
-        // Util.setLevel(Level.FINEST);
-        try (QueueSession session = queueConnection_.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
+    	
+    	Util.CODEPATH();
+
+    	try (QueueConnection connection = queueConnectionFactory_.createQueueConnection();
+		     QueueSession session = connection.createQueueSession(false, Session.AUTO_ACKNOWLEDGE)) {
+    		
+    		// Use a temporary Queue so that it is automatically cleaned up whne the Connection is closed.
+    		Queue queue = session.createTemporaryQueue();
+    		
             TextMessage sentMessage = session.createTextMessage(methodName() + " at " + new Date());
-            MessageProducer producer = session.createProducer(queueOne_);
-            MessageConsumer consumer = session.createConsumer(queueOne_);
+            MessageProducer producer = session.createProducer(queue);
+            MessageConsumer consumer = session.createConsumer(queue);
             BasicCompletionListener completionListener = new BasicCompletionListener();
+            
+            connection.start();
+            
+            
+            Util.LOG("Sending Message with CompletionListener");
             producer.send(sentMessage, completionListener);
+            
+            Util.LOG("Message sent. Waiting for CompletionListener to be invoked");
 
             if (!completionListener.waitFor(1, 0)) {
                 throw new TestException("Completion listener not notified, sent:" + sentMessage + " completionListener.formattedState:" + completionListener.formattedState());
             }
+            
+            Util.TRACE("Sent Message: ", sentMessage);
 
+            Util.LOG("Receiving Message");
             TextMessage receivedMessage = (TextMessage) consumer.receive(WAIT_TIME);
+
             if (null == receivedMessage) {
-                Util.TRACE("No message received.");
-                throw new TestException("Message not received, sent:" + sentMessage + " completionListener.formattedState:" + completionListener.formattedState());
+                Util.LOG("No message received.");
+                throw new TestException("Message not received, sent:\n" + sentMessage + "\ncompletionListener.formattedState:\n" + completionListener.formattedState());
             } else {
-                Util.TRACE("Message received, receivedMessage:" + receivedMessage);
+            	Util.LOG("Message received");
+                Util.TRACE("receivedMessage:" + receivedMessage);
             }
 
             if (!receivedMessage.getText().equals(sentMessage.getText()))
                 throw new TestException("Incorrect message received, receivedMessage:" + receivedMessage + "\n sentMessage:" + sentMessage);
 
-        } finally {
-            clearQueue(queueOne_, methodName(), 0);
         }
+    	// Deal with possible exceptions
+    	catch (JMSException | TestException ex) {
+    		Util.LOG("Exception thrown during test", ex);
+    		throw ex;
+    	}
+    	// Deal with unchecked Exceptions
+    	catch (Throwable t) {
+    		Util.LOG("Unchecked Exception thrown during test", t);
+    		TestException newException = new TestException("Unexpected Exception thrown during test", t);
+    		throw newException;
+    	}
 
         reportSuccess();
-        // Util.setLevel(Level.INFO);
     }
 
     // Case where the acknowledgement is not received, the JMS provider would notify
@@ -784,11 +811,17 @@ public class JMS1AsyncSend extends ClientMain {
       reportSuccess();
   }
 
+  // Original version of the clearQueue() method. Remove when no longer used.
   public void clearQueue(Queue queue, String messagePrefix, long numberExpected) throws JMSException, TestException {
+	  clearQueue(queueConnection_, queue, messagePrefix, numberExpected);
+  }
+
+	  
+  public void clearQueue(Connection connection, Queue queue, String messagePrefix, long numberExpected) throws JMSException, TestException {
       Util.TRACE_ENTRY(new Object[] {queue, messagePrefix, numberExpected});
 
       long numberCleared = 0;
-      try (QueueSession session = queueConnection_.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
+      try (Session session = connection.createSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
           MessageConsumer consumer = session.createConsumer(queue);
          
           for (TextMessage message = (TextMessage) consumer.receiveNoWait(); message != null; message = (TextMessage) consumer.receiveNoWait()) {

@@ -1570,6 +1570,35 @@ public class DataTestServlet extends FATServlet {
     }
 
     /**
+     * Use exists methods in the Query by Method Name pattern where the return type
+     * is a CompletionStage or CompletableFuture and the repository method is
+     * annotated to run Asynchronous.
+     */
+    @Test
+    public void testExistsAsync() throws ExecutionException, //
+                    InterruptedException, TimeoutException {
+        CompletionStage<Boolean> stage1 = primes.existsByNameIgnoreCase("thirty-one");
+        CompletionStage<Boolean> stage2 = primes.existsByNameIgnoreCase("thirty-two");
+
+        assertEquals(Boolean.TRUE,
+                     stage1.toCompletableFuture()
+                                     .get(TIMEOUT_MINUTES, TimeUnit.MINUTES));
+
+        assertEquals(Boolean.FALSE,
+                     stage2.toCompletableFuture()
+                                     .get(TIMEOUT_MINUTES, TimeUnit.MINUTES));
+
+        CompletableFuture<Boolean> cf1 = primes.existsByRomanNumeralIgnoreCase("XLI");
+        CompletableFuture<Boolean> cf2 = primes.existsByRomanNumeralIgnoreCase("XLII");
+
+        assertEquals(Boolean.TRUE,
+                     cf1.get(TIMEOUT_MINUTES, TimeUnit.MINUTES));
+
+        assertEquals(Boolean.FALSE,
+                     cf2.get(TIMEOUT_MINUTES, TimeUnit.MINUTES));
+    }
+
+    /**
      * Query-by-method name repository operation to remove and return one or more entities.
      */
     @Test

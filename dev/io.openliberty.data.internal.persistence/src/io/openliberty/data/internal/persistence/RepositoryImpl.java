@@ -292,6 +292,47 @@ public class RepositoryImpl<R> implements InvocationHandler {
     }
 
     /**
+     * Create a new UnsupportedOperationException for a conflicting Limit or
+     * PageRequest parameter.
+     *
+     * @param param   method parameter that is an instance of Limit or PageRequest.
+     * @param limit   other Limit parameter value. Otherwise null.
+     * @param pageReq other PageRequest parameter value. Otherwise null.
+     * @param method  repository method
+     * @return UnsupportedOperationException
+     */
+    @Trivial
+    private UnsupportedOperationException excIncompatible(Object param,
+                                                          Limit limit,
+                                                          PageRequest pageReq,
+                                                          Method method) {
+        Class<?> type = param instanceof Limit ? Limit.class : PageRequest.class;
+
+        if (limit == null && pageReq == null)
+            // conflicts with First keyword
+            return exc(UnsupportedOperationException.class,
+                       "CWWKD1099.first.keyword.incompat",
+                       method.getName(),
+                       repositoryInterface.getName(),
+                       type.getSimpleName());
+        else if (param instanceof Limit ? limit != null : pageReq != null)
+            // conflicts with another parameter of the same time
+            return exc(UnsupportedOperationException.class,
+                       "CWWKD1017.dup.special.param",
+                       method.getName(),
+                       repositoryInterface.getName(),
+                       type.getSimpleName());
+        else
+            // conflict between Limit and PageRequest parameters
+            throw exc(UnsupportedOperationException.class,
+                      "CWWKD1018.confl.special.param",
+                      method.getName(),
+                      repositoryInterface.getName(),
+                      Limit.class.getSimpleName(),
+                      PageRequest.class.getSimpleName());
+    }
+
+    /**
      * Replaces an exception with a Jakarta Data specification-defined exception,
      * chaining the original exception as the cause.
      * This method replaces all exceptions that are not RuntimeExceptions.
@@ -581,8 +622,9 @@ public class RepositoryImpl<R> implements InvocationHandler {
                     case FIND:
                     case FIND_AND_DELETE: {
                         Limit limit = null;
-                        PageRequest pagination = null;
+                        PageRequest pageReq = null;
                         List<Sort<Object>> sortList = null;
+                        int maxResults = queryInfo.maxResults;
 
                         // The first method parameters are used as query parameters.
                         // Beyond that, they can have other purposes such as
@@ -592,27 +634,19 @@ public class RepositoryImpl<R> implements InvocationHandler {
                                         i++) {
                             Object param = args[i];
                             if (param instanceof Limit) {
-                                if (limit == null)
-                                    limit = (Limit) param;
+                                if (maxResults == 0 && limit == null && pageReq == null)
+                                    maxResults = (limit = (Limit) param).maxResults();
                                 else
-                                    throw exc(UnsupportedOperationException.class,
-                                              "CWWKD1017.dup.special.param",
-                                              method.getName(),
-                                              repositoryInterface.getName(),
-                                              "Limit");
+                                    throw excIncompatible(param, limit, pageReq, method);
                             } else if (param instanceof Order) {
                                 @SuppressWarnings("unchecked")
                                 Iterable<Sort<Object>> order = (Iterable<Sort<Object>>) param;
                                 sortList = queryInfo.supplySorts(sortList, order);
                             } else if (param instanceof PageRequest) {
-                                if (pagination == null)
-                                    pagination = (PageRequest) param;
+                                if (maxResults == 0 && pageReq == null && limit == null)
+                                    maxResults = (pageReq = (PageRequest) param).size();
                                 else
-                                    throw exc(UnsupportedOperationException.class,
-                                              "CWWKD1017.dup.special.param",
-                                              method.getName(),
-                                              repositoryInterface.getName(),
-                                              "PageRequest");
+                                    throw excIncompatible(param, limit, pageReq, method);
                             } else if (param instanceof Sort) {
                                 @SuppressWarnings("unchecked")
                                 List<Sort<Object>> newList = queryInfo.supplySorts(sortList, (Sort<Object>) param);
@@ -634,6 +668,8 @@ public class RepositoryImpl<R> implements InvocationHandler {
                                               method.getName(),
                                               repositoryInterface.getName());
                             } else {
+                                queryInfo.validateParameterPositions();
+
                                 throw exc(DataException.class,
                                           "CWWKD1023.extra.param",
                                           method.getName(),
@@ -644,22 +680,15 @@ public class RepositoryImpl<R> implements InvocationHandler {
                             }
                         }
 
-                        if (pagination != null && limit != null)
-                            throw exc(UnsupportedOperationException.class,
-                                      "CWWKD1018.confl.special.param",
-                                      method.getName(),
-                                      repositoryInterface.getName(),
-                                      "Limit",
-                                      "PageRequest");
-
                         if (sortList == null && queryInfo.sortPositions.length > 0)
                             sortList = queryInfo.sorts;
 
                         if (sortList == null || sortList.isEmpty()) {
-                            if (pagination != null)
+                            if (pageReq != null)
                                 queryInfo.requireOrderedPagination(args);
                         } else {
-                            boolean forward = pagination == null || pagination.mode() != PageRequest.Mode.CURSOR_PREVIOUS;
+                            boolean forward = pageReq == null ||
+                                              pageReq.mode() != PageRequest.Mode.CURSOR_PREVIOUS;
                             StringBuilder q = new StringBuilder(queryInfo.jpql);
                             StringBuilder order = null; // ORDER BY clause based on Sorts
                             for (Sort<?> sort : sortList) {
@@ -668,7 +697,8 @@ public class RepositoryImpl<R> implements InvocationHandler {
                                 queryInfo.generateSort(order, sort, forward);
                             }
 
-                            if (pagination == null || pagination.mode() == PageRequest.Mode.OFFSET) {
+                            if (pageReq == null ||
+                                pageReq.mode() == PageRequest.Mode.OFFSET) {
                                 // offset pagination can be a starting point for cursor pagination
                                 queryInfo = queryInfo.withJPQL(q.append(order).toString(), sortList);
                             } else { // CURSOR_NEXT or CURSOR_PREVIOUS
@@ -680,16 +710,17 @@ public class RepositoryImpl<R> implements InvocationHandler {
                         Class<?> multiType = queryInfo.multiType;
 
                         if (CursoredPage.class.equals(multiType)) {
-                            returnValue = new CursoredPageImpl<>(queryInfo, pagination, args);
+                            returnValue = new CursoredPageImpl<>(queryInfo, pageReq, args);
                         } else if (Page.class.equals(multiType)) {
                             PageRequest req = limit == null //
-                                            ? pagination //
+                                            ? pageReq //
                                             : queryInfo.toPageRequest(limit);
                             returnValue = new PageImpl<>(queryInfo, req, args);
-                        } else if (pagination != null && !PageRequest.Mode.OFFSET.equals(pagination.mode())) {
+                        } else if (pageReq != null &&
+                                   !PageRequest.Mode.OFFSET.equals(pageReq.mode())) {
                             throw exc(IllegalArgumentException.class,
                                       "CWWKD1035.incompat.page.mode",
-                                      pagination.mode(),
+                                      pageReq.mode(),
                                       method.getName(),
                                       repositoryInterface.getName(),
                                       method.getGenericReturnType().getTypeName(),
@@ -706,12 +737,10 @@ public class RepositoryImpl<R> implements InvocationHandler {
                             if (queryInfo.type == QueryInfo.Type.FIND_AND_DELETE)
                                 query.setLockMode(LockModeType.PESSIMISTIC_WRITE);
 
-                            int maxResults = limit != null ? limit.maxResults() //
-                                            : pagination != null ? pagination.size() //
-                                                            : queryInfo.maxResults;
-
-                            int startAt = limit != null ? queryInfo.computeOffset(limit) //
-                                            : pagination != null ? queryInfo.computeOffset(pagination) //
+                            int startAt = limit != null //
+                                            ? queryInfo.computeOffset(limit) //
+                                            : pageReq != null //
+                                                            ? queryInfo.computeOffset(pageReq) //
                                                             : 0;
 
                             if (maxResults > 0) {
@@ -1056,18 +1085,7 @@ public class RepositoryImpl<R> implements InvocationHandler {
                     }
                     case EXISTS: {
                         em = entityInfo.builder.createEntityManager();
-
-                        jakarta.persistence.Query query = em.createQuery(queryInfo.jpql);
-                        query.setMaxResults(1);
-                        queryInfo.setParameters(query, args);
-
-                        returnValue = !query.getResultList().isEmpty();
-
-                        if (Optional.class.equals(returnType)) {
-                            returnValue = Optional.of(returnValue);
-                        } else if (CompletableFuture.class.equals(returnType) || CompletionStage.class.equals(returnType)) {
-                            returnValue = CompletableFuture.completedFuture(returnValue);
-                        }
+                        returnValue = queryInfo.exists(em, args);
                         break;
                     }
                     case RESOURCE_ACCESS: {

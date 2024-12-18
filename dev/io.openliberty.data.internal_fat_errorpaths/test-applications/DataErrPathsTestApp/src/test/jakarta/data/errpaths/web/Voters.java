@@ -15,6 +15,7 @@ package test.jakarta.data.errpaths.web;
 import java.time.Month;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 import jakarta.data.Limit;
@@ -137,6 +138,18 @@ public interface Voters extends BasicRepository<Voter, Integer> {
     int discardSorted(@By("address") String mailingAddress, Sort<Voter> sort);
 
     /**
+     * This invalid method attempts to return a true/false exists results as int.
+     */
+    int existsByAddress(String homeAddress);
+
+    /**
+     * This invalid method attempts to return a true/false exists results as a
+     * Long value within a CompletableFuture. The CompletableFuture is fine, but
+     * Long does not match the true/false result type.
+     */
+    CompletableFuture<Long> existsByName(String name);
+
+    /**
      * This invalid method has a conflict between its OrderBy annotation and
      * method name keyword.
      */
@@ -151,6 +164,25 @@ public interface Voters extends BasicRepository<Voter, Integer> {
     List<Voter> findByAddressOrderBySSN(int ssn, Sort<Voter> sort);
 
     /**
+     * This invalid method has both a First keyword and a Limit parameter.
+     */
+    @OrderBy("ssn")
+    Voter[] findFirst2(Limit limit);
+
+    /**
+     * This invalid method has both a First keyword and a PageRequest parameter.
+     */
+    @OrderBy("ssn")
+    Page<Voter> findFirst3(PageRequest pageRequest);
+
+    /**
+     * This invalid method places the Order special parameter ahead of
+     * the query parameter.
+     */
+    List<Voter> findFirst5ByAddress(Order<Voter> order,
+                                    String address);
+
+    /**
      * This invalid method defines an ordering for results of a delete operation
      * but has a return type that disallows returning results.
      */
@@ -163,6 +195,24 @@ public interface Voters extends BasicRepository<Voter, Integer> {
     @Delete
     @OrderBy("name")
     void discardInOrder(@By("address") String mailingAddress);
+
+    /**
+     * This invalid method has Limit and PageRequest parameters and returns a List.
+     */
+    @Find
+    List<Voter> inhabiting(@By("address") String homeAddress,
+                           Limit limit,
+                           Order<Voter> order,
+                           PageRequest pageReq);
+
+    /**
+     * This invalid method has 2 Limit parameters.
+     */
+    @Find
+    List<Voter> livesAt(@By("address") String homeAddress,
+                        Limit firstLimit,
+                        Order<Voter> order,
+                        Limit secondLimit);
 
     /**
      * This invalid method has a mixture of positional and named parameters.
@@ -213,6 +263,24 @@ public interface Voters extends BasicRepository<Voter, Integer> {
     Optional<NameAndZipCode> nameAndZipCode(@By("ssn") int socialSecurityNumber);
 
     /**
+     * This invalid method places the PageRequest and Order special parameters
+     * before the query parameter.
+     */
+    @Find
+    Page<Voter> occupantsOf(PageRequest pageReq,
+                            Order<Voter> order,
+                            @By("address") String homeAddress);
+
+    /**
+     * This invalid method has Limit and PageRequest parameters and returns a Page.
+     */
+    @Find
+    Page<Voter> occupying(@By("address") String homeAddress,
+                          PageRequest pageReq,
+                          Order<Voter> order,
+                          Limit limit);
+
+    /**
      * For testing an error where the method parameter allows multiple entities,
      * but the return type only allows one.
      */
@@ -224,6 +292,15 @@ public interface Voters extends BasicRepository<Voter, Integer> {
      */
     @Delete
     Optional<NameAndZipCode> removeBySSN(@By("ssn") int socialSecurityNumber);
+
+    /**
+     * This invalid method has 2 PageRequest parameters.
+     */
+    @Find
+    Page<Voter> residesAt(@By("address") String homeAddress,
+                          PageRequest pageReq1,
+                          Order<Voter> order,
+                          PageRequest pageReq2);
 
     /**
      * This invalid method has matching named parameters and Param annotation,
@@ -268,4 +345,18 @@ public interface Voters extends BasicRepository<Voter, Integer> {
      */
     @Query("WHERE LENGTH(address) < ?1 ORDER BY ssn ASC")
     List<Voter> withAddressShorterThan(@Param("maxLength") int maxAddressLength);
+
+    /**
+     * This invalid method places the Limit special parameter ahead of
+     * the query parameter.
+     */
+    @Query("WHERE LENGTH(name) > :min ORDER BY ssn ASC")
+    List<Voter> withNameLongerThan(Limit limit, @Param("min") int minLength);
+
+    /**
+     * This invalid method places the Sort special parameter ahead of
+     * the query parameter.
+     */
+    @Query("WHERE LENGTH(name) < ?1")
+    List<Voter> withNameShorterThan(Sort<Voter> sort, int maxLength);
 }
