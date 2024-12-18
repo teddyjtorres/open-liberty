@@ -56,6 +56,8 @@ public class DataErrPathsTest extends FATServletClient {
                                    "CWWKD1019E.*livingAt", // mix of named/positional parameters
                                    "CWWKD1019E.*residingAt", // unused parameters
                                    "CWWKD1022E.*discardPage", // Delete operation with a PageRequest
+                                   "CWWKD1037E.*findByBirthdayOrderBySSN", // CursoredPage of non-entity
+                                   "CWWKD1037E.*registrations", // CursoredPage of non-entity
                                    "CWWKD1077E.*test.jakarta.data.errpaths.web.RepoWithoutDataStore",
                                    "CWWKD1078E.*test.jakarta.data.errpaths.web.InvalidNonJNDIRepo",
                                    "CWWKD1079E.*test.jakarta.data.errpaths.web.InvalidJNDIRepo",

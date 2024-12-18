@@ -12,6 +12,7 @@
  *******************************************************************************/
 package test.jakarta.data.errpaths.web;
 
+import java.time.LocalDate;
 import java.time.Month;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +22,7 @@ import java.util.stream.Stream;
 import jakarta.data.Limit;
 import jakarta.data.Order;
 import jakarta.data.Sort;
+import jakarta.data.page.CursoredPage;
 import jakarta.data.page.Page;
 import jakarta.data.page.PageRequest;
 import jakarta.data.repository.BasicRepository;
@@ -164,6 +166,12 @@ public interface Voters extends BasicRepository<Voter, Integer> {
     List<Voter> findByAddressOrderBySSN(int ssn, Sort<Voter> sort);
 
     /**
+     * This invalid method attempts to return a CursoredPage of a non-entity type.
+     */
+    CursoredPage<Integer> findByBirthdayOrderBySSN(LocalDate birthday,
+                                                   PageRequest pageReq);
+
+    /**
      * This invalid method has both a First keyword and a Limit parameter.
      */
     @OrderBy("ssn")
@@ -286,6 +294,14 @@ public interface Voters extends BasicRepository<Voter, Integer> {
      */
     @Insert
     Voter register(Voter... v);
+
+    /**
+     * This invalid method attempts to return a CursoredPage of a non-entity type.
+     */
+    @Find
+    @OrderBy("ssn")
+    CursoredPage<VoterRegistration> registrations(@By("birthday") LocalDate birthday,
+                                                  PageRequest pageReq);
 
     /**
      * Delete method that attempts to return a record instead of an entity.

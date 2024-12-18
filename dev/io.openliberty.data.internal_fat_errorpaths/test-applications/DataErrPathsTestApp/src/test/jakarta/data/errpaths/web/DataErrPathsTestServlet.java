@@ -31,6 +31,7 @@ import jakarta.data.Order;
 import jakarta.data.Sort;
 import jakarta.data.exceptions.DataException;
 import jakarta.data.exceptions.MappingException;
+import jakarta.data.page.CursoredPage;
 import jakarta.data.page.Page;
 import jakarta.data.page.PageRequest;
 import jakarta.data.page.PageRequest.Cursor;
@@ -162,6 +163,47 @@ public class DataErrPathsTestServlet extends FATServlet {
             if (x.getMessage() == null ||
                 !x.getMessage().startsWith("CWWKD1019E:") ||
                 !x.getMessage().contains("livingAt"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository method that attempts to
+     * return a CursoredPage of a record, rather than of the entity.
+     */
+    @Test
+    public void testCursoredPageOfRecord() {
+        try {
+            CursoredPage<VoterRegistration> page = //
+                            voters.registrations(LocalDate.of(2024, 12, 17),
+                                                 PageRequest.ofSize(7));
+            fail("Should not be able to retrieve CursoredPage of a non-entity." +
+                 " Found: " + page);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1037E:") ||
+                !x.getMessage().contains("VoterRegistration"))
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised for a repository method that attempts to
+     * return a CursoredPage of an entity attribute, rather than of the entity.
+     */
+    @Test
+    public void testCursoredPageOfString() {
+        LocalDate date = LocalDate.of(2024, 12, 18);
+        try {
+            CursoredPage<Integer> page = //
+                            voters.findByBirthdayOrderBySSN(date,
+                                                            PageRequest.ofSize(8));
+            fail("Should not be able to retrieve CursoredPage of a non-entity." +
+                 " Found: " + page);
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() == null ||
+                !x.getMessage().startsWith("CWWKD1037E:") ||
+                !x.getMessage().contains("CursoredPage<java.lang.Integer>"))
                 throw x;
         }
     }
