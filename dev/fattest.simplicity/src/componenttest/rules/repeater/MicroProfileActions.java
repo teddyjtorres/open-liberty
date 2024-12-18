@@ -9,16 +9,23 @@
  *******************************************************************************/
 package componenttest.rules.repeater;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+
+import com.ibm.websphere.simplicity.log.Log;
 
 import componenttest.custom.junit.runner.Mode.TestMode;
 import componenttest.rules.repeater.RepeatActions.EEVersion;
 
 public class MicroProfileActions {
+
+    private static final Class<MicroProfileActions> c = MicroProfileActions.class;
 
     private static final String[] MP10_FEATURES_ARRAY = { "microProfile-1.0",
                                                           "cdi-1.2",
@@ -535,5 +542,41 @@ public class MicroProfileActions {
      */
     public static RepeatTests repeat(String[] servers, TestMode otherFeatureSetsTestMode, boolean skipTransformation, FeatureSet firstFeatureSet, FeatureSet... otherFeatureSets) {
         return RepeatActions.repeat(servers, otherFeatureSetsTestMode, ALL, firstFeatureSet, Arrays.asList(otherFeatureSets), skipTransformation);
+    }
+
+    /**
+     * Get a repeat test for the following FeatureSets, with a predicate that will be used to filter out the FeatureSets.
+     * The first FeatureSet to pass the predicate will be run in LITE mode. The others will be run in FULL.
+     *
+     * @param  serverName  the server to repeat on
+     * @param  predicate   a predicate that will filter feature sets
+     * @param  featureSet  the first feature set
+     * @param  featureSets the feature sets
+     * @return             a RepeatTests instance
+     */
+    public static RepeatTests repeatWithPredicate(String serverName, Predicate<FeatureSet> predicate, FeatureSet featureSet, FeatureSet... featureSets) {
+
+        final String m = "repeatWithPredicate";
+
+        List<FeatureSet> featureSetsMerged = new ArrayList<FeatureSet>(Arrays.asList(featureSets));
+        featureSetsMerged.add(0, featureSet);
+
+        Log.info(c, m, "enter. Testing " +
+                       String.join(", ", featureSetsMerged.stream().map(FeatureSet::getID).collect(Collectors.toList())));
+
+        featureSetsMerged.removeIf(predicate);
+
+        if (featureSetsMerged.isEmpty()) {
+            Log.info(c, m, "found no acceptable FeatureSets");
+            return RepeatTests.with(new DisabledAction());
+        }
+
+        Log.info(c, m, "found the following aceptable FeatureSets " +
+                       String.join(", ", featureSetsMerged.stream().map(FeatureSet::getID).collect(Collectors.toList())));
+
+        FeatureSet firstAction = featureSetsMerged.remove(0);
+        FeatureSet[] otherActions = featureSetsMerged.toArray(new FeatureSet[0]);
+
+        return repeat(serverName, firstAction, otherActions);
     }
 }
