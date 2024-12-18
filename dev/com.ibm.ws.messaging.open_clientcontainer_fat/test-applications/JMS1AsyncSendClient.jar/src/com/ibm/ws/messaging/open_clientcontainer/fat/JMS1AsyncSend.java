@@ -181,12 +181,17 @@ public class JMS1AsyncSend extends ClientMain {
   @ClientTest
   public void testJMS1AsyncSendException() throws JMSException, TestException {
       //Util.setLevel(Level.FINEST);
+	  
 
-      try (QueueSession queueSession = queueConnection_.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {  
-          BasicCompletionListener completionListener = new BasicCompletionListener();
+      try ( QueueConnection connection = queueConnectionFactory_.createQueueConnection();
+    		QueueSession queueSession = queueConnection_.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {  
+          
+    	  BasicCompletionListener completionListener = new BasicCompletionListener();
+          Queue queue = queueSession.createTemporaryQueue();
+          
           try {
               MessageProducer producer = queueSession.createProducer(null);
-              producer.send(queueOne_, null, completionListener);
+              producer.send(queue, null, completionListener);
               throw new TestException("Expected MessageFormatException not thrown, completionListener state="+completionListener.formattedState());
           } catch (MessageFormatException e) {
               if (completionListener.completionCount_ != 0 )
@@ -194,8 +199,10 @@ public class JMS1AsyncSend extends ClientMain {
               if (completionListener.exceptionCount_ != 0)         
                   throw new TestException("Non zero exceptionCount completionListener.formattedState:"+completionListener.formattedState());
           }       
-      } finally {
-          clearQueue(queueOne_, methodName(), 0);
+      }
+      catch ( JMSException | TestException e) {
+    	  Util.LOG("TestException thrown during test", e);
+    	  throw e;
       }
 
       reportSuccess();
