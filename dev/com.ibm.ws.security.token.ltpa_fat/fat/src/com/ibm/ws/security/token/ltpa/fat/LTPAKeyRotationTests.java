@@ -17,6 +17,9 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
+import java.io.File;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.FileReader;
@@ -100,7 +103,8 @@ public class LTPAKeyRotationTests {
     // Initialize the FormLogin Clients
     private static final FormLoginClient flClient1 = new FormLoginClient(server, FormLoginClient.DEFAULT_SERVLET_NAME, "/formlogin1");
     private static final FormLoginClient flClient2 = new FormLoginClient(server, FormLoginClient.DEFAULT_SERVLET_NAME, "/formlogin2");
-
+    private static final String DEFAULT_SERVER_XML = "server.xml";
+    private static final String DEFAULT_FIPS_SERVER_XML = "serverFIPS.xml";
     // Define the paths to the key files
     private static final String DEFAULT_KEY_PATH = "resources/security/ltpa.keys";
     private static final String CONFIGURED_VALIDATION_KEY1_PATH = "resources/security/configuredValidation1.keys";
@@ -123,6 +127,7 @@ public class LTPAKeyRotationTests {
     private static String ALT_VALIDATION_KEY6_PATH = "alternate/validation6.keys";
     private static String ALT_VALIDATION_KEY7_PATH = "alternate/validation7.keys";
     private static String ALT_VALIDATION_KEY8_PATH = "alternate/validation8.keys";
+    private static String ALT_CONFIGVALIDATION_KEY1_PATH = "alternate/configuredValidation1.keys";
     private static String SERVER_XML_PATH = "server.xml";
 
     // Define the paths to the alternate key files
@@ -134,6 +139,7 @@ public class LTPAKeyRotationTests {
     private static String ALT_FIPS_VALIDATION_KEY6_PATH = "alternateFIPS/validation6.keys";
     private static String ALT_FIPS_VALIDATION_KEY7_PATH = "alternateFIPS/validation7.keys";
     private static String ALT_FIPS_VALIDATION_KEY8_PATH = "alternateFIPS/validation8.keys";
+    private static String ALT_FIPS_CONFIGVALIDATION_KEY1_PATH = "alternateFIPS/configuredValidation1.keys";
     private static String FIPS_SERVER_XML_PATH = "serverFIPS.xml";
 
 
@@ -166,6 +172,7 @@ public class LTPAKeyRotationTests {
             ALT_VALIDATION_KEY6_PATH = ALT_FIPS_VALIDATION_KEY6_PATH;
             ALT_VALIDATION_KEY7_PATH = ALT_FIPS_VALIDATION_KEY7_PATH;
             ALT_VALIDATION_KEY8_PATH = ALT_FIPS_VALIDATION_KEY8_PATH;
+            ALT_CONFIGVALIDATION_KEY1_PATH=ALT_FIPS_CONFIGVALIDATION_KEY1_PATH;
             validationKeyPassword = validationKeyFIPSPassword;
         }
     }
@@ -190,9 +197,16 @@ public class LTPAKeyRotationTests {
     @BeforeClass
     public static void setUp() throws Exception {
         // Copy validation key file (validation1.keys) to the server
-        copyFileToServerResourcesSecurityDir(ALT_VALIDATION_KEY1_PATH);
+        copyFileToServerResourcesSecurityDir(ALT_CONFIGVALIDATION_KEY1_PATH);
 
         server.setupForRestConnectorAccess();
+        if (fipsEnabled)
+        {
+            File fipsServerXml = new File(server.pathToAutoFVTTestFiles + DEFAULT_FIPS_SERVER_XML);
+            File serverXml = new File(server.pathToAutoFVTTestFiles + DEFAULT_SERVER_XML);
+            Files.move(fipsServerXml.toPath(), serverXml.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            server.copyFileToLibertyServerRoot(DEFAULT_SERVER_XML);
+        }
 
         server.startServer(true);
 
@@ -208,9 +222,6 @@ public class LTPAKeyRotationTests {
 
         messagesLogFile = server.getDefaultLogFile();
 
-        if (fipsEnabled){
-            renameFileIfExists(FIPS_SERVER_XML_PATH, SERVER_XML_PATH, true);
-        }
     }
 
     @Before
@@ -378,7 +389,7 @@ public class LTPAKeyRotationTests {
      */
     @Test
     @CheckForLeakedPasswords({ validPassword })
-    @AllowedFFDC({ "javax.crypto.BadPaddingException", "java.lang.IllegalArgumentException",  "java.lang.NullPointerException" })
+    @AllowedFFDC({ "javax.crypto.BadPaddingException", "javax.crypto.AEADBadTagException", "java.lang.IllegalArgumentException",  "java.lang.NullPointerException" })
     public void testLTPAFileReplacement_invalidSharedKey_monitorValidationKeysDir_true_monitorInterval_10() throws Exception {
         // Configure the server
         configureServer("true", "10", true);
@@ -476,7 +487,7 @@ public class LTPAKeyRotationTests {
      */
     @Test
     @CheckForLeakedPasswords({ validPassword })
-    @AllowedFFDC({ "javax.crypto.BadPaddingException", "java.lang.IllegalArgumentException",  "java.lang.NullPointerException" })
+    @AllowedFFDC({ "javax.crypto.BadPaddingException", "javax.crypto.AEADBadTagException", "java.lang.IllegalArgumentException",  "java.lang.NullPointerException" })
     public void testLTPAFileReplacement_invalidPrivateKey_monitorValidationKeysDir_true_monitorInterval_10() throws Exception {
         // Configure the server
         configureServer("true", "10", true);
@@ -574,7 +585,7 @@ public class LTPAKeyRotationTests {
      */
     @Test
     @CheckForLeakedPasswords({ validPassword })
-    @AllowedFFDC({ "javax.crypto.BadPaddingException", "java.lang.IllegalArgumentException",  "java.lang.NullPointerException" })
+    @AllowedFFDC({ "javax.crypto.BadPaddingException", "javax.crypto.AEADBadTagException", "java.lang.IllegalArgumentException",  "java.lang.NullPointerException" })
     public void testLTPAFileReplacement_invalidPublicKey_monitorValidationKeysDir_true_monitorInterval_10() throws Exception {
         // Configure the server
         configureServer("true", "10", true);
@@ -1001,7 +1012,7 @@ public class LTPAKeyRotationTests {
      */
     @Test
     @CheckForLeakedPasswords({ validPassword })
-    @AllowedFFDC({ "java.lang.IllegalArgumentException" })
+    @AllowedFFDC({ "javax.crypto.AEADBadTagException", "java.lang.IllegalArgumentException" })
     public void testValidationKeys_fileNameAttribute() throws Exception {
         // Configure the server
         configureServer("true", "10", true);
@@ -1113,7 +1124,7 @@ public class LTPAKeyRotationTests {
      */
     @Test
     @CheckForLeakedPasswords({ validPassword })
-    @AllowedFFDC({ "javax.crypto.BadPaddingException", "java.lang.IllegalArgumentException", "java.lang.NullPointerException" })
+    @AllowedFFDC({ "javax.crypto.BadPaddingException", "javax.crypto.AEADBadTagException", "java.lang.IllegalArgumentException", "java.lang.NullPointerException" })
     public void testValidationKeys_passwordAttribute() throws Exception {
         // Configure the server
         configureServer("true", "10", true);
@@ -1321,7 +1332,7 @@ public class LTPAKeyRotationTests {
         ConfigElementList<ValidationKeys> validationKeys = ltpa.getValidationKeys();
         ValidationKeys validationKey = new ValidationKeys();
         validationKey.fileName = "validation2.keys";
-        validationKey.password = "{xor}Lz4sLCgwLTs=";
+        validationKey.password = validationKeyPassword;
         validationKey.validUntilDate = "2099-01-01T00:00:00Z";
         validationKeys.add(validationKey);
         updateConfigDynamically(server, serverConfiguration);
@@ -1406,7 +1417,7 @@ public class LTPAKeyRotationTests {
         ConfigElementList<ValidationKeys> validationKeys = ltpa.getValidationKeys();
         ValidationKeys validationKey = new ValidationKeys();
         validationKey.fileName = "validation2.keys";
-        validationKey.password = "{xor}Lz4sLCgwLTs=";
+        validationKey.password = validationKeyPassword;
         validationKey.validUntilDate = expiryTime;
         validationKeys.add(validationKey);
         updateConfigDynamically(server, serverConfiguration);
@@ -1703,15 +1714,25 @@ public class LTPAKeyRotationTests {
         assertNotNull("Expected SSO Cookie 1 is missing.", cookie1);
 
         // Contents to update ltpa keys with
-        Map<String, String> contents = new HashMap<String, String>() {
+        Map<String, String> contents;
+        if(fipsEnabled)
+        {
+            contents = new HashMap<String, String>() {
+            {
+                put("com.ibm.websphere.ltpa.3DESKey", "KKHokqY906qqUO5sK4cVGmgR6zphI2Fl3++fOpgDvPorRcB+//TEzU/64wRERf0V");
+                put("com.ibm.websphere.ltpa.PrivateKey","NweYl5w2UXErSGNMlRK6SXrfG//vWE+IBTO+YOEXFz/PDpnvpQU7lC3DImi2QH2DX8jr1e7LqsQ7Y8ZxDxNjnQQR7Amxuh1EuxQlU49zAPlKCd2jdj6mRRXwsTy8bpvJJHqLZDXi/qWE/gEuuwBPJAowYMdmxBIFNhyhJ3NSnekV3ZUlxaCUee3DbCiDftwtsXsGVLPcJDUprLx4FZd4znu+2SUkwUwk9lks2TuuKJ36J4DhFqQjeHcM9NypKfJvTFi4mjqMYN+AedrKVUAZzWEnHY0tsWvFTiaD/XebI3jSn6zCVmS1QX2BPxdDw84bNxm983a/qKU/qjgYpR0UbjfsMg6L8r6+d9B45zmqSctZEGMGXTHZl/dNfgp1l4iKX/bxZjew9eAoIvMZ81vS0I8lHe+9cUcx6/pDL4fiF+sjzKQvGqVSycfgfw0DwscjHTVTFi3IDv5OLLaffLqmyR3JELkALPgCQofbMgRfJLuEyq4uCpay223e6vmsGcC6aX2MJFgmreS9godnopTzuraitMJyPqIX8mt15keDd8YtQxwxlZMIOpDZ9bbxtSNcIEvbortjZyDLPEe/QAzmw0j6phwiUwjRHqM6Dk7vj1s1LcXl7EHvaFHK+wZAI+cIrkycH4oW+ZdrSBg9SuIvQPkskbntVBDNmMzk8ladQK4MWc7JOk+Wy/BnfTQw8JcIpefEKHQkCY6Q");
+                put("com.ibm.websphere.ltpa.PublicKey","AMFGzlz1B/CIWiHvdhiaUFPt5eTXo8/Y+ki7ksDohafQTW6YnWw9QbDq1JmfMB91j75sjIEmzFJhKA9F8UarHQrgspcsgw65kgtPDFBDSCJRGJ2f0RJxGTFnxuzZfihKfVpzKi6XcvvpJdnXXfwdejot68opbeB+MC0gasuPKv4Euw/uIniV7nd0HQI4dEmqL1VpaAdwZj8mHDKuXBHdJtgeNWEL5xgy9lM0YqBgB2wlav7m6tw5JyfTtDNjEF3tcB98A82DenxrIc5D6nIbAI7MWSBCBYfIrig1p+Uq4iWq15H20wlWu1z127bz69TW2Oc37Fgswl2EVWjKub347xEBAAE\\=");
+            }};
+        }else{
+            contents = new HashMap<String, String>() {
             {
                 put("com.ibm.websphere.ltpa.3DESKey", "eJh1K9My7p4Uj0Gw/X2XDWxyY1C9E3UEp7ji+BJPSDM\\=");
                 put("com.ibm.websphere.ltpa.PrivateKey",
                     "kmhgRjTUcxvFJoVw8jxWuh3ffuxym/SLYW8TQYKjK/4TJoPx9h2FJvNHkiaxfvACUWN5Lw5A1c500PRD+kcUtY+05IpNbGd0xu7BsjDQoLaEi4jrtBjT0REEYepsj9QQXnQTG9GL3CuNkSmPLxlHWBKZkDlcv4MtOKn2ozeXQjQ5doAJGDm6qk8QxxB7jGHCdQI9L6G4ic34w6DWV9qKZiX/Yp39neL6jR9mH3e9U7EFyefrtOTF7EUscfikBnw0sQUNnwTx2vMv+Q9QI+ykZMJULvzGKf2fW7Qz+OfQIlTatBCYRWtG0BQGi0BkUULApK2qIxQbvLVT7ijEwg2YsWTREcsnbVvHFmSqTF5jf8w\\=");
                 put("com.ibm.websphere.ltpa.PublicKey",
                     "AK/MQIy6PT5GCI1qYDhH6b7yyZPdCcc4cgOKyJOkS/F4IHA51rjW5gVUm0gWkqfCkoU6LsWkBetxiJeZ7ECL4mUOSTfEFx4cPtvCu62DxtgleQt6pbEuvtaDalFL6/6p35y2uyuKhX4YiG9w25lLXTNCMfw3mQn+RpC3pVjYKpB9AQAB");
-            }
-        };
+            }};
+        }
 
         // Update LTPA keys file
         modifyFileIfExists(DEFAULT_KEY_PATH, contents);
@@ -2050,7 +2071,7 @@ public class LTPAKeyRotationTests {
 
         // Assert that a default ltpa.keys file is generated
         assertFileWasCreated(DEFAULT_KEY_PATH);
-
+        server.setKeysAndJVMOptsForFips();
         if (setLogMarkToEnd)
             server.setMarkToEndOfLog(messagesLogFile);
     }
@@ -2480,6 +2501,7 @@ public class LTPAKeyRotationTests {
 
         // Assert that a default ltpa.keys file exists prior to next test case
         assertFileWasCreated(DEFAULT_KEY_PATH);
+        Log.info(thisClass, "resetServer", "exiting");
     }
 
     /**
