@@ -627,6 +627,42 @@ public class JakartaDataRecreateServlet extends FATServlet {
 
         assertEquals(4, primes.size());
     }
+    @Test
+    // "Reference issue: https://github.com/OpenLiberty/open-liberty/issues/30093"
+    public void testOLGH30093() throws Exception {
+        deleteAllEntities(Prime.class); // Cleanup any left over entities
+
+        Prime two = Prime.of(2, "II", "two");
+        Prime three = Prime.of(3, "III", "three");
+        Prime five = Prime.of(5, "V", "five");
+        Prime seven = Prime.of(7, "VII", "seven");
+        List<Long> ids;
+
+        tx.begin();
+        em.persist(two);
+        em.persist(three);
+        em.persist(five);
+        em.persist(seven);
+        tx.commit();
+
+        tx.begin();
+        try {
+             ids = em.createQuery(
+                                    "SELECT ID(THIS) FROM Prime WHERE ID(THIS) < ?1 ORDER BY ID(THIS) DESC",
+                                    Long.class)
+                            .setParameter(1, 7)
+                            .getResultList();
+            tx.commit();
+        } catch (Exception e) {
+            tx.rollback();
+            throw e;
+        }
+        
+        assertEquals(3, ids.size());
+        assertEquals(5L, ids.get(0).longValue());
+        assertEquals(3L, ids.get(1).longValue());
+        assertEquals(2L, ids.get(2).longValue());
+    }
 
     @Test
     @Ignore("Reference issue: https://github.com/OpenLiberty/open-liberty/issues/29117")
