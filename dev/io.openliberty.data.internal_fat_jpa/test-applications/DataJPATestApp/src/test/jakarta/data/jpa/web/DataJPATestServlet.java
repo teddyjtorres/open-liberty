@@ -1528,9 +1528,6 @@ public class DataJPATestServlet extends FATServlet {
      * Tests CrudRepository methods that supply entities as parameters.
      * Also tests compatibility with Converters using OffsetDateTimeToStringConverter
      */
-    @SkipIfSysProp({
-                     DB_Postgres, //TODO Failing on Postgres due to eclipselink issue.  OL Issue #28368
-    })
     @Test
     public void testEntitiesAsParameters() throws Exception {
         orders.deleteAll();
@@ -1671,8 +1668,12 @@ public class DataJPATestServlet extends FATServlet {
         // we are not correctly parsing this exception to re-throw as EntityExistsException
         // Related issue: https://github.com/microsoft/mssql-jdbc/issues/1199
         // SQLServer JDBC Jar Name : mssql-jdbc.jar
+        // TODO PostgreSQL throws org.postgresql.util.PSQLException:
+        // ERROR: duplicate key value violates unique constraint "purchaseorder_pkey"
+        // Detail: Key (id)=(c2383324-d0a1-4d71-be8c-b2fda27f1701) already exists.
         String jdbcJarName = System.getenv().getOrDefault("DB_DRIVER", "UNKNOWN");
-        if (!(jdbcJarName.startsWith("mssql-jdbc"))) {
+        if (!jdbcJarName.startsWith("mssql-jdbc") &&
+            !jdbcJarName.startsWith("postgresql")) {
             try {
 
                 orders.insertAll(List.of(o7, o5));
@@ -1866,7 +1867,6 @@ public class DataJPATestServlet extends FATServlet {
     /**
      * Verify that fetch type eager and lazy both work when using a detached entity returned by Jakarta Data
      */
-    @SkipIfSysProp(DB_Postgres) //TODO Failing due to Eclipselink Issue on PostgreSQL: https://github.com/OpenLiberty/open-liberty/issues/28368
     @Test
     public void testFetchType() {
         mobilePhones.removeAll();
@@ -1895,7 +1895,6 @@ public class DataJPATestServlet extends FATServlet {
     /**
      * Reproduces issue 27925.
      */
-    @SkipIfSysProp(DB_Postgres) //TODO Failing on Postgres due to eclipselink issue.  OL Issue #28368
     @Test
     public void testForeignKey() {
         Manufacturer toyota = new Manufacturer();
@@ -2116,9 +2115,6 @@ public class DataJPATestServlet extends FATServlet {
     /**
      * Avoid specifying a primary key value and let it be generated.
      */
-    @SkipIfSysProp({
-                     DB_Postgres, //TODO Failing on Postgres due to eclipselink issue.  OL Issue #28368
-    })
     @Test
     public void testGeneratedKey() {
         ZoneOffset MDT = ZoneOffset.ofHours(-6);
@@ -3992,7 +3988,6 @@ public class DataJPATestServlet extends FATServlet {
      * Use the JPQL version(entityVar) function as the sort property to perform
      * an ascending sort.
      */
-    @SkipIfSysProp(DB_Postgres) //TODO Failing on Postgres due to eclipselink issue.  OL Issue #28368
     @Test
     public void testSortByVersionFunction() {
         orders.deleteAll();
@@ -4524,7 +4519,6 @@ public class DataJPATestServlet extends FATServlet {
      * Test that a method that is annotated with the Update annotation can return entity results,
      * and the resulting entities match the updated values that were written to the database.
      */
-    @SkipIfSysProp(DB_Postgres) //TODO Failing on Postgres due to eclipselink issue.  OL Issue #28368
     @Test
     public void testUpdateWithEntityResults() {
         orders.deleteAll();
@@ -4690,7 +4684,6 @@ public class DataJPATestServlet extends FATServlet {
     /**
      * Test that @Delete requires the entity to exist with the same version as the database for successful removal.
      */
-    @SkipIfSysProp(DB_Postgres) //TODO Failing on Postgres due to eclipselink issue.  OL Issue #28368
     @Test
     public void testVersionedDelete() {
         orders.deleteAll();
@@ -4802,7 +4795,6 @@ public class DataJPATestServlet extends FATServlet {
      * Test that @Update requires the entity to exist with the same version as the database for successful update.
      * This tests covers an entity type with an IdClass.
      */
-    @SkipIfSysProp(DB_Postgres) //TODO Failing on Postgres due to eclipselink issue.  OL Issue #28368
     @Test
     public void testVersionedUpdate() {
         orders.deleteAll();
