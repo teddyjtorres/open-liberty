@@ -31,7 +31,7 @@ public class ArtifactoryMirrorSubstitutor extends ImageNameSubstitutor {
     static {
         REGISTRY_MAP.put("NONE", "wasliberty-infrastructure-docker");
         REGISTRY_MAP.put("docker.io", "wasliberty-docker-remote"); //Only for verified images
-//        REGISTRY_MAP.put("ghcr.io", "TODO");
+        REGISTRY_MAP.put("ghcr.io", "wasliberty-ghcr-docker-remote");
 //        REGISTRY_MAP.put("icr.io", "TODO");
 //        REGISTRY_MAP.put("mcr.microsoft.com", "TODO");
         REGISTRY_MAP.put("public.ecr.aws", "wasliberty-aws-docker-remote");
