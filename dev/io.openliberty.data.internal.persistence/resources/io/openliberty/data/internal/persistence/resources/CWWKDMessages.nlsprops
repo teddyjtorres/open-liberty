@@ -993,7 +993,7 @@ CWWKD1099.first.keyword.incompat.useraction=Remove the First keyword from the \
 CWWKD1100.cursor.requires.sort=CWWKD1100E: The {0} method of the {1} repository \
  returns {2} but does not have an OrderBy annotation or any of the following \
  parameters to specify sort criteria: {3}. Sort criteria is required for \
- cursor-based pagination and must not be specified within an ORDER BY clause of \
+ cursor-based pagination and cannot be specified within an ORDER BY clause of \
  a Query annotation value.
 CWWKD1100.cursor.requires.sort.explanation=Cursor-based pagination requires \
  sort criteria.
