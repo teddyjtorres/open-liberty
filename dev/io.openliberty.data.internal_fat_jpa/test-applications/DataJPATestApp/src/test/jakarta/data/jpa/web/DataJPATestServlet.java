@@ -957,7 +957,7 @@ public class DataJPATestServlet extends FATServlet {
         cityNames.add("Mitchell");
         cityNames.add("Pierre");
 
-        //TODO Eclipse link SQL Generation bug on Oracle: https://github.com/OpenLiberty/open-liberty/issues/28545
+        //TODO Eclipse link SQL Generation bug on Oracle: https://github.com/OpenLiberty/open-liberty/issues/30444
         if (jdbcJarName.startsWith("ojdbc8")) {
             cities.removeByStateName("South Dakota"); //Cleanup Cities repository and skip the rest of these tests
             return;

@@ -1803,7 +1803,7 @@ public class DataTestServlet extends FATServlet {
     /**
      * Find-and-delete repository operations that return one or more IDs, corresponding to removed entities.
      */
-    @SkipIfSysProp(DB_Oracle) //TODO Eclipse link SQL Generation bug on Oracle: https://github.com/OpenLiberty/open-liberty/issues/28545
+    @SkipIfSysProp(DB_Oracle) //TODO Eclipse link SQL Generation bug on Oracle: https://github.com/OpenLiberty/open-liberty/issues/30444
     @Test
     public void testFindAndDeleteReturnsIds() throws Exception {
         String jdbcJarName = System.getenv().getOrDefault("DB_DRIVER", "UNKNOWN");
@@ -1846,7 +1846,6 @@ public class DataTestServlet extends FATServlet {
      * record class, or id class.
      */
     @Test
-    @SkipIfSysProp(DB_Oracle) //TODO Eclipse link SQL Generation bug on Oracle: https://github.com/OpenLiberty/open-liberty/issues/28545
     public void testFindAndDeleteReturnsInvalidTypes() {
         packages.deleteAll();
 
@@ -1914,9 +1913,6 @@ public class DataTestServlet extends FATServlet {
      * Find-and-delete repository operations that return one or more objects, corresponding to removed entities.
      */
     @Test
-    @SkipIfSysProp({
-                     DB_Oracle //TODO Eclipse link SQL Generation bug on Oracle: https://github.com/OpenLiberty/open-liberty/issues/28545
-    })
     public void testFindAndDeleteReturnsObjects() {
         String jdbcJarName = System.getenv().getOrDefault("DB_DRIVER", "UNKNOWN");
         boolean supportsOrderByForUpdate = !jdbcJarName.startsWith("derby");
