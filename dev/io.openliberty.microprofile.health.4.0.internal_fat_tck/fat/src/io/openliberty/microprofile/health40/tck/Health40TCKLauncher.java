@@ -40,12 +40,12 @@ public class Health40TCKLauncher {
     private static final String SERVER_NAME = "Health40TCKServer";
 
     @ClassRule
-    public static RepeatTests r = MicroProfileActions.repeatWithPredicate(SERVER_NAME,
-                                                             TCKUtilities::areFeaturesMissing,
-                                                             MicroProfileActions.MP70_EE10,
-                                                             MicroProfileActions.MP70_EE11,
-                                                             MicroProfileActions.MP61,
-                                                             MicroProfileActions.MP50);
+    public static RepeatTests r = MicroProfileActions.repeatIf(SERVER_NAME,
+                                                               TCKUtilities::areAllFeaturesPresent,
+                                                               MicroProfileActions.MP70_EE10,
+                                                               MicroProfileActions.MP70_EE11,
+                                                               MicroProfileActions.MP61,
+                                                               MicroProfileActions.MP50);
 
     @Server(SERVER_NAME)
     public static LibertyServer server;

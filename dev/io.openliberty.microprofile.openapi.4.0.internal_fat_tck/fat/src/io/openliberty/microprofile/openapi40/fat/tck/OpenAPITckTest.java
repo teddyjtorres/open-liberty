@@ -43,7 +43,7 @@ public class OpenAPITckTest {
     public static LibertyServer server;
 
     @ClassRule
-    public static RepeatTests repeatTests = MicroProfileActions.repeatWithPredicate(SERVER_NAME, TCKUtilities::areFeaturesMissing, MicroProfileActions.MP70_EE10, MicroProfileActions.MP70_EE11);
+    public static RepeatTests repeatTests = MicroProfileActions.repeatIf(SERVER_NAME, TCKUtilities::areAllFeaturesPresent, MicroProfileActions.MP70_EE10, MicroProfileActions.MP70_EE11);
 
     @BeforeClass
     public static void setUp() throws Exception {

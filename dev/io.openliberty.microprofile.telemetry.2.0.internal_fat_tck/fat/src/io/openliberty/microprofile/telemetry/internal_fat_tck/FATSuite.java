@@ -34,6 +34,6 @@ public class FATSuite {
 
     public static RepeatTests allMPTel20Repeats(String serverName) {
         return MicroProfileActions
-                        .repeatWithPredicate(serverName, TCKUtilities::areFeaturesMissing, MicroProfileActions.MP70_EE11, MicroProfileActions.MP70_EE10);
+                        .repeatIf(serverName, TCKUtilities::areAllFeaturesPresent, MicroProfileActions.MP70_EE11, MicroProfileActions.MP70_EE10);
     }
 }

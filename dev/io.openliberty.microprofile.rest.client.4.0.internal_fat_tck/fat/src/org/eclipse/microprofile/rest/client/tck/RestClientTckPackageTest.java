@@ -44,10 +44,10 @@ public class RestClientTckPackageTest {
     public static final String SERVER_NAME = "FATServer";
 
     @ClassRule
-    public static RepeatTests r = MicroProfileActions.repeatWithPredicate(SERVER_NAME,
-                                                             TCKUtilities::areFeaturesMissing,
-                                                             MicroProfileActions.MP70_EE10, // 4.0+EE10
-                                                             MicroProfileActions.MP70_EE11); // 4.0+EE11
+    public static RepeatTests r = MicroProfileActions.repeatIf(SERVER_NAME,
+                                                               TCKUtilities::areAllFeaturesPresent,
+                                                               MicroProfileActions.MP70_EE10, // 4.0+EE10
+                                                               MicroProfileActions.MP70_EE11); // 4.0+EE11
 
     @Server(SERVER_NAME)
     public static LibertyServer server;

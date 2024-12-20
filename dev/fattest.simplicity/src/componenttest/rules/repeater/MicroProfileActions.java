@@ -549,22 +549,40 @@ public class MicroProfileActions {
      * The first FeatureSet to pass the predicate will be run in LITE mode. The others will be run in FULL.
      *
      * @param  serverName  the server to repeat on
-     * @param  predicate   a predicate that will filter feature sets
+     * @param  predicate   a predicate that will filter feature sets. If the predicate returns true, the feature set will be run
      * @param  featureSet  the first feature set
      * @param  featureSets the feature sets
      * @return             a RepeatTests instance
      */
-    public static RepeatTests repeatWithPredicate(String serverName, Predicate<FeatureSet> predicate, FeatureSet featureSet, FeatureSet... featureSets) {
+    public static RepeatTests repeatIf(String serverName, Predicate<FeatureSet> predicate, FeatureSet featureSet, FeatureSet... featureSets) {
+        return repeatIf(serverName, predicate, TestMode.FULL, false, featureSet, featureSets);
+    }
 
-        final String m = "repeatWithPredicate";
+    /**
+     * Get a repeat test for the following FeatureSets, with a predicate that will be used to filter out the FeatureSets.
+     * The first FeatureSet to pass the predicate will be run in LITE mode. The others will be run in {@code otherFeatureSetsTestMode}.
+     *
+     * @param  serverName               the server to repeat on
+     * @param  predicate                a predicate that will filter feature sets. If the predicate returns true, the feature set will be run
+     * @param  otherFeatureSetsTestMode The test mode to run the otherFeatureSets
+     * @param  skipTransformation       Skip transformation for actions
+     * @param  featureSet               the first feature set
+     * @param  featureSets              the feature sets
+     * @return                          a RepeatTests instance
+     */
+    public static RepeatTests repeatIf(String serverName, Predicate<FeatureSet> predicate, TestMode otherFeatureSetsTestMode,
+                                       boolean skipTransformation, FeatureSet featureSet, FeatureSet... featureSets) {
 
-        List<FeatureSet> featureSetsMerged = new ArrayList<FeatureSet>(Arrays.asList(featureSets));
-        featureSetsMerged.add(0, featureSet);
+        final String m = "repeatIf";
+
+        List<FeatureSet> featureSetsMerged = new ArrayList<FeatureSet>();
+        featureSetsMerged.add(featureSet);
+        featureSetsMerged.addAll(Arrays.asList(featureSets));
 
         Log.info(c, m, "enter. Testing " +
-                       String.join(", ", featureSetsMerged.stream().map(FeatureSet::getID).collect(Collectors.toList())));
+                       featureSetsMerged.stream().map(FeatureSet::getID).collect(Collectors.joining(", ")));
 
-        featureSetsMerged.removeIf(predicate);
+        featureSetsMerged.removeIf((FeatureSet fs) -> (!predicate.test(fs)));
 
         if (featureSetsMerged.isEmpty()) {
             Log.info(c, m, "found no acceptable FeatureSets");
@@ -572,11 +590,11 @@ public class MicroProfileActions {
         }
 
         Log.info(c, m, "found the following aceptable FeatureSets " +
-                       String.join(", ", featureSetsMerged.stream().map(FeatureSet::getID).collect(Collectors.toList())));
+                       featureSetsMerged.stream().map(FeatureSet::getID).collect(Collectors.joining(", ")));
 
         FeatureSet firstAction = featureSetsMerged.remove(0);
         FeatureSet[] otherActions = featureSetsMerged.toArray(new FeatureSet[0]);
 
-        return repeat(serverName, firstAction, otherActions);
+        return repeat(serverName, otherFeatureSetsTestMode, skipTransformation, firstAction, otherActions);
     }
 }
