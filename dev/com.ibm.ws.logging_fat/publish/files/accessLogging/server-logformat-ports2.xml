@@ -25,6 +25,6 @@
        <accessLogging logFormat='%{remote}p %p'/>
     </httpEndpoint>
     
-    <logging jsonAccessLogFields="logFormat" traceSpecification="*=info:com.ibm.ws.tcpchannel.internal.TCPReadRequestContextImpl=all" />
+    <logging jsonAccessLogFields="logFormat" traceSpecification="*=info:TCPChannel=all" />
     
 </server>
