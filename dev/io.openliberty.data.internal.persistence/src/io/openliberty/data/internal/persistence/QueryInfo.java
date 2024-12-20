@@ -2639,15 +2639,6 @@ public class QueryInfo {
      */
     @Trivial
     Object[] getCursorValues(Object entity) {
-        if (!entityInfo.getType().isInstance(entity))
-            throw exc(MappingException.class,
-                      "CWWKD1037.cursor.rtrn.mismatch",
-                      loggable(entity),
-                      method.getName(),
-                      repositoryInterface.getName(),
-                      entityInfo.getType().getName(),
-                      method.getGenericReturnType().getTypeName());
-
         ArrayList<Object> cursorValues = new ArrayList<>();
         for (Sort<?> sort : sorts)
             try {
@@ -4853,6 +4844,27 @@ public class QueryInfo {
                       jpqlParamCount,
                       methodParamCount,
                       jpql);
+        }
+
+        if (type == Type.FIND &&
+            CursoredPage.class.equals(multiType)) {
+
+            if (!singleType.equals(entityInfo.getType()))
+                throw exc(UnsupportedOperationException.class,
+                          "CWWKD1037.cursor.rtrn.mismatch",
+                          singleType.getSimpleName(),
+                          method.getName(),
+                          repositoryInterface.getName(),
+                          entityInfo.getType().getName(),
+                          method.getGenericReturnType().getTypeName());
+
+            if (sortPositions == NONE_QUERY_LANGUAGE_ONLY && sorts == null)
+                throw exc(UnsupportedOperationException.class,
+                          "CWWKD1100.cursor.requires.sort",
+                          method.getName(),
+                          repositoryInterface.getName(),
+                          method.getGenericReturnType().getTypeName(),
+                          "Order, Sort, Sort[]");
         }
     }
 
