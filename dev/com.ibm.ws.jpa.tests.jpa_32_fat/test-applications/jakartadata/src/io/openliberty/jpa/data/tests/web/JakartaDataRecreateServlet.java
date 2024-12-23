@@ -1672,9 +1672,8 @@ public class JakartaDataRecreateServlet extends FATServlet {
         }
     }
 
-   
     @Test
-   //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/29893
+    //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/29893
     public void testOLGH29893() throws Exception {
         String vehicleId = "V1234";
         Vehicle vehicle = new Vehicle();
@@ -1686,15 +1685,13 @@ public class JakartaDataRecreateServlet extends FATServlet {
         em.persist(vehicle);
         tx.commit();
 
-        
-        String idToSearch = "v1234"; 
         Vehicle result;
 
         tx.begin();
         try {
             result = em.createQuery("FROM Vehicle WHERE LOWER(ID(THIS)) = ?1", Vehicle.class)
-                        .setParameter(1, idToSearch.toLowerCase())
-                        .getSingleResult();
+                            .setParameter(1, vehicleId.toLowerCase())
+                            .getSingleResult();
             tx.commit();
         } catch (Exception e) {
             tx.rollback();
@@ -1702,8 +1699,8 @@ public class JakartaDataRecreateServlet extends FATServlet {
         }
 
         assertNotNull(result);
-        assertEquals(vehicleId, result.getId()); 
-        assertEquals("Toyota Corolla", result.getModel()); 
+        assertEquals(vehicleId, result.getId());
+        assertEquals("Toyota Corolla", result.getModel());
         assertEquals("Blue", result.getColor());
     }
 
