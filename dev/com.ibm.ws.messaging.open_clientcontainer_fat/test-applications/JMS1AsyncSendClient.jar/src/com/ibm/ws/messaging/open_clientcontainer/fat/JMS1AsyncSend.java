@@ -424,15 +424,21 @@ public class JMS1AsyncSend extends ClientMain {
     @ClientTest
     public void testJMS1AsyncSendUnidentifiedProducerUnidentifiedDestination() throws JMSException, InterruptedException, TestException {
 
+    	Util.CODEPATH();
+    	
         try ( QueueConnection queueConnection = queueConnectionFactory_.createQueueConnection();
         	  QueueSession session = queueConnection.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
         	
+        	Util.TRACE("Getting Test objects");
             TextMessage sentMessage = session.createTextMessage(methodName() + " at " + new Date());
             MessageProducer producer = session.createProducer(null);
             
             BasicCompletionListener completionListener = new BasicCompletionListener();
             try {
+            	Util.TRACE("Sending message to null Destination. Expected to fail");
                 producer.send(null, sentMessage, completionListener);
+                
+                Util.LOG("Send message did not throw expected Exception");
                 throw new TestException("InvalidDestinationException not thrown");
             } catch (InvalidDestinationException e) {
                 // Expected Exception.
@@ -442,6 +448,12 @@ public class JMS1AsyncSend extends ClientMain {
             Util.TRACE(completionListener.formattedState());
             if (!completionListener.waitFor(0, 0))
                 throw new TestException("Unexpected completion notification received, completionListener.formattedState:" + completionListener.formattedState());
+        }
+        catch (JMSException | TestException e) {
+        	
+        	Util.LOG("Exception thrown during test", e);
+        	throw e;
+        	
         }
 
         reportSuccess();
