@@ -83,6 +83,9 @@ public class TCKUtilities {
     static final String MVN_WRAPPER_REPO = "https://repo.maven.apache.org/maven2/";
     static final String BUILD_CACHE_DIR_PROPERTY = "fat.test.build.cache.dir";
 
+    // Convert from EBCDIC on z/OS
+    static final Charset zosSafeCharset = TCKUtilities.isZos() ? Charset.forName("IBM1047") : Charset.defaultCharset();
+
     static String generateSHA256(File file) {
         String sha256 = null;
         try (FileInputStream fis = new FileInputStream(file)) {
@@ -306,9 +309,7 @@ public class TCKUtilities {
 
         Process process = pb.start();
 
-        // Convert from EBCDIC on z/OS
-        Charset charset = TCKUtilities.isZos() ? Charset.forName("IBM1047") : Charset.defaultCharset();
-        Reader processReader = new InputStreamReader(process.getInputStream(), charset);
+        Reader processReader = new InputStreamReader(process.getInputStream(), zosSafeCharset);
 
         StreamMonitor monitor = new StreamMonitor(processReader);
         monitor.logToFile(logFile);
@@ -897,7 +898,8 @@ public class TCKUtilities {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(Paths.get(libPath), "*.mf")) {
             for (Path path : stream) {
                 if (!Files.isDirectory(path)) {
-                    try (Stream<String> lineStream = Files.lines(path)) {
+
+                    try (Stream<String> lineStream = Files.lines(path, zosSafeCharset)) {
                         lineStream
                                         .filter(line -> line.startsWith("IBM-ShortName: "))
                                         .map(line -> line.replaceAll("IBM-ShortName: ", ""))
