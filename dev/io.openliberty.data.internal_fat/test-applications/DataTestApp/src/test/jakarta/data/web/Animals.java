@@ -12,7 +12,11 @@
  *******************************************************************************/
 package test.jakarta.data.web;
 
+import java.util.stream.Stream;
+
 import jakarta.data.repository.CrudRepository;
+import jakarta.data.repository.Find;
+import jakarta.data.repository.OrderBy;
 import jakarta.data.repository.Repository;
 
 import test.jakarta.data.web.Animal.ScientificName;
@@ -26,4 +30,8 @@ public interface Animals extends CrudRepository<Animal, ScientificName> {
     long countByIdNotNull();
 
     boolean existsById(ScientificName id);
+
+    @Find
+    @OrderBy("id.species")
+    Stream<ScientificName> ofGenus(String id_genus);
 }

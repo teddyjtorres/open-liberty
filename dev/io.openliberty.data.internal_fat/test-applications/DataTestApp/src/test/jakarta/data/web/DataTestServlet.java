@@ -2045,6 +2045,12 @@ public class DataTestServlet extends FATServlet {
         assertEquals(1, foxSquirrel.version());
 
         // TODO enable once #29460 is fixed
+        //assertEquals(List.of("Sciurus carolinensis",
+        //                     "Sciurus niger"),
+        //             animals.ofGenus("Sciurus")
+        //                             .map(n -> n.genus() + ' ' + n.species())
+        //                             .collect(Collectors.toList()));
+
         //ScientificName grayFoxId = new ScientificName("Urocyon", "cinereoargenteus");
         //grayFox = animals.findById(grayFoxId).orElseThrow();
         //assertEquals("gray fox", grayFox.commonName());
@@ -4564,6 +4570,10 @@ public class DataTestServlet extends FATServlet {
                          Participant.of("Samantha", "TestRecordAsEmbeddable", 4));
 
         assertEquals("Simon", participants.getFirstName(3).orElseThrow());
+
+        // TODO enable once #29460 is fixed
+        //assertEquals(new Participant.Name("Samantha", "TestRecordAsEmbeddable"),
+        //             participants.findNameById(4).orElseThrow());
 
         // TODO enable once #29460 is fixed
         //assertEquals(List.of("Samantha", "Sarah", "Simon", "Steve"),
