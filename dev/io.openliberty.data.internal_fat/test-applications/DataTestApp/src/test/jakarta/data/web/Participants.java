@@ -24,6 +24,8 @@ import jakarta.data.repository.OrderBy;
 import jakarta.data.repository.Query;
 import jakarta.data.repository.Repository;
 
+import test.jakarta.data.web.Participant.Name;
+
 /**
  * Repository for an unannotated entity with a record attribute
  * that should be interpreted as an embeddable.
@@ -33,6 +35,8 @@ public interface Participants extends DataRepository<Participant, Integer> {
 
     @Insert
     void add(Participant... p);
+
+    Optional<Name> findNameById(int id);
 
     @Query("SELECT name.first WHERE id = ?1")
     Optional<String> getFirstName(int id);
