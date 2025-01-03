@@ -12,6 +12,8 @@
  *******************************************************************************/
 package com.ibm.ws.cdi.liberty;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
@@ -60,7 +62,6 @@ import com.ibm.ws.cdi.internal.interfaces.ExtensionArchiveFactory;
 import com.ibm.ws.cdi.internal.interfaces.ExtensionArchiveProvider;
 import com.ibm.ws.cdi.internal.interfaces.TransactionService;
 import com.ibm.ws.cdi.internal.interfaces.WebSphereCDIDeployment;
-import com.ibm.ws.cdi.internal.interfaces.WeldDevelopmentMode;
 import com.ibm.ws.cdi.proxy.ProxyServicesImpl;
 import com.ibm.ws.container.service.app.deploy.ApplicationInfo;
 import com.ibm.ws.container.service.metadata.MetaDataSlotService;
@@ -128,9 +129,6 @@ public class CDIRuntimeImpl extends AbstractCDIRuntime implements ApplicationSta
 
     @Reference(cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC, policyOption = ReferencePolicyOption.GREEDY)
     private volatile CDIContainerEventManager cdiContainerEventManager;
-
-    @Reference(cardinality = ReferenceCardinality.OPTIONAL, policy = ReferencePolicy.DYNAMIC, policyOption = ReferencePolicyOption.GREEDY)
-    private volatile WeldDevelopmentMode weldDevelopmentMode;
 
     @Reference
     private CDIConfiguration cdiContainerConfig;
@@ -681,20 +679,6 @@ public class CDIRuntimeImpl extends AbstractCDIRuntime implements ApplicationSta
 
     /** {@inheritDoc} */
     @Override
-    public WeldDevelopmentMode getWeldDevelopmentMode() {
-        //Given that this.weldDevelopmentMode is volatile and could change value while this code is running,
-        //copy it to a local variable before checking for null and enablement.
-        WeldDevelopmentMode devMode = this.weldDevelopmentMode;
-        if (devMode != null) {
-            if (!devMode.enabled()) {
-                devMode = null; // if it wasn't enabled then we'll return null
-            }
-        }
-        return devMode;
-    }
-
-    /** {@inheritDoc} */
-    @Override
     public ContextBeginnerEnder createContextBeginnerEnder() {
         return new ContextBeginnerEnderImpl();
     }
@@ -714,4 +698,21 @@ public class CDIRuntimeImpl extends AbstractCDIRuntime implements ApplicationSta
         }
         return contextBeginnerEnder.clone();
     }
+
+    //The System Property which enables Weld Development Mode. They have been removed from liberty due to a security
+    //Vulnerability in the javascript in the tools it enables. But it we want to issue a warning message if appropriate
+    private final static String DEVELOPMENT_MODE = "org.jboss.weld.development";
+
+    @SuppressWarnings("unused")
+    private static final boolean developmentMode = AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
+        @Override
+        public Boolean run() {
+            String developmentModeStr = System.getProperty(DEVELOPMENT_MODE);
+            Boolean developmentMode = Boolean.valueOf(developmentModeStr);
+            if (developmentMode) {
+                Tr.warning(tc, "dev.mode.enabled.CWOWB1020W");
+            }
+            return developmentMode;
+        }
+    });
 }

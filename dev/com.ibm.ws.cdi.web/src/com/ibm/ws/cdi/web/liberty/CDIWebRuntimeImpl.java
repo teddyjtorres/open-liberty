@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -25,7 +25,6 @@ import com.ibm.ws.cdi.CDIException;
 import com.ibm.ws.cdi.CDIService;
 import com.ibm.ws.cdi.CDIServiceUtils;
 import com.ibm.ws.cdi.internal.interfaces.CDIRuntime;
-import com.ibm.ws.cdi.internal.interfaces.WeldDevelopmentMode;
 import com.ibm.ws.cdi.web.interfaces.CDIWebRuntime;
 import com.ibm.ws.runtime.metadata.ModuleMetaData;
 import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
@@ -123,11 +122,5 @@ public class CDIWebRuntimeImpl implements CDIWebRuntime {
     @Override
     public BeanManager getCurrentBeanManager() {
         return getCDIRuntime().getCurrentBeanManager();
-    }
-
-    /** {@inheritDoc} */
-    @Override
-    public WeldDevelopmentMode getWeldDevelopmentMode() {
-        return getCDIRuntime().getWeldDevelopmentMode();
     }
 }

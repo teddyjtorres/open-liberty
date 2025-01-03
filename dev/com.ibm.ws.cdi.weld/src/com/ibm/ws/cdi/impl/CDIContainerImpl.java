@@ -58,7 +58,6 @@ import com.ibm.ws.cdi.internal.interfaces.ExtensionArchiveFactory;
 import com.ibm.ws.cdi.internal.interfaces.ExtensionArchiveProvider;
 import com.ibm.ws.cdi.internal.interfaces.WebSphereBeanDeploymentArchive;
 import com.ibm.ws.cdi.internal.interfaces.WebSphereCDIDeployment;
-import com.ibm.ws.cdi.internal.interfaces.WeldDevelopmentMode;
 import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.runtime.metadata.ApplicationMetaData;
 import com.ibm.ws.runtime.metadata.ComponentMetaData;
@@ -92,7 +91,6 @@ public class CDIContainerImpl implements CDIContainer, InjectionMetaDataListener
 
     //This is a map from OSGi Service ID (of the extension) to a ExtensionArchive
     private final Map<Long, ExtensionArchive> runtimeExtensionMap = new HashMap<>();
-    private ExtensionArchive probeExtensionArchive = null;
 
     private final ThreadLocal<WebSphereCDIDeployment> currentDeployment = new ThreadLocal<WebSphereCDIDeployment>();
     private final CDIRuntime cdiRuntime;
@@ -705,15 +703,6 @@ public class CDIContainerImpl implements CDIContainer, InjectionMetaDataListener
         //Now ask any providers for any ExtensionArchives that are not coming from an SPI impl. These do not go in runtimeExtensionMap but do go in the extensionSet
         for (ExtensionArchiveProvider provider : cdiRuntime.getExtensionArchiveProviders()) {
             extensionSet.addAll(provider.getArchives(cdiRuntime, applicationContext));
-        }
-
-        WeldDevelopmentMode devMode = this.cdiRuntime.getWeldDevelopmentMode();
-        if (devMode != null) {
-            if (this.probeExtensionArchive == null) {
-                this.probeExtensionArchive = devMode.getProbeExtensionArchive(this.cdiRuntime);
-            }
-            //add the probeExcension
-            extensionSet.add(this.probeExtensionArchive);
         }
 
         return extensionSet;

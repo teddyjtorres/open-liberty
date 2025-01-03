@@ -219,13 +219,6 @@ public interface CDIRuntime extends CDIService {
     public CDIContainerEventManager getCDIContainerEventManager();
 
     /**
-     * Get the WeldDevelopmentMode service if it exists and it is enabled
-     *
-     * @return the WeldDevelopmentMode, or {@code null} if does not exist or it is not enabled
-     */
-    public WeldDevelopmentMode getWeldDevelopmentMode();
-
-    /**
      * creates a ContextBeginnerEnder that will do the same thing as the currently
      * active ContextBeginnerEnder, or returns null if none are active.
      *
