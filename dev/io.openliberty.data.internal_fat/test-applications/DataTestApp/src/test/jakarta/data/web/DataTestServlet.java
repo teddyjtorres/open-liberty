@@ -148,6 +148,9 @@ public class DataTestServlet extends FATServlet {
     Products products;
 
     @Inject
+    Purchases purchases;
+
+    @Inject
     Ratings ratings;
 
     @Inject
@@ -4602,6 +4605,31 @@ public class DataTestServlet extends FATServlet {
         assertEquals(17.29f, receipts.totalOf(2001L), 0.001f);
 
         assertEquals(2, receipts.removeIfTotalUnder(2000.0f));
+    }
+
+    /**
+     * Verify that a record return type (per spec) takes precedence over an
+     * entity attribute that is a record.
+     */
+    @Test
+    public void testRecordReturnTypePrecedence() {
+        purchases.clearAll();
+
+        Purchase p1 = new Purchase();
+        p1.total = 105.19f;
+        p1.customer = "TestRecordReturnTypePrecedence";
+        p1.purchaseId = 1L;
+        // the following does not match on purpose
+        p1.receipt = new Receipt(1001L, "Customer1", 1.99f);
+
+        purchases.buy(p1);
+
+        Receipt r1 = purchases.receiptFor(1L).orElseThrow();
+        assertEquals("TestRecordReturnTypePrecedence", r1.customer());
+        assertEquals(1L, r1.purchaseId());
+        assertEquals(105.19f, r1.total(), 0.001f);
+
+        purchases.clearAll();
     }
 
     /**
