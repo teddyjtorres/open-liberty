@@ -699,8 +699,8 @@ public class CDIRuntimeImpl extends AbstractCDIRuntime implements ApplicationSta
         return contextBeginnerEnder.clone();
     }
 
-    //The System Property which enables Weld Development Mode. They have been removed from liberty due to a security
-    //Vulnerability in the javascript in the tools it enables. But it we want to issue a warning message if appropriate
+    //The System Property which enables Weld Development Mode. They have been removed from liberty.
+    //But it we want to issue a warning message if appropriate
     private final static String DEVELOPMENT_MODE = "org.jboss.weld.development";
 
     @SuppressWarnings("unused")
