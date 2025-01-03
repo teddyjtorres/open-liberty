@@ -15,8 +15,8 @@ package test.jakarta.data.web;
 import java.util.stream.Stream;
 
 import jakarta.data.repository.CrudRepository;
-import jakarta.data.repository.Find;
 import jakarta.data.repository.OrderBy;
+import jakarta.data.repository.Query;
 import jakarta.data.repository.Repository;
 
 import test.jakarta.data.web.Animal.ScientificName;
@@ -31,7 +31,9 @@ public interface Animals extends CrudRepository<Animal, ScientificName> {
 
     boolean existsById(ScientificName id);
 
-    @Find
+    // Using @Find here would require @Select(ID),
+    // which is not available in Data 1.0 // TODO move to 1.1 tests
+    @Query("SELECT id WHERE id.genus = ?1")
     @OrderBy("id.species")
     Stream<ScientificName> ofGenus(String id_genus);
 }
