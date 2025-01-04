@@ -110,8 +110,13 @@ public class AbstractMultipartWriter {
                 // super.close();
             }
         };
+        //Liberty change start:  Can be removed when https://github.com/resteasy/resteasy/pull/4444 is added
+        final HeaderFlushedOutputStream headerFlushedOutputStream = new HeaderFlushedOutputStream(headers, partStream);
         writer.writeTo(entity, entityType, entityGenericType, annotations, part.getMediaType(), headers,
-                new HeaderFlushedOutputStream(headers, partStream));
+                headerFlushedOutputStream);
+        //Liberty change end
+        // Flush the headers for cases where the entity was empty
+        headerFlushedOutputStream.flushHeaders();
         entityStream.write(LINE_SEPARATOR_BYTES);
     }
 
