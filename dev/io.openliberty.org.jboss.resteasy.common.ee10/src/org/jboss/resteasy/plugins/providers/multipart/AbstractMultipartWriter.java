@@ -114,9 +114,10 @@ public class AbstractMultipartWriter {
         final HeaderFlushedOutputStream headerFlushedOutputStream = new HeaderFlushedOutputStream(headers, partStream);
         writer.writeTo(entity, entityType, entityGenericType, annotations, part.getMediaType(), headers,
                 headerFlushedOutputStream);
-        //Liberty change end
         // Flush the headers for cases where the entity was empty
         headerFlushedOutputStream.flushHeaders();
+        //Liberty change end
+        
         entityStream.write(LINE_SEPARATOR_BYTES);
     }
 
