@@ -1003,10 +1003,10 @@ CWWKD1100.cursor.requires.sort.useraction=Remove the ORDER BY clause from the \
 
 CWWKD1101.attr.subset.mismatch=CWWKD1101E: The {0} return type of the \
  {1} method of the {2} repository uses the {3} Java record type to define the \
- results to be a subset of entity attributes: {5}. However, at least one of the \
- requested attribute names is not present on the {4} entity. To return a subset \
+ results to be a subset of entity attributes: {4}. However, at least one of the \
+ requested attribute names is not present on the {5} entity. To return a subset \
  of entity attributes as a Java record, ensure that the record component names \
- are within the following set of valid attribute names for the {4} entity: {6}. \
+ are within the following set of valid attribute names for the {5} entity: {6}. \
  Alternatively, use the Select annotation to assign valid entity attribute names. \
  To return a single entity attribute that has a Java record type, annotate \
  the {1} method to have a Select annotation and assign its member value \

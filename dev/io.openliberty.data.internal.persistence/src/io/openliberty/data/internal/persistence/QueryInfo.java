@@ -12,11 +12,6 @@
  *******************************************************************************/
 package io.openliberty.data.internal.persistence;
 
-import static io.openliberty.data.internal.persistence.Util.SORT_PARAM_TYPES;
-import static io.openliberty.data.internal.persistence.Util.lifeCycleReturnTypes;
-import static io.openliberty.data.internal.persistence.cdi.DataExtension.exc;
-import static jakarta.data.repository.By.ID;
-
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
@@ -2207,8 +2202,7 @@ public class QueryInfo {
                 if (recordComponents == null) {
                     // Look for single entity attribute with the desired type:
                     String singleAttributeName = null;
-                    for (Map.Entry<String, Class<?>> entry : entityInfo
-                                    .attributeTypes.entrySet()) {
+                    for (Map.Entry<String, Class<?>> entry : entityInfo.attributeTypes.entrySet()) {
                         Class<?> attributeType = entry.getValue();
                         if (attributeType.isPrimitive())
                             attributeType = Util.wrapperClassIfPrimitive(attributeType);
@@ -2265,8 +2259,8 @@ public class QueryInfo {
                                  method.getName(),
                                  repositoryInterface.getName(),
                                  singleType.getName(),
-                                 entityInfo.getType().getName(),
                                  Arrays.toString(names),
+                                 entityInfo.getType().getName(),
                                  entityInfo.getAttributeNames());
                         throw (MappingException) mx.initCause(x);
                     }
