@@ -47,7 +47,7 @@ import com.ibm.ws.common.crypto.CryptoUtils;
 
 final class LTPACrypto {
 
-	private static final boolean fipsEnabled = CryptoUtils.isFIPSEnabled();
+	private static final boolean fipsEnabled = CryptoUtils.isFips140_3Enabled();
 
 	private static final String provider = CryptoUtils.getProvider();
 

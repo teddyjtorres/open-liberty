@@ -383,8 +383,8 @@ public class SSLConfigManager {
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
                 Tr.debug(tc, "Setting default SSLProtocol: " + sslProtocol);
 
-            // Use PROTOCOL_TLSV1_2 if FIPS is enabled
-            if (CryptoUtils.isFIPSEnabled()) {
+            // Use PROTOCOL_TLSV1_2 if FIPS 140-3 is enabled
+            if (CryptoUtils.isFips140_3Enabled()) {
                 sslprops.setProperty(Constants.SSLPROP_PROTOCOL, Constants.PROTOCOL_TLSV1_2);
 
             } else {

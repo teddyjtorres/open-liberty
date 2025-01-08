@@ -18,7 +18,7 @@ import com.ibm.ws.common.crypto.CryptoUtils;
 
 final class LTPADigSignature {
 
-	static int keySize = (CryptoUtils.isFIPSEnabled() ? 256 : 128);
+	static int keySize = (CryptoUtils.isFips140_3Enabled() ? 256 : 128);
 
 	static byte[][] testRawPubKey = null;
 	static byte[][] testRawPrivKey = null;

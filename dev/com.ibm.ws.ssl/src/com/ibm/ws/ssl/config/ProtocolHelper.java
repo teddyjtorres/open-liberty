@@ -69,7 +69,7 @@ public class ProtocolHelper {
 
         if (protocols.length > 1) {
             // If FIPS is enabled then we only allow TLSv1.2 and TLSv1.3
-            if (CryptoUtils.isFIPSEnabled()) {
+            if (CryptoUtils.isFips140_3Enabled()) {
                 Tr.debug(tc, "FIPS is enabled, only allowing TLSv1.2 and TLSv1.3");
                 for (String protocol : protocols) {
                     if (Constants.FIPS_140_3_PROTOCOLS.contains(protocol)) {

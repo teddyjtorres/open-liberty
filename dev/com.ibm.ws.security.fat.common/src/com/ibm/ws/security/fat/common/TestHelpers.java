@@ -504,13 +504,13 @@ public class TestHelpers {
         webClient.getOptions().setUseInsecureSSL(true);
         webClient.getOptions().setRedirectEnabled(true);
         if (System.getProperty("java.specification.version").matches("1\\.[789]")) {
-            if (CryptoUtils.isFIPSEnabled()) {
+            if (CryptoUtils.isFips140_3Enabled()) {
                 webClient.getOptions().setSSLClientProtocols((new String[] { "TLSv1.2" })); // rtc 259307
             } else {
                 webClient.getOptions().setSSLClientProtocols((new String[] { "TLSv1.2", "TLSv1.1", "TLSv1" })); // rtc 259307
             }
         } else {
-            if (CryptoUtils.isFIPSEnabled()) {
+            if (CryptoUtils.isFips140_3Enabled()) {
                 webClient.getOptions().setSSLClientProtocols((new String[] { "TLSv1.3", "TLSv1.2" })); // rtc 259307
             } else {
                 webClient.getOptions().setSSLClientProtocols((new String[] { "TLSv1.3", "TLSv1.2", "TLSv1.1", "TLSv1" })); // rtc 259307

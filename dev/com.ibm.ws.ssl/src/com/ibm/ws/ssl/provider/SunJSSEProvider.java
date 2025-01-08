@@ -39,7 +39,7 @@ public class SunJSSEProvider extends AbstractJSSEProvider implements JSSEProvide
     public SunJSSEProvider() {
         super();
         String protocol = Constants.PROTOCOL_SSL;
-        if (CryptoUtils.isFIPSEnabled() && CryptoUtils.isSemeruFips()) {
+        if (CryptoUtils.isFips140_3Enabled() && CryptoUtils.isSemeruFips()) {
             protocol = Constants.PROTOCOL_TLS;
         }
 
