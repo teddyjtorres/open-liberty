@@ -72,9 +72,6 @@ import com.ibm.ws.recoverylog.spi.RecoveryAgent;
 import com.ibm.ws.recoverylog.spi.TraceConstants;
 import com.ibm.ws.recoverylog.utils.RecoverableUnitIdTable;
 
-//------------------------------------------------------------------------------
-// Class: SQLMultiScopeRecoveryLog
-//------------------------------------------------------------------------------
 /**
  * <p>
  * The SQLMultiScopeRecoveryLog class implements the DistributedRecoveryLog interface and
@@ -399,9 +396,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
     private static final long _reservedConnectionActiveSectionIDSet = 255L;
     private static final long _reservedConnectionActiveSectionIDUnset = 1L;
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.SQLMultiScopeRecoveryLog
-    //------------------------------------------------------------------------------
     /**
      * <p>
      * Package access constructor for the creation of SQLMultiScopeRecoveryLog objects.
@@ -496,9 +490,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "SQLMultiScopeRecoveryLog", this);
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.openLog
-    //------------------------------------------------------------------------------
     /**
      * <p>
      * Open the recovery log. Before a recovery log may be used, it must be opened by
@@ -830,9 +821,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "configureConnectionParameters");
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.getFirstConnection
-    //------------------------------------------------------------------------------
     /**
      * Locates a DataSource in config and establish a managed connection. Retrieve connection
      * attributes from metadata.
@@ -977,9 +965,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         return conn;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.recover
-    //------------------------------------------------------------------------------
     /**
      * Retrieves log records from the database ready for recovery
      * processing.
@@ -1038,9 +1023,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "recover");
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.serviceData
-    //------------------------------------------------------------------------------
     /**
      * Returns a copy of the service data or null if there is none defined. Changes to
      * the copy will have no affect on the service data stored by the RLS.
@@ -1061,9 +1043,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         return null;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.recoveryComplete
-    //------------------------------------------------------------------------------
     /**
      * <p>
      * Informs the RLS that any outstanding recovery process for the recovery log is
@@ -1114,9 +1093,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "recoveryComplete");
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.recoveryComplete
-    //------------------------------------------------------------------------------
     /**
      * <p>
      * Informs the RLS that any outstanding recovery process for the recovery log is
@@ -1173,9 +1149,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "recoveryComplete");
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.closeLog
-    //------------------------------------------------------------------------------
     /**
      * <p>
      * Close the recovery log. The RLS will ensure that all active RecoverableUnits
@@ -1232,9 +1205,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "closeLog");
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.closeLog
-    //------------------------------------------------------------------------------
     /**
      * <p>
      * Close the recovery log. The RLS will ensure that all active RecoverableUnits
@@ -1403,9 +1373,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "closeLog");
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.closeLogImmediate
-    //------------------------------------------------------------------------------
     /**
     */
     @Override
@@ -1503,9 +1470,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
 
     }
 
-    //------------------------------------------------------------------------------
-    // Method: RecoveryLog.createRecoverableUnit
-    //------------------------------------------------------------------------------
     /**
      * <p>
      * Create a new RecoverableUnit under which to write information to the recovery
@@ -1560,9 +1524,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         return recoverableUnit;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.removeRecoverableUnit
-    //------------------------------------------------------------------------------
     /**
      * <p>
      * Remove a RecoverableUnit from the recovery logs set of active RecoverableUnits.
@@ -1677,9 +1638,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "removeRecoverableUnit");
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.recoverableUnits
-    //------------------------------------------------------------------------------
     /**
      * <p>
      * Returns a LogCursor that can be used to itterate through all active
@@ -1780,9 +1738,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         return runit;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.logProperties
-    //------------------------------------------------------------------------------
     /**
      * Returns the LogProperties object that defines the physical nature and identity
      * of the associated recovery log.
@@ -1796,9 +1751,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         return _customLogProperties;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.keypoint
-    //------------------------------------------------------------------------------
     /**
      * <p>
      * Instructs the recovery log to perfom a keypoint operation. Any redundant
@@ -2288,9 +2240,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "internalForceSections");
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.executeBatchStatements
-    //------------------------------------------------------------------------------
     /**
      * Drives the execution of the cached up database work.
      *
@@ -2455,9 +2404,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "executeBatchStatements");
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.assertLogOwnershipAtRuntime
-    //------------------------------------------------------------------------------
     /**
      * Takes a row lock against the database table that is being used
      * for the recovery log. This fulfils the same role as the file
@@ -2586,9 +2532,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         return noTable;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.assertLogOwnershipAtOpenWithLatching
-    //------------------------------------------------------------------------------
     /**
      * Acquires ownership of the special row used in the HA locking
      * scheme. There is sometimes a lag in peer recovery where an old
@@ -2770,9 +2713,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "assertLogOwnershipAtOpenPeerLocking");
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.createDBTable
-    //------------------------------------------------------------------------------
     /**
      * Creates the database table that is being used for the recovery
      * log.
@@ -2865,12 +2805,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
 
     /**
      * Insert the control, or HA Locking, row containing metadata into the recovery log table
-     *
-     * @param conn
-     * @param fullTableName
-     * @param serviceId
-     * @param sectionId
-     * @throws SQLException
      */
     private void insertLockingRow(Connection conn, String fullTableName, short serviceId, long sectionId) throws SQLException {
         if (tc.isEntryEnabled())
@@ -2897,9 +2831,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "insertLockingRow", ret);
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.dropDBTable
-    //------------------------------------------------------------------------------
     /**
      * Drops the database table that is being used for the recovery
      * log.
@@ -2961,9 +2892,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         return dropSuccess;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.removing
-    //------------------------------------------------------------------------------
     /**
      * This method is defined by the LogCursorCallback interface. When the client
      * service calls <code>SQLMultiScopeRecoveryLog.recoverableUnits</code>, a LogCursor is
@@ -3019,9 +2947,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "removing");
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.failed
-    //------------------------------------------------------------------------------
     /**
      * Accessor method to read the recovery log failure state.
      *
@@ -3044,9 +2969,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         return _failed;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.markFailed
-    //------------------------------------------------------------------------------
     /**
      * Marks the recovery log as failed.
      *
@@ -3070,7 +2992,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
     }
 
     private void markFailed(Throwable t, boolean report, boolean peerServerLostLogOwnership) {
-
         boolean newFailure = false;
         synchronized (this) {
             if (tc.isDebugEnabled() && _failed)
@@ -3202,9 +3123,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         }
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.addRecoverableUnit
-    //------------------------------------------------------------------------------
     /**
      * Adds a new RecoverableUnitImpl object, keyed from its identity to this
      * classes collection of such objects.
@@ -3231,9 +3149,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "addRecoverableUnit");
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.removeRecoverableUnitMapEntries
-    //------------------------------------------------------------------------------
     /**
      * Removes a RecoverableUnitImpl object, keyed from its identity from this
      * classes collection of such objects.
@@ -3260,9 +3175,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         return recoverableUnit;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.getRecoverableUnit
-    //------------------------------------------------------------------------------
     /**
      * Retrieves a RecoverableUnitImpl object, keyed from its identity from this
      * classes collection of such objects.
@@ -3291,71 +3203,37 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         return recoverableUnit;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.serverName
-    //------------------------------------------------------------------------------
     /**
      * Returns the name of the server that owns this object instance. This may not
      * necessarly be the local server as this object may represent a recovery log
      * owned by a peer server.
-     *
-     * @return String The server name
      */
     String serverName() {
         return _serverName;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.clientName
-    //------------------------------------------------------------------------------
     /**
      * Returns the name of the client service that owns this object instance.
-     *
-     * @return String The client name.
      */
     String clientName() {
         return _clientName;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.clientVersion
-    //------------------------------------------------------------------------------
     /**
      * Returns the version number of the client service that owns this object instance.
-     *
-     * @return int The client version number
      */
     public int clientVersion() {
         return _clientVersion;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.logName
-    //------------------------------------------------------------------------------
-    /**
-     * Returns the log name.
-     *
-     * @return String The log name
-     */
     public String logName() {
         return _logName;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.logIdentifier
-    //------------------------------------------------------------------------------
-    /**
-     * Returns the log identifier.
-     *
-     * @return int The log identifier
-     */
     public int logIdentifier() {
         return _logIdentifier;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.serverStopping
-    //------------------------------------------------------------------------------
     /**
      * Signals to the Recovery Log that the server is stopping.
      */
@@ -3424,26 +3302,16 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "serverStopping");
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.toString
-    //------------------------------------------------------------------------------
     /**
      * Returns the string representation of this object instance.
-     *
-     * @return String The string representation of this object instance.
      */
     @Override
     public String toString() {
         return _traceId;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.logTypeFromInteger
-    //------------------------------------------------------------------------------
     /**
      * Returns the string representation of a log identifier.
-     *
-     * @return String The string representation of the log type.
      */
     private String logTypeFromInteger(int x) {
         switch (x) {
@@ -3457,8 +3325,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         return "";
     }
 
-    // Class: ruForReplay
-    //------------------------------------------------------------------------------
     /**
      * This class is used to represent the cached up work that will
      * be committed to the database when the log is forced.
@@ -3499,9 +3365,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         }
     }
 
-    //------------------------------------------------------------------------------
-    // Method: DistributedRecoveryLog.associateLog
-    //------------------------------------------------------------------------------
     /**
      * Associates another log with this one. PI45254.
      * The code is protects against infinite recursion since associated logs are only marked as failed if
@@ -3625,9 +3488,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         // NOTE don't close the Statement - caller owns it
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.reserveConnection
-    //------------------------------------------------------------------------------
     /**
      * acquires a reserved connection for later use by the shutdown thread and
      * sets a latch (sectionID parameter) to indicate how far the local shutdown has progressed
@@ -3764,9 +3624,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         return transientException;
     }
 
-    //------------------------------------------------------------------------------
-    // Method: SQLMultiScopeRecoveryLog.unlatchHADBLock
-    //------------------------------------------------------------------------------
     /**
      * tries to set the latch back down. If we can't we won't throw an Exception since
      * this isn't necessary for a proper close (though something else has probably already failed).
@@ -3947,11 +3804,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "assertDBTableExists");
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.ibm.ws.recoverylog.spi.LivingRecoveryLog#heartBeat()
-     */
     @Override
     @FFDCIgnore({ LogClosedException.class, SQLException.class, SQLRecoverableException.class })
     public void heartBeat() throws LogClosedException {
@@ -4142,10 +3994,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
     /**
      * The core of the code to claim the local recovery logs for the home server. This code will be retried where an
      * HA RDBMS is supported and a transient error encountered.
-     *
-     * @param conn
-     * @return
-     * @throws SQLException
      */
     public void internalHeartBeat(Connection conn) throws SQLException {
         if (tc.isEntryEnabled())
@@ -4189,11 +4037,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
             Tr.exit(tc, "internalHeartBeat");
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.ibm.ws.recoverylog.spi.HeartbeatLog#claimLocalRecoveryLogs()
-     */
     @Override
     public boolean claimLocalRecoveryLogs() {
         if (tc.isEntryEnabled())
@@ -4555,11 +4398,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         return isClaimed;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.ibm.ws.recoverylog.spi.HeartbeatLog#claimPeerRecoveryLogs()
-     */
     @Override
     public boolean claimPeerRecoveryLogs() throws LogsUnderlyingTablesMissingException {
         if (tc.isEntryEnabled())
@@ -4700,11 +4538,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         return isClaimed;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.ibm.ws.recoverylog.spi.RecoveryLog#retainLogsInPeerRecoveryEnv(boolean)
-     */
     @Override
     public void retainLogsInPeerRecoveryEnv(boolean retainLogs) {
         if (tc.isEntryEnabled())
@@ -4739,7 +4572,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
 
     /**
      * This concrete class extends SQLRetry providing the local recovery log claim code to be retried in an HA RDBMS environment.
-     *
      */
     private class ClaimLocalRetry extends LogRetry {
 
@@ -4777,7 +4609,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
 
     /**
      * This concrete class extends SQLRetry providing the peer recovery log claim code to be retried in an HA RDBMS environment.
-     *
      */
     private class ClaimPeerRetry extends LightweightLogRetry {
 
@@ -4811,7 +4642,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
 
     /**
      * This concrete class extends SQLRetry providing the heartbeat code to be retried in an HA RDBMS environment.
-     *
      */
     private class HeartbeatRetry extends LightweightLogRetry {
 
@@ -4842,7 +4672,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
 
     /**
      * This concrete class extends SQLRetry providing the force sections code to be retried in an HA RDBMS environment.
-     *
      */
     private class ForceSectionsRetry extends LogRetry {
 
@@ -4880,7 +4709,6 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
 
     /**
      * This concrete class extends SQLRetry providing the openLog code to be retried in an HA RDBMS environment.
-     *
      */
     private class OpenLogRetry extends LogRetry {
 
@@ -4924,7 +4752,5 @@ public class SQLMultiScopeRecoveryLog implements LogCursorCallback, MultiScopeLo
         public String getOperationDescription() {
             return "opening recovery log";
         }
-
     }
-
 }
