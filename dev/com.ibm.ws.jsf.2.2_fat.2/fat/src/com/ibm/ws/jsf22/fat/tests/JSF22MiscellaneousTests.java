@@ -9,7 +9,11 @@
  *******************************************************************************/
 package com.ibm.ws.jsf22.fat.tests;
 
+import static componenttest.annotation.SkipForRepeat.EE8_FEATURES;
+import static componenttest.annotation.SkipForRepeat.EE10_FEATURES;
 import static componenttest.annotation.SkipForRepeat.EE10_OR_LATER_FEATURES;
+import static componenttest.annotation.SkipForRepeat.NO_MODIFICATION;
+
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -662,6 +666,7 @@ public class JSF22MiscellaneousTests {
     /*
      * All the XML should be valid by default. 
      */
+    @SkipForRepeat({NO_MODIFICATION,EE8_FEATURES,EE10_FEATURES})
     @Test
     public void testXMLValidationGoodCase() throws Exception {
 
@@ -669,7 +674,9 @@ public class JSF22MiscellaneousTests {
 
         ShrinkHelper.defaultDropinApp(jsf22MiscellaneousServer, APP_NAME_XML_VALIDATION_GOOD + ".war");
 
-        assertTrue("XML Validation Error found erronously.", jsf22MiscellaneousServer.findStringsInLogsAndTraceUsingMark("cvc-complex-type.2.4.a: Invalid content was found starting with element").isEmpty()); 
+        assertTrue("XML Validation Error found erronously.", jsf22MiscellaneousServer.findStringsInLogsAndTraceUsingMark(".*cvc-complex-type.2.4.a: Invalid content was found starting with element.*").isEmpty()); 
+
+        assertTrue("XML Validation Error found erronously.", jsf22MiscellaneousServer.findStringsInLogsAndTraceUsingMark(".*org.xml.sax.SAXParseException.*").isEmpty());
 
         jsf22MiscellaneousServer.resetLogMarks();
 
@@ -680,6 +687,7 @@ public class JSF22MiscellaneousTests {
      * The bad case involves the faces-config.xml including an unexpected element. Validation should fail with following exception:
      * [ERROR   ] cvc-complex-type.2.4.a: Invalid content was found starting with element '{"http://xmlns.jcp.org/xml/ns/javaee":wrong-element}'.
      */
+    @SkipForRepeat({NO_MODIFICATION,EE8_FEATURES})
     @Test
     public void testXMLValidationBadCase() throws Exception {
 
@@ -691,7 +699,7 @@ public class JSF22MiscellaneousTests {
 
         jsf22MiscellaneousServer.resetLogMarks();
 
-        jsf22MiscellaneousServer.removeAndStopDropinsApplications(APP_NAME_XML_VALIDATION_GOOD  + ".war");
+        jsf22MiscellaneousServer.removeAndStopDropinsApplications(APP_NAME_XML_VALIDATION_BAD  + ".war");
 
     }
 }
