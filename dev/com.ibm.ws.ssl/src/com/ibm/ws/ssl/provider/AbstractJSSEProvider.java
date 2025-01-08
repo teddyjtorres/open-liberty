@@ -133,16 +133,16 @@ public abstract class AbstractJSSEProvider implements JSSEProvider {
             }
         }
         if (CryptoUtils.isFIPSEnabled()) {
-            if (CryptoUtils.isFips140_2Enabled() || CryptoUtils.isFips140_3Enabled()) {
-                if (CryptoUtils.isIBMJCEPlusFIPSAvailable() || CryptoUtils.isOpenJCEPlusFIPSAvailable()) {
-                    try {
-                        com.ibm.ws.ssl.JSSEProviderFactory.initializeFips();
-                    } catch (Exception e) {
-                        if (tc.isDebugEnabled())
-                            Tr.debug(tc, "Exception caught initializing FIPS.", new Object[] { e });
-                    }
-                }
+            //if (CryptoUtils.isFips140_2Enabled() || CryptoUtils.isFips140_3Enabled()) {
+            //if (CryptoUtils.isIBMJCEPlusFIPSAvailable() || CryptoUtils.isOpenJCEPlusFIPSAvailable()) {
+            try {
+                com.ibm.ws.ssl.JSSEProviderFactory.initializeFips();
+            } catch (Exception e) {
+                if (tc.isDebugEnabled())
+                    Tr.debug(tc, "Exception caught initializing FIPS.", new Object[] { e });
             }
+            //}
+            //}
         }
 
         if (!handlersInitialized && System.getProperty("os.name").equalsIgnoreCase("z/OS")

@@ -22,7 +22,7 @@ import com.ibm.ws.common.crypto.CryptoUtils;
  */
 public final class LTPAPrivateKey implements PrivateKey {
 
-	private static final boolean fipsEnabled = CryptoUtils.isFIPSEnabled();
+	private static final boolean fipsEnabled = CryptoUtils.isFips140_3Enabled();
 	private static final long serialVersionUID = -2566137894245694562L;
 	private static final int PRIVATE_EXPONENT = 1;
 	private static final int PUBLIC_EXPONENT = 2;

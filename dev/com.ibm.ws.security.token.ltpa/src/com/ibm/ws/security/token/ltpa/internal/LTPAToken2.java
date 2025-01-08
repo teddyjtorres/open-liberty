@@ -42,7 +42,7 @@ import com.ibm.wsspi.security.token.AttributeNameConstants;
  */
 public class LTPAToken2 implements Token, Serializable {
 
-    private static final boolean fipsEnabled = CryptoUtils.isFIPSEnabled();
+    private static final boolean fipsEnabled = CryptoUtils.isFips140_3Enabled();
 
     private static final TraceComponent tc = Tr.register(LTPAToken2.class);
 
@@ -66,7 +66,7 @@ public class LTPAToken2 implements Token, Serializable {
 
     static {
         MessageDigest m1 = null, m2 = null;
-        
+
         m1 = CryptoUtils.getMessageDigestForLTPA();
         m2 = CryptoUtils.getMessageDigestForLTPA();
 

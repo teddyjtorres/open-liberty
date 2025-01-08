@@ -22,7 +22,7 @@ import com.ibm.ws.common.crypto.CryptoUtils;
  */
 public class KeyEncryptor {
 
-	private static final boolean fipsEnabled = CryptoUtils.isFIPSEnabled();
+	private static final boolean fipsEnabled = CryptoUtils.isFips140_3Enabled();
 	private static final int size = (fipsEnabled ? 32 : 24);
 	private static final String CIPHER = CryptoUtils.getCipher();
 	private final byte[] key;
