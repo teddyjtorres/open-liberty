@@ -12,6 +12,11 @@
  *******************************************************************************/
 package io.openliberty.data.internal.persistence;
 
+import static io.openliberty.data.internal.persistence.Util.SORT_PARAM_TYPES;
+import static io.openliberty.data.internal.persistence.Util.lifeCycleReturnTypes;
+import static io.openliberty.data.internal.persistence.cdi.DataExtension.exc;
+import static jakarta.data.repository.By.ID;
+
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
