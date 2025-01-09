@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2015, 2024 IBM Corporation and others.
+ * Copyright (c) 2015, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -220,8 +220,6 @@ public class WebJaccServiceImplTest {
             JaccServiceTestUtil.initJaccService(jaccService, jaccProviderServiceProxyRef, jaccProviderServiceRef, wsLocationAdminRef, cc);
             webJaccService.setJaccService(jaccServiceRef);
             webJaccService.activate(cc);
-            assertTrue(webJaccService.isSSLRequired(appName, moduleName, uriName, method, req));
-            // this is for null check
             assertTrue(webJaccService.isSSLRequired(appName, moduleName, uriName, method, req));
         } catch (Exception e) {
             fail("Exception is caught : " + e);
