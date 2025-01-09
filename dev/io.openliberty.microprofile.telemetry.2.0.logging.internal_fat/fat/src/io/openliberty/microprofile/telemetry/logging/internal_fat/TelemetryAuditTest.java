@@ -27,9 +27,11 @@ import componenttest.annotation.CheckpointTest;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.rules.repeater.CheckpointRule;
 import componenttest.rules.repeater.CheckpointRule.ServerMode;
+import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.impl.LibertyServerFactory;
 import componenttest.topology.utils.FATServletClient;
+import io.openliberty.microprofile.telemetry.internal_fat.shared.TelemetryActions;
 
 @RunWith(FATRunner.class)
 @CheckpointTest(alwaysRun = true)
@@ -49,8 +51,8 @@ public class TelemetryAuditTest extends FATServletClient {
     //This test will run on all mp 2.0 repeats to ensure we have some test coverage on all versions.
     //I chose this one because TelemetryMessages is core to this bucket
     // Will re-enable in follow-on issue.
-    //@ClassRule
-    //public static RepeatTests rt = TelemetryActions.telemetry20Repeats();
+    @ClassRule
+    public static RepeatTests rt = TelemetryActions.telemetry20Repeats();
 
     private static LibertyServer server;
 
