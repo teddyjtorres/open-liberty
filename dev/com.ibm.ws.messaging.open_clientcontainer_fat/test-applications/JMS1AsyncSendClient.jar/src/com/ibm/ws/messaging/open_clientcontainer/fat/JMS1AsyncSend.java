@@ -192,6 +192,8 @@ public class JMS1AsyncSend extends ClientMain {
     	  BasicCompletionListener completionListener = new BasicCompletionListener();
           Queue queue = queueSession.createTemporaryQueue();
           
+          queueConnection.start();
+          
           try {
               MessageProducer producer = queueSession.createProducer(null);
 
@@ -433,6 +435,8 @@ public class JMS1AsyncSend extends ClientMain {
             TextMessage sentMessage = session.createTextMessage(methodName() + " at " + new Date());
             MessageProducer producer = session.createProducer(null);
             
+            queueConnection.start();
+            
             BasicCompletionListener completionListener = new BasicCompletionListener();
             try {
             	Util.TRACE("Sending message to null Destination. Expected to fail");
@@ -473,6 +477,8 @@ public class JMS1AsyncSend extends ClientMain {
             TextMessage sentMessage = session.createTextMessage(methodName() + " at " + new Date());
             MessageProducer producer = session.createProducer(queue);
             
+            queueConnection.start();
+            
             try {
             	Util.LOG("Sending message with null CompletionListener");
                 producer.send(sentMessage, null);
@@ -506,6 +512,8 @@ public class JMS1AsyncSend extends ClientMain {
             MessageProducer producer = session.createProducer(null);
             BasicCompletionListener completionListener = new BasicCompletionListener();
 
+            queueConnection.start();
+            
             try {
             	Util.LOG("Test no destination method 1");
                 producer.send(sentMessage, completionListener);
