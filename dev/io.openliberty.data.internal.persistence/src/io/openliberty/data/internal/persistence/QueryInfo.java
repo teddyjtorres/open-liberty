@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022,2025 IBM Corporation and others.
+ * Copyright (c) 2022,2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -2135,7 +2135,6 @@ public class QueryInfo {
      *
      * @return the SELECT clause.
      */
-    @FFDCIgnore(RuntimeException.class) // caught to switch to better error
     private StringBuilder generateSelectClause() {
         StringBuilder q = new StringBuilder(200);
         String o = entityVar;
@@ -2185,91 +2184,65 @@ public class QueryInfo {
                 // Whole entity
                 if (!"this".equals(o))
                     q.append("SELECT ").append(o);
-            } else if (entityInfo.idClassAttributeAccessors != null &&
-                       singleType.equals(entityInfo.idType)) {
-                // IdClass
-                // TODO remove once #29073 is fixed
-                // The following guess of alphabetic order is not valid in most cases, but this
-                // whole code block will be removed before GA, so there is no reason to correct it.
-                q.append("SELECT NEW ").append(singleType.getName()).append('(');
-                boolean first = true;
-                for (String idClassAttributeName : entityInfo.idClassAttributeAccessors.keySet()) {
-                    String name = getAttributeName(idClassAttributeName, true);
-                    q.append(first ? "" : ", ").append(o_).append(name);
-                    first = false;
-                }
-                q.append(')');
-                // TODO enable this once #29073 is fixed
-                // q.append("SELECT ID(").append(entityVar).append(')');
             } else {
-                // Is the result type a record or a single attribute?
-                RecordComponent[] recordComponents = singleType.getRecordComponents();
-                if (recordComponents == null) {
-                    // Look for single entity attribute with the desired type:
-                    String singleAttributeName = null;
-                    for (Map.Entry<String, Class<?>> entry : entityInfo.attributeTypes.entrySet()) {
-                        Class<?> attributeType = entry.getValue();
-                        if (attributeType.isPrimitive())
-                            attributeType = Util.wrapperClassIfPrimitive(attributeType);
-                        if (singleType.isAssignableFrom(attributeType))
-                            if (singleAttributeName == null)
-                                singleAttributeName = entry.getKey();
-                            else
-                                throw exc(MappingException.class,
-                                          "CWWKD1008.ambig.rtrn.err",
-                                          method.getGenericReturnType().getTypeName(),
-                                          method.getName(),
-                                          repositoryInterface.getName(),
-                                          List.of(singleAttributeName, entry.getKey()));
-                    }
+                // Look for single entity attribute with the desired type:
+                String singleAttributeName = null;
+                for (Map.Entry<String, Class<?>> entry : entityInfo.attributeTypes.entrySet()) {
+                    Class<?> attributeType = entry.getValue();
+                    if (attributeType.isPrimitive())
+                        attributeType = Util.wrapperClassIfPrimitive(attributeType);
+                    if (singleType.isAssignableFrom(attributeType))
+                        if (singleAttributeName == null)
+                            singleAttributeName = entry.getKey();
+                        else
+                            throw exc(MappingException.class,
+                                      "CWWKD1008.ambig.rtrn.err",
+                                      method.getGenericReturnType().getTypeName(),
+                                      method.getName(),
+                                      repositoryInterface.getName(),
+                                      List.of(singleAttributeName, entry.getKey()));
+                }
 
-                    if (singleAttributeName == null)
-                        throw exc(MappingException.class,
-                                  "CWWKD1005.find.rtrn.err",
-                                  method.getName(),
-                                  repositoryInterface.getName(),
-                                  method.getGenericReturnType().getTypeName(),
-                                  entityInfo.entityClass.getName(),
-                                  List.of("List", "Optional",
-                                          "Page", "CursoredPage",
-                                          "Stream"));
-
-                    else
-                        q.append("SELECT ").append(o_).append(singleAttributeName);
-                } else {
-                    // Construct new instance for record
-                    q.append("SELECT NEW ").append(singleType.getName()).append('(');
-
-                    String[] names = new String[recordComponents.length];
-                    for (int i = 0; i < recordComponents.length; i++) {
-                        // 1.1 TODO first check for Select annotation on record component
-                        names[i] = recordComponents[i].getName();
-                    }
-
-                    try {
+                if (singleAttributeName == null) {
+                    // TODO enable this once #29073 is fixed
+                    //if (entityInfo.idClassAttributeAccessors != null && singleType.equals(entityInfo.idType)) {
+                    //    // IdClass
+                    //    q.append("SELECT ID(").append(entityVar).append(')');
+                    // } else
+                    {
+                        // Construct new instance for record
+                        q.append("SELECT NEW ").append(singleType.getName()).append('(');
+                        RecordComponent[] recordComponents;
                         boolean first = true;
-                        for (String name : names) {
-                            name = getAttributeName(name, true);
-                            q.append(first ? "" : ", ");
-                            appendAttributeName(name, q);
-                            first = false;
-                        }
-                    } catch (RuntimeException x) {
-                        // Raise a more precise error that relates to using records
-                        // for a subset of entity attributes
-                        MappingException mx;
-                        mx = exc(MappingException.class,
-                                 "CWWKD1101.attr.subset.mismatch",
-                                 method.getGenericReturnType().getTypeName(),
-                                 method.getName(),
-                                 repositoryInterface.getName(),
-                                 singleType.getName(),
-                                 Arrays.toString(names),
-                                 entityInfo.getType().getName(),
-                                 entityInfo.getAttributeNames());
-                        throw (MappingException) mx.initCause(x);
+                        if ((recordComponents = singleType.getRecordComponents()) != null)
+                            for (RecordComponent component : recordComponents) {
+                                String name = component.getName();
+                                q.append(first ? "" : ", ").append(o_).append(name);
+                                first = false;
+                            }
+                        // TODO remove else block once #29073 is fixed
+                        else if (entityInfo.idClassAttributeAccessors != null && singleType.equals(entityInfo.idType))
+                            // The following guess of alphabetic order is not valid in most cases, but the
+                            // whole code block that will be removed before GA, so there is no reason to correct it.
+                            for (String idClassAttributeName : entityInfo.idClassAttributeAccessors.keySet()) {
+                                String name = getAttributeName(idClassAttributeName, true);
+                                q.append(first ? "" : ", ").append(o_).append(name);
+                                first = false;
+                            }
+                        else
+                            throw exc(MappingException.class,
+                                      "CWWKD1005.find.rtrn.err",
+                                      method.getName(),
+                                      repositoryInterface.getName(),
+                                      method.getGenericReturnType().getTypeName(),
+                                      entityInfo.entityClass.getName(),
+                                      List.of("List", "Optional",
+                                              "Page", "CursoredPage",
+                                              "Stream"));
+                        q.append(')');
                     }
-                    q.append(')');
+                } else {
+                    q.append("SELECT ").append(o_).append(singleAttributeName);
                 }
             }
         } else { // Individual columns are requested by @Select
