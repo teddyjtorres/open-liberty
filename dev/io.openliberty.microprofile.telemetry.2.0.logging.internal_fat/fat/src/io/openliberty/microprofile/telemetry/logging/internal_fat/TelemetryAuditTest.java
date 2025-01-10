@@ -52,6 +52,7 @@ public class TelemetryAuditTest extends FATServletClient {
     public static LibertyServer server;
 
     public static final String SERVER_XML_ALL_SOURCES_WITH_AUDIT = "allSourcesWithAudit.xml";
+    public static final String SERVER_XML_AUDIT_SOURCE_FEATURE = "auditServer.xml";
 
     private static final String[] EXPECTED_FAILURES = { "CWMOT5005W", "SRVE0315E", "SRVE0777E" };
 
@@ -101,7 +102,7 @@ public class TelemetryAuditTest extends FATServletClient {
                 put("io.openliberty.audit.target.type_uri", "service/audit/start");
 
                 put("thread.id", ""); // since, the thread.id can be random, have to make sure the thread.id field is still present.
-                put("io.openliberty.sequence", ""); // since, the sequence can be random, have to make sure the thread.id field is still present.
+                put("io.openliberty.sequence", ""); // since, the sequence can be random, have to make sure the sequence field is still present.
             }
         };
 
@@ -110,7 +111,7 @@ public class TelemetryAuditTest extends FATServletClient {
     }
 
     /*
-     * Test a server with all MPTelemetry sources enabled and ensure message, trace, ffdc, and audit logs are bridged.
+     * Test a server with all MPTelemetry sources enabled with audit and ensure all message, trace, ffdc, and audit logs are bridged.
      * MPTelemetry configuration is as follows: <mpTelemetry source="message, trace, ffdc, audit"/>
      */
     @Test
@@ -161,10 +162,12 @@ public class TelemetryAuditTest extends FATServletClient {
 
     }
 
-    private static String setConfig(String fileName, RemoteFile logFile, LibertyServer server) throws Exception {
+    private static void setConfig(String fileName, RemoteFile logFile, LibertyServer server) throws Exception {
         server.setMarkToEndOfLog(logFile);
         server.setServerConfigurationFile(fileName);
-        return server.waitForStringInLogUsingMark("CWWKG0017I.*|CWWKG0018I.*");
+        server.waitForStringInLogUsingMark("CWWKG0017I"); // wait for server config update
+        server.waitForStringInLogUsingMark("CWWKF0008I"); // wait for feature config update
+        server.waitForStringInLogUsingMark("CWWKZ0003I"); // wait for app started update
     }
 
     @AfterClass
