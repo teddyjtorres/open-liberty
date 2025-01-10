@@ -22,7 +22,6 @@ import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.ZonedDateTime;
 import java.time.temporal.Temporal;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -224,18 +223,12 @@ public class EntityInfo {
     @Trivial
     private void validate() {
         for (Entry<String, Class<?>> attrType : attributeTypes.entrySet())
-            // ZonedDateTime is not one of the supported Temporal types
-            // Jakarta Data and Jakarta Persistence and does not behave
-            // correctly in EclipseLink where we have observed reading back
-            // a different value from the database than was persisted.
-            // If proper support is added for it in the future, then this
-            // can be removed.
-            if (ZonedDateTime.class.equals(attrType.getValue()))
+            if (Util.UNSUPPORTED_ATTR_TYPES.contains(attrType.getValue()))
                 throw exc(MappingException.class,
                           "CWWKD1055.unsupported.entity.prop",
                           attrType.getKey(),
                           entityClass.getName(),
-                          attrType.getValue(),
+                          attrType.getValue().getName(),
                           List.of(Instant.class.getSimpleName(),
                                   LocalDate.class.getSimpleName(),
                                   LocalDateTime.class.getSimpleName(),
