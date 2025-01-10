@@ -375,7 +375,8 @@ public class CryptoUtils {
         if (fipsChecked) {
             return fipsEnabled;
         } else {
-            fipsEnabled = isFips140_2Enabled() || isFips140_3Enabled();
+            //fipsEnabled = isFips140_2Enabled() || isFips140_3Enabled();
+            fipsEnabled = isFips140_3Enabled();
             fipsChecked = true;
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
                 Tr.debug(tc, "isFIPSEnabled: " + fipsEnabled);
