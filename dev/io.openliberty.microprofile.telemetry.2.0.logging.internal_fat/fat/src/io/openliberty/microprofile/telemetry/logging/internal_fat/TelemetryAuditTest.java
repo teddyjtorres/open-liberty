@@ -9,6 +9,7 @@
  *******************************************************************************/
 package io.openliberty.microprofile.telemetry.logging.internal_fat;
 
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
@@ -31,6 +32,8 @@ import com.ibm.websphere.simplicity.log.Log;
 import componenttest.annotation.ExpectedFFDC;
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.custom.junit.runner.Mode;
+import componenttest.custom.junit.runner.Mode.TestMode;
 import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
@@ -59,8 +62,11 @@ public class TelemetryAuditTest extends FATServletClient {
     public static final String SERVER_XML_ONLY_AUDIT_FEATURE = "onlyAuditFeature.xml";
     public static final String SERVER_XML_ONLY_AUDIT_SOURCE = "onlyAuditSource.xml";
     public static final String SERVER_XML_NO_AUDIT_SOURCE_FEATURE = "noAuditSourceFeature.xml";
+    public static final String SERVER_XML_INVALID_AUDIT_SOURCE = "invalidAuditSource.xml";
 
     private static final String[] EXPECTED_FAILURES = { "CWMOT5005W", "SRVE0315E", "SRVE0777E" };
+
+    private static final String ZERO_SPAN_TRACE_ID = "00000000000000000000000000000000 0000000000000000";
 
     @BeforeClass
     public static void initialSetup() throws Exception {
@@ -94,8 +100,8 @@ public class TelemetryAuditTest extends FATServletClient {
         setConfig(server, messageLogFile, SERVER_XML_AUDIT_SOURCE_FEATURE);
 
         // Wait for the audit security management event that occurs at audit service startup to be bridged over.
-        String line = server.waitForStringInLog("AuditService", consoleLogFile);
-        assertNotNull("The AuditService audit event was not found.", line);
+        String auditLine = server.waitForStringInLog("AuditService", consoleLogFile);
+        assertNotNull("The AuditService audit event was not found.", auditLine);
 
         // Check if the expected key-value pair is correctly formatted and mapped to OTel.
         Map<String, String> expectedAuditFieldsMap = new HashMap<String, String>() {
@@ -118,7 +124,7 @@ public class TelemetryAuditTest extends FATServletClient {
                 put("io.openliberty.sequence", ""); // since, the sequence can be random, have to make sure the sequence field is still present.
             }
         };
-        TestUtils.checkJsonMessage(line, expectedAuditFieldsMap);
+        TestUtils.checkJsonMessage(auditLine, expectedAuditFieldsMap);
     }
 
     /*
@@ -184,7 +190,7 @@ public class TelemetryAuditTest extends FATServletClient {
 
         //Ensure audit log is bridged over, that is generated from an app.
         auditLine = server.waitForStringInLog("SECURITY_AUTHN", consoleLogFile);
-        assertNotNull("Audit logs could not be found.", auditLine);
+        assertNotNull("Audit logs could NOT be found.", auditLine);
         checkAuditOTelAttributeMapping(auditLine);
     }
 
@@ -192,6 +198,7 @@ public class TelemetryAuditTest extends FATServletClient {
      * Tests when the audit source is dynamically removed to the server.xml, with the audit feature already present.
      */
     @Test
+    @Mode(TestMode.FULL)
     public void testDynamicAuditSourceRemoval() throws Exception {
         RemoteFile messageLogFile = server.getDefaultLogFile();
         RemoteFile consoleLogFile = server.getConsoleLogFile();
@@ -201,7 +208,7 @@ public class TelemetryAuditTest extends FATServletClient {
 
         // Wait for the audit security management event that occurs at audit service startup to be bridged over.
         String auditLine = server.waitForStringInLog("AuditService", consoleLogFile);
-        assertNotNull("The AuditService audit event was not found.", auditLine);
+        assertNotNull("The AuditService audit event was NOT found.", auditLine);
 
         server.setMarkToEndOfLog(consoleLogFile);
 
@@ -210,7 +217,7 @@ public class TelemetryAuditTest extends FATServletClient {
 
         //Ensure audit log is bridged over, that is generated from an app.
         auditLine = server.waitForStringInLog("SECURITY_AUTHN", consoleLogFile);
-        assertNotNull("Audit logs could not be found.", auditLine);
+        assertNotNull("Audit logs could NOT be found.", auditLine);
         checkAuditOTelAttributeMapping(auditLine);
 
         // Remove only audit source
@@ -249,7 +256,7 @@ public class TelemetryAuditTest extends FATServletClient {
 
         // Wait for the audit service startup audit event to be bridged over.
         String line = server.waitForStringInLog("AuditService", consoleLogFile);
-        assertNotNull("The AuditService audit event was not found.", line);
+        assertNotNull("The AuditService audit event was NOT found.", line);
 
         server.setMarkToEndOfLog(consoleLogFile);
 
@@ -258,7 +265,7 @@ public class TelemetryAuditTest extends FATServletClient {
 
         //Ensure audit log is bridged over, that is generated from an app.
         auditLine = server.waitForStringInLog("SECURITY_AUTHN", consoleLogFile);
-        assertNotNull("Audit logs could not be found.", auditLine);
+        assertNotNull("Audit logs could NOT be found.", auditLine);
         checkAuditOTelAttributeMapping(auditLine);
     }
 
@@ -266,6 +273,7 @@ public class TelemetryAuditTest extends FATServletClient {
      * Tests when the audit feature is dynamically removed in the server.xml, with the audit source already present.
      */
     @Test
+    @Mode(TestMode.FULL)
     public void testDynamicAuditFeatureRemoval() throws Exception {
         RemoteFile messageLogFile = server.getDefaultLogFile();
         RemoteFile consoleLogFile = server.getConsoleLogFile();
@@ -275,7 +283,7 @@ public class TelemetryAuditTest extends FATServletClient {
 
         // Wait for the audit security management event that occurs at audit service startup to be bridged over.
         String auditLine = server.waitForStringInLog("AuditService", consoleLogFile);
-        assertNotNull("The AuditService audit event was not found.", auditLine);
+        assertNotNull("The AuditService audit event was NOT found.", auditLine);
 
         server.setMarkToEndOfLog(consoleLogFile);
 
@@ -284,7 +292,7 @@ public class TelemetryAuditTest extends FATServletClient {
 
         //Ensure audit log is bridged over, that is generated from an app.
         auditLine = server.waitForStringInLog("SECURITY_AUTHN", consoleLogFile);
-        assertNotNull("Audit logs could not be found.", auditLine);
+        assertNotNull("Audit logs could NOT be found.", auditLine);
         checkAuditOTelAttributeMapping(auditLine);
 
         // Remove only audit feature
@@ -312,7 +320,7 @@ public class TelemetryAuditTest extends FATServletClient {
 
         // Wait for the audit security management event that occurs at audit service startup to be bridged over.
         String auditLine = server.waitForStringInLog("AuditService", consoleLogFile);
-        assertNotNull("The AuditService audit event was not found.", auditLine);
+        assertNotNull("The AuditService audit event was NOT found.", auditLine);
 
         server.setMarkToEndOfLog(consoleLogFile);
 
@@ -321,7 +329,7 @@ public class TelemetryAuditTest extends FATServletClient {
 
         //Ensure audit log is bridged over, that is generated from an app.
         auditLine = server.waitForStringInLog("SECURITY_AUTHN", consoleLogFile);
-        assertNotNull("Audit logs could not be found.", auditLine);
+        assertNotNull("Audit logs could NOT be found.", auditLine);
         checkAuditOTelAttributeMapping(auditLine);
 
         // Remove audit feature and source
@@ -334,6 +342,58 @@ public class TelemetryAuditTest extends FATServletClient {
         // Ensure audit logs is NOT bridged over, that is generated from an app.
         auditLine = server.waitForStringInLog("liberty_audit", consoleLogFile);
         assertNull("Audit logs could be found.", auditLine);
+    }
+
+    /*
+     * Tests when an invalid audit source attribute is configured, a warning is logged.
+     * Source configuraton is as follows: <mpTelemetry source="audt"/>
+     */
+    @Test
+    public void testTelemetryInvalidAuditSource() throws Exception {
+        RemoteFile messageLogFile = server.getDefaultLogFile();
+        RemoteFile consoleLogFile = server.getConsoleLogFile();
+
+        // Configure invalid audit source
+        setConfig(server, messageLogFile, SERVER_XML_INVALID_AUDIT_SOURCE);
+
+        // Verify if the Audit Service is ready, from the Audit feature
+        String auditSrvReadyLine = server.waitForStringInLog("CWWKS5851I", messageLogFile);
+        assertNotNull("Audit service ready message was NOT found.", auditSrvReadyLine);
+
+        // Audit events should not be bridged over to OpenTelemetry
+        String auditLine = server.waitForStringInLog("liberty_audit", consoleLogFile);
+        assertNull("Audit events were bridged to OpenTelemetry.", auditLine);
+
+        // Check if the warning message is logged
+        String warningLine = server.waitForStringInLog("CWMOT5005W", messageLogFile);
+        assertNotNull("Unknown log source warning was NOT found.", warningLine);
+    }
+
+    /*
+     * Tests if the span and trace IDs are populated for bridged Audit event logs that are triggered by an application.
+     */
+    @Test
+    public void testTelemetryAuditLogsSpanTraceIds() throws Exception {
+        RemoteFile messageLogFile = server.getDefaultLogFile();
+        RemoteFile consoleLogFile = server.getConsoleLogFile();
+
+        // Configure all sources
+        setConfig(server, messageLogFile, SERVER_XML_AUDIT_SOURCE_FEATURE);
+        server.setMarkToEndOfLog(consoleLogFile);
+
+        // Trigger an audit event
+        TestUtils.runApp(server, "logServlet");
+
+        //Ensure the audit event log is bridged over, that was triggered by an app.
+        String auditLine = server.waitForStringInLog("SECURITY_AUTHN", consoleLogFile);
+        assertNotNull("The Security Authentication audit event was not found.", auditLine);
+        checkAuditOTelAttributeMapping(auditLine);
+
+        // Get the audit event log triggered by the application that should contain non-zero trace and span IDs.
+        auditLine = server.waitForStringInLog("httpRoute:/MpTelemetryLogApp/LogURL", consoleLogFile);
+        Log.info(c, "testTelemetryAuditLogsSpanTraceIds", "Audit log event with trace and span id : " + auditLine);
+        assertNotNull("The audit event log was NOT found.", auditLine);
+        assertFalse("The audit log event does NOT contain a valid trace and span id", auditLine.contains(ZERO_SPAN_TRACE_ID));
     }
 
     private static void setConfig(LibertyServer server, RemoteFile logFile, String fileName) throws Exception {
@@ -370,7 +430,6 @@ public class TelemetryAuditTest extends FATServletClient {
                 put("io.openliberty.audit.target.method", "GET");
                 put("io.openliberty.audit.target.name", "/MpTelemetryLogApp/LogURL");
                 put("io.openliberty.audit.target.realm", "defaultRealm");
-
                 put("io.openliberty.audit.target.type_uri", "service/application/web");
             }
         };
