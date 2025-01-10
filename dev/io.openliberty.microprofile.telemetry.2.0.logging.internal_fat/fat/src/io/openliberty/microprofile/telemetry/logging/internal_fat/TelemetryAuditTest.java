@@ -10,6 +10,7 @@
 package io.openliberty.microprofile.telemetry.logging.internal_fat;
 
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +26,7 @@ import org.junit.runner.RunWith;
 import com.ibm.websphere.simplicity.RemoteFile;
 import com.ibm.websphere.simplicity.ShrinkHelper;
 import com.ibm.websphere.simplicity.ShrinkHelper.DeployOptions;
+import com.ibm.websphere.simplicity.log.Log;
 
 import componenttest.annotation.ExpectedFFDC;
 import componenttest.annotation.Server;
@@ -51,8 +53,12 @@ public class TelemetryAuditTest extends FATServletClient {
     @Server(SERVER_NAME)
     public static LibertyServer server;
 
-    public static final String SERVER_XML_ALL_SOURCES_WITH_AUDIT = "allSourcesWithAudit.xml";
+    // Test server configurations
     public static final String SERVER_XML_AUDIT_SOURCE_FEATURE = "auditServer.xml";
+    public static final String SERVER_XML_ALL_SOURCES_WITH_AUDIT = "allSourcesWithAudit.xml";
+    public static final String SERVER_XML_ONLY_AUDIT_FEATURE = "onlyAuditFeature.xml";
+    public static final String SERVER_XML_ONLY_AUDIT_SOURCE = "onlyAuditSource.xml";
+    public static final String SERVER_XML_NO_AUDIT_SOURCE_FEATURE = "noAuditSourceFeature.xml";
 
     private static final String[] EXPECTED_FAILURES = { "CWMOT5005W", "SRVE0315E", "SRVE0777E" };
 
@@ -77,14 +83,21 @@ public class TelemetryAuditTest extends FATServletClient {
     }
 
     /**
-     * Ensures Audit messages are correctly bridged and all attributes are present.
+     * Tests whether Audit messages are correctly bridged and all attributes are present.
      */
     @Test
     public void testTelemetryAuditLogs() throws Exception {
-        String line = server.waitForStringInLog("AuditService", server.getConsoleLogFile());
+        RemoteFile messageLogFile = server.getDefaultLogFile();
+        RemoteFile consoleLogFile = server.getConsoleLogFile();
 
-        assertNotNull("The AuditService audit event was not not found.", line);
+        // Configure audit feature and audit source
+        setConfig(server, messageLogFile, SERVER_XML_AUDIT_SOURCE_FEATURE);
 
+        // Wait for the audit security management event that occurs at audit service startup to be bridged over.
+        String line = server.waitForStringInLog("AuditService", consoleLogFile);
+        assertNotNull("The AuditService audit event was not found.", line);
+
+        // Check if the expected key-value pair is correctly formatted and mapped to OTel.
         Map<String, String> expectedAuditFieldsMap = new HashMap<String, String>() {
             {
                 put("io.openliberty.type", "liberty_audit");
@@ -105,8 +118,6 @@ public class TelemetryAuditTest extends FATServletClient {
                 put("io.openliberty.sequence", ""); // since, the sequence can be random, have to make sure the sequence field is still present.
             }
         };
-
-        // Check if the expected key-value pair is correctly formatted and mapped to OTel.
         TestUtils.checkJsonMessage(line, expectedAuditFieldsMap);
     }
 
@@ -117,15 +128,230 @@ public class TelemetryAuditTest extends FATServletClient {
     @Test
     @ExpectedFFDC({ "java.lang.NullPointerException" })
     public void testTelemetryAuditLogsWithAllSourcesEnabled() throws Exception {
+        RemoteFile messageLogFile = server.getDefaultLogFile();
         RemoteFile consoleLogFile = server.getConsoleLogFile();
-        setConfig(SERVER_XML_ALL_SOURCES_WITH_AUDIT, consoleLogFile, server);
 
+        // Configure all sources
+        setConfig(server, messageLogFile, SERVER_XML_ALL_SOURCES_WITH_AUDIT);
+        server.setMarkToEndOfLog(consoleLogFile);
+
+        // Trigger an audit event
         TestUtils.runApp(server, "logServlet");
 
-        String auditLine = server.waitForStringInLog("SECURITY_AUTHN", server.getConsoleLogFile());
+        //Ensure audit log is bridged over, that is generated from an app.
+        String auditLine = server.waitForStringInLog("SECURITY_AUTHN", consoleLogFile);
+        assertNotNull("The Security Authentication audit event was not found.", auditLine);
+        checkAuditOTelAttributeMapping(auditLine);
+
+        //Ensure the other sources - message, trace, and ffdc logs are bridged, as well.
+        String messageLine = server.waitForStringInLog("info message", consoleLogFile);
+        assertNotNull("Info message could not be found.", messageLine);
+
+        String traceLine = server.waitForStringInLog("finest trace", consoleLogFile);
+        assertNotNull("Trace message could not be found.", traceLine);
+
+        TestUtils.runApp(server, "ffdc1");
+        String ffdcLine = server.waitForStringInLog("liberty_ffdc", consoleLogFile);
+        assertNotNull("FFDC message could not be found.", ffdcLine);
+
+    }
+
+    /*
+     * Tests when the audit source is dynamically added to the server.xml, with the audit feature already present.
+     */
+    @Test
+    public void testDynamicAuditSourceAddition() throws Exception {
+        RemoteFile messageLogFile = server.getDefaultLogFile();
+        RemoteFile consoleLogFile = server.getConsoleLogFile();
+
+        // Configure audit feature only
+        setConfig(server, messageLogFile, SERVER_XML_ONLY_AUDIT_FEATURE);
+        server.setMarkToEndOfLog(consoleLogFile);
+
+        // Trigger an audit event
+        TestUtils.runApp(server, "logServlet");
+
+        // Ensure audit log is NOT bridged over, that is generated from an app.
+        String auditLine = server.waitForStringInLog("liberty_audit", consoleLogFile);
+        assertNull("Audit logs could be found.", auditLine);
+
+        // Configure <mpTelemetry source="audit"/>
+        setConfig(server, messageLogFile, SERVER_XML_AUDIT_SOURCE_FEATURE);
+        server.setMarkToEndOfLog(consoleLogFile);
+
+        // Trigger an audit event.
+        TestUtils.runApp(server, "logServlet");
 
         //Ensure audit log is bridged over, that is generated from an app.
+        auditLine = server.waitForStringInLog("SECURITY_AUTHN", consoleLogFile);
         assertNotNull("Audit logs could not be found.", auditLine);
+        checkAuditOTelAttributeMapping(auditLine);
+    }
+
+    /*
+     * Tests when the audit source is dynamically removed to the server.xml, with the audit feature already present.
+     */
+    @Test
+    public void testDynamicAuditSourceRemoval() throws Exception {
+        RemoteFile messageLogFile = server.getDefaultLogFile();
+        RemoteFile consoleLogFile = server.getConsoleLogFile();
+
+        // Configure audit feature and audit source
+        setConfig(server, messageLogFile, SERVER_XML_AUDIT_SOURCE_FEATURE);
+
+        // Wait for the audit security management event that occurs at audit service startup to be bridged over.
+        String auditLine = server.waitForStringInLog("AuditService", consoleLogFile);
+        assertNotNull("The AuditService audit event was not found.", auditLine);
+
+        server.setMarkToEndOfLog(consoleLogFile);
+
+        // Trigger an audit event
+        TestUtils.runApp(server, "logServlet");
+
+        //Ensure audit log is bridged over, that is generated from an app.
+        auditLine = server.waitForStringInLog("SECURITY_AUTHN", consoleLogFile);
+        assertNotNull("Audit logs could not be found.", auditLine);
+        checkAuditOTelAttributeMapping(auditLine);
+
+        // Remove only audit source
+        setConfig(server, messageLogFile, SERVER_XML_ONLY_AUDIT_FEATURE);
+        server.setMarkToEndOfLog(consoleLogFile);
+
+        // Trigger an audit event.
+        TestUtils.runApp(server, "logServlet");
+
+        // Ensure audit log is NOT bridged over, that is generated from an app.
+        auditLine = server.waitForStringInLog("liberty_audit", consoleLogFile);
+        assertNull("Audit logs could be found.", auditLine);
+    }
+
+    /*
+     * Tests when the audit feature is dynamically added to the server.xml, with the audit source already present.
+     */
+    @Test
+    public void testDynamicAuditFeatureAddition() throws Exception {
+        RemoteFile messageLogFile = server.getDefaultLogFile();
+        RemoteFile consoleLogFile = server.getConsoleLogFile();
+
+        // Configure audit source only
+        setConfig(server, messageLogFile, SERVER_XML_ONLY_AUDIT_SOURCE);
+        server.setMarkToEndOfLog(consoleLogFile);
+
+        // Trigger an audit event
+        TestUtils.runApp(server, "logServlet");
+
+        // Ensure audit log is NOT bridged over, that is generated from an app.
+        String auditLine = server.waitForStringInLog("liberty_audit", consoleLogFile);
+        assertNull("Audit logs could be found.", auditLine);
+
+        // Configure audit feature
+        setConfig(server, messageLogFile, SERVER_XML_AUDIT_SOURCE_FEATURE);
+
+        // Wait for the audit service startup audit event to be bridged over.
+        String line = server.waitForStringInLog("AuditService", consoleLogFile);
+        assertNotNull("The AuditService audit event was not found.", line);
+
+        server.setMarkToEndOfLog(consoleLogFile);
+
+        // Trigger an audit event.
+        TestUtils.runApp(server, "logServlet");
+
+        //Ensure audit log is bridged over, that is generated from an app.
+        auditLine = server.waitForStringInLog("SECURITY_AUTHN", consoleLogFile);
+        assertNotNull("Audit logs could not be found.", auditLine);
+        checkAuditOTelAttributeMapping(auditLine);
+    }
+
+    /*
+     * Tests when the audit feature is dynamically removed in the server.xml, with the audit source already present.
+     */
+    @Test
+    public void testDynamicAuditFeatureRemoval() throws Exception {
+        RemoteFile messageLogFile = server.getDefaultLogFile();
+        RemoteFile consoleLogFile = server.getConsoleLogFile();
+
+        // Configure audit feature and audit source
+        setConfig(server, messageLogFile, SERVER_XML_AUDIT_SOURCE_FEATURE);
+
+        // Wait for the audit security management event that occurs at audit service startup to be bridged over.
+        String auditLine = server.waitForStringInLog("AuditService", consoleLogFile);
+        assertNotNull("The AuditService audit event was not found.", auditLine);
+
+        server.setMarkToEndOfLog(consoleLogFile);
+
+        // Trigger an audit event
+        TestUtils.runApp(server, "logServlet");
+
+        //Ensure audit log is bridged over, that is generated from an app.
+        auditLine = server.waitForStringInLog("SECURITY_AUTHN", consoleLogFile);
+        assertNotNull("Audit logs could not be found.", auditLine);
+        checkAuditOTelAttributeMapping(auditLine);
+
+        // Remove only audit feature
+        setConfig(server, messageLogFile, SERVER_XML_ONLY_AUDIT_SOURCE);
+        server.setMarkToEndOfLog(consoleLogFile);
+
+        // Trigger an audit event.
+        TestUtils.runApp(server, "logServlet");
+
+        // Ensure audit log is NOT bridged over, that is generated from an app.
+        auditLine = server.waitForStringInLog("liberty_audit", consoleLogFile);
+        assertNull("Audit logs could be found.", auditLine);
+    }
+
+    /*
+     * Tests when the audit feature and source are dynamically removed in the server.xml.
+     */
+    @Test
+    public void testDynamicAuditFeatureSourceRemoval() throws Exception {
+        RemoteFile messageLogFile = server.getDefaultLogFile();
+        RemoteFile consoleLogFile = server.getConsoleLogFile();
+
+        // Configure audit feature and audit source
+        setConfig(server, messageLogFile, SERVER_XML_AUDIT_SOURCE_FEATURE);
+
+        // Wait for the audit security management event that occurs at audit service startup to be bridged over.
+        String auditLine = server.waitForStringInLog("AuditService", consoleLogFile);
+        assertNotNull("The AuditService audit event was not found.", auditLine);
+
+        server.setMarkToEndOfLog(consoleLogFile);
+
+        // Trigger an audit event
+        TestUtils.runApp(server, "logServlet");
+
+        //Ensure audit log is bridged over, that is generated from an app.
+        auditLine = server.waitForStringInLog("SECURITY_AUTHN", consoleLogFile);
+        assertNotNull("Audit logs could not be found.", auditLine);
+        checkAuditOTelAttributeMapping(auditLine);
+
+        // Remove audit feature and source
+        setConfig(server, messageLogFile, SERVER_XML_NO_AUDIT_SOURCE_FEATURE);
+        server.setMarkToEndOfLog(consoleLogFile);
+
+        // Trigger an audit event.
+        TestUtils.runApp(server, "logServlet");
+
+        // Ensure audit logs is NOT bridged over, that is generated from an app.
+        auditLine = server.waitForStringInLog("liberty_audit", consoleLogFile);
+        assertNull("Audit logs could be found.", auditLine);
+    }
+
+    private static void setConfig(LibertyServer server, RemoteFile logFile, String fileName) throws Exception {
+        server.setMarkToEndOfLog(logFile);
+        server.setServerConfigurationFile(fileName);
+
+        String configUpdate = server.waitForStringInLogUsingMark("CWWKG0017I"); // wait for server config update
+        Log.info(c, "setConfig", "Config Update Message Found : " + configUpdate);
+
+        String featureUpdate = server.waitForStringInLogUsingMark("CWWKF0008I"); // wait for feature config update
+        Log.info(c, "setConfig", "Feature Update Message Found : " + featureUpdate);
+
+        String appStartedUpdate = server.waitForStringInLogUsingMark("CWWKZ0003I"); // wait for app started update
+        Log.info(c, "setConfig", "App Started Updated Message Found :  " + appStartedUpdate);
+    }
+
+    private static void checkAuditOTelAttributeMapping(String auditLine) {
+        // Ensures the triggered application audit security event is mapped correctly.
         Map<String, String> expectedAuditFieldsMap = new HashMap<String, String>() {
             {
                 put("io.openliberty.type", "liberty_audit");
@@ -149,25 +375,6 @@ public class TelemetryAuditTest extends FATServletClient {
             }
         };
         TestUtils.checkJsonMessage(auditLine, expectedAuditFieldsMap);
-
-        //Ensure the other sources - message, trace, and ffdc logs are bridged.
-        TestUtils.runApp(server, "ffdc1");
-        String messageLine = server.waitForStringInLog("info message", server.getConsoleLogFile());
-        String traceLine = server.waitForStringInLog("finest trace", server.getConsoleLogFile());
-        String ffdcLine = server.waitForStringInLog("liberty_ffdc", server.getConsoleLogFile());
-
-        assertNotNull("Info message could not be found.", messageLine);
-        assertNotNull("Trace message could not be found.", traceLine);
-        assertNotNull("FFDC message could not be found.", ffdcLine);
-
-    }
-
-    private static void setConfig(String fileName, RemoteFile logFile, LibertyServer server) throws Exception {
-        server.setMarkToEndOfLog(logFile);
-        server.setServerConfigurationFile(fileName);
-        server.waitForStringInLogUsingMark("CWWKG0017I"); // wait for server config update
-        server.waitForStringInLogUsingMark("CWWKF0008I"); // wait for feature config update
-        server.waitForStringInLogUsingMark("CWWKZ0003I"); // wait for app started update
     }
 
     @AfterClass
