@@ -1,5 +1,9 @@
-# TODO update to ghcr.io/gvenzl/oracle-free:23.5-full-faststart
-FROM gvenzl/oracle-xe:21.3.0-full-faststart
+# Base image used by external users is overwritten at runtime
+# by a mirrored version from Artifactory for internal users.
+
+ARG BASE_IMAGE="ghcr.io/gvenzl/oracle-free:23.5-full-faststart"
+
+FROM ${BASE_IMAGE}
 
 COPY setup/ /tmp/setup/
 COPY startup/ /container-entrypoint-startdb.d
@@ -16,5 +20,3 @@ RUN rm -rf /tmp/setup
 USER oracle
 
 EXPOSE 1522
-
-# Currently tagged in DockerHub as: kyleaure/oracle-21.3.0-faststart:1.0.full.ssl

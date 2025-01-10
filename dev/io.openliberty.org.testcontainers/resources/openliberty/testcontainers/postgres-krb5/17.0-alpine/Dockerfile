@@ -1,6 +1,9 @@
-# TODO update to public.ecr.aws/docker/library/postgres:17.0-alpine
+# Base image used by external users is overwritten at runtime
+# by a mirrored version from Artifactory for internal users.
 
-FROM postgres:12.4
+ARG BASE_IMAGE="public.ecr.aws/docker/library/postgres:17.0-alpine"
+
+FROM ${BASE_IMAGE}
 
 RUN set -ex; \
     echo krb5-config krb5-config/default_realm string LOCALDOMAIN | debconf-set-selections; \
@@ -27,7 +30,3 @@ RUN chmod 777 /etc/krb5.keytab
 
 ADD startup/db_setup.sh /docker-entrypoint-initdb.d/db_setup.sh
 RUN chmod 777 /docker-entrypoint-initdb.d/db_setup.sh
-
-
-
-# Currently tagged in DockerHub as: kyleaure/postgres-krb5:1.0

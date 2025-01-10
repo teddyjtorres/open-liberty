@@ -1,5 +1,9 @@
-# This is a base alpine(linux) image
-FROM alpine:3.19
+# Base image used by external users is overwritten at runtime
+# by a mirrored version from Artifactory for internal users.
+
+ARG BASE_IMAGE="public.ecr.aws/docker/library/alpine:3.17"
+
+FROM ${BASE_IMAGE}
 
 RUN apk add openldap-clients openldap-back-mdb openldap krb5-server krb5 cyrus-sasl-gssapiv2 supervisor tini
 
@@ -18,8 +22,3 @@ COPY config_files/slapd.ldif /etc/openldap/
 ENTRYPOINT ["/sbin/tini", "--"]
 RUN ["chmod", "+x", "/docker-entrypoint.sh"]
 CMD ["/docker-entrypoint.sh"]
-
-
-
-
-# Currently tagged in DockerHub as: zachhein/ldap-server:0.5

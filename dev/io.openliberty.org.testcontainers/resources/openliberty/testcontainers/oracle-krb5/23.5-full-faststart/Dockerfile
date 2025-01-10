@@ -1,5 +1,9 @@
-# TODO update to ghcr.io/gvenzl/oracle-free:23.5-full-faststart
-FROM gvenzl/oracle-xe:21.3.0-full-faststart
+# Base image used by external users is overwritten at runtime
+# by a mirrored version from Artifactory for internal users.
+
+ARG BASE_IMAGE="ghcr.io/gvenzl/oracle-free:23.5-full-faststart"
+
+FROM ${BASE_IMAGE}
 
 # Update and install Kerberos (server head)
 USER root
@@ -32,5 +36,3 @@ RUN rm /opt/oracle/scripts/setup/1kerberos.sh
 RUN rm /opt/oracle/scripts/setup/2oracle.sh 
  
 USER oracle
-
-# Currently tagged in DockerHub as: kyleaure/oracle-21.3.0-faststart:1.0.full.krb5

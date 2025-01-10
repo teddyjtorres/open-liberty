@@ -1,4 +1,9 @@
-FROM python:3-alpine
+# Base image used by external users is overwritten at runtime
+# by a mirrored version from Artifactory for internal users.
+
+ARG BASE_IMAGE="public.ecr.aws/docker/library/python:3-alpine3.17"
+
+FROM ${BASE_IMAGE}
 
 RUN mkdir /public_key
 
@@ -20,8 +25,4 @@ tNyeDipYJQEA74mtwWh9R7i7+7b3jsxFEMSzu8ZbTk25qSIlQLmE9wM=\n\
 
 EXPOSE 8080
 
-
-
 CMD ["python", "-m" , "http.server", "8080"]
-
-# Currently tagged in DockerHub as: jiwoo/simple-keyserver:1.0

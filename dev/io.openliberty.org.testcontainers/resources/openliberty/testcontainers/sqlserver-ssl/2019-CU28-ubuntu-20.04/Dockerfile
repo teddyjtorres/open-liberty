@@ -1,10 +1,10 @@
-# TODO update to mcr.microsoft.com/mssql/server:2019-CU28-ubuntu-20.04
+# Base image used by external users is overwritten at runtime
+# by a mirrored version from Artifactory for internal users.
 
-FROM mcr.microsoft.com/mssql/server:2019-CU18-ubuntu-20.04
+ARG BASE_IMAGE="mcr.microsoft.com/mssql/server:2019-CU28-ubuntu-20.04"
+
+FROM ${BASE_IMAGE}
 
 COPY --chown=mssql:0 container-files/mssql.conf /var/opt/mssql/mssql.conf
 COPY --chown=mssql:0 container-files/mssql.pem  /etc/ssl/certs/mssql.pem
 COPY --chown=mssql:0 container-files/mssql.key  /etc/ssl/mssql.key
-
-
-# Currently tagged in DockerHub as: kyleaure/sqlserver-ssl:2019-CU18-ubuntu-20.04
