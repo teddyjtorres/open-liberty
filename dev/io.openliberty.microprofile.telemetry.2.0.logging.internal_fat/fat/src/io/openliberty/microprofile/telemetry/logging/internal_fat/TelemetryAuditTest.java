@@ -17,7 +17,6 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.junit.After;
-import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.ClassRule;
@@ -70,22 +69,26 @@ public class TelemetryAuditTest extends FATServletClient {
 
     @BeforeClass
     public static void initialSetup() throws Exception {
+        ShrinkHelper.defaultApp(server, APP_NAME, new DeployOptions[] { DeployOptions.SERVER_ONLY },
+                                "io.openliberty.microprofile.telemetry.logging.internal.fat.MpTelemetryLogApp");
+
         server.saveServerConfiguration();
     }
 
     @Before
     public void testSetup() throws Exception {
-        ShrinkHelper.defaultApp(server, APP_NAME, new DeployOptions[] { DeployOptions.SERVER_ONLY },
-                                "io.openliberty.microprofile.telemetry.logging.internal.fat.MpTelemetryLogApp");
-        server.startServer();
+        if (!server.isStarted())
+            server.startServer();
     }
 
     @After
-    public void testTearDown() throws Exception {
-        server.stopServer(EXPECTED_FAILURES);
+    public void testCleanUp() throws Exception {
+        if (server != null && server.isStarted()) {
+            server.stopServer(EXPECTED_FAILURES);
 
-        // Restore the server configuration, after each test case.
-        server.restoreServerConfiguration();
+            // Restore the server configuration, after each test case.
+            server.restoreServerConfiguration();
+        }
     }
 
     /**
@@ -198,7 +201,6 @@ public class TelemetryAuditTest extends FATServletClient {
      * Tests when the audit source is dynamically removed to the server.xml, with the audit feature already present.
      */
     @Test
-    @Mode(TestMode.FULL)
     public void testDynamicAuditSourceRemoval() throws Exception {
         RemoteFile messageLogFile = server.getDefaultLogFile();
         RemoteFile consoleLogFile = server.getConsoleLogFile();
@@ -236,6 +238,7 @@ public class TelemetryAuditTest extends FATServletClient {
      * Tests when the audit feature is dynamically added to the server.xml, with the audit source already present.
      */
     @Test
+    @Mode(TestMode.FULL)
     public void testDynamicAuditFeatureAddition() throws Exception {
         RemoteFile messageLogFile = server.getDefaultLogFile();
         RemoteFile consoleLogFile = server.getConsoleLogFile();
@@ -311,6 +314,7 @@ public class TelemetryAuditTest extends FATServletClient {
      * Tests when the audit feature and source are dynamically removed in the server.xml.
      */
     @Test
+    @Mode(TestMode.FULL)
     public void testDynamicAuditFeatureSourceRemoval() throws Exception {
         RemoteFile messageLogFile = server.getDefaultLogFile();
         RemoteFile consoleLogFile = server.getConsoleLogFile();
@@ -435,12 +439,4 @@ public class TelemetryAuditTest extends FATServletClient {
         };
         TestUtils.checkJsonMessage(auditLine, expectedAuditFieldsMap);
     }
-
-    @AfterClass
-    public static void tearDown() throws Exception {
-        if (server != null && server.isStarted()) {
-            server.stopServer(EXPECTED_FAILURES);
-        }
-    }
-
 }
