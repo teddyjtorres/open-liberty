@@ -71,11 +71,11 @@ import io.opentelemetry.semconv.SemanticAttributes;
  */
 @RunWith(FATRunner.class)
 @MaximumJavaLevel(javaLevel = 20)
-public class Agent210Test {
+public class Agent250Test {
 
-    private static final Class<Agent210Test> c = Agent210Test.class;
+    private static final Class<Agent250Test> c = Agent250Test.class;
     private static final String SERVICE_NAME = "Test service";
-    private static final String SERVER_NAME = "Telemetry210Agent";
+    private static final String SERVER_NAME = "Telemetry250Agent";
 
     @Server(SERVER_NAME)
     public static LibertyServer server;
@@ -98,11 +98,11 @@ public class Agent210Test {
     public static void setUp() throws Exception {
         client = new JaegerQueryClient(jaegerContainer, keyPairs.getCertificate());
 
-        server.copyFileToLibertyServerRoot("agent-210/opentelemetry-javaagent.jar");
+        server.copyFileToLibertyServerRoot("agent-250/opentelemetry-javaagent.jar");
 
         server.addEnvVar(TestConstants.ENV_OTEL_TRACES_EXPORTER, "otlp");
         server.addEnvVar(TestConstants.ENV_OTEL_EXPORTER_OTLP_ENDPOINT, jaegerContainer.getOtlpGrpcUrl());
-        //The default OTLP protocol has been changed from grpc to http/protobuf in the Java Agent v2.1.0
+        //The default OTLP protocol has been changed from grpc to http/protobuf in the Java Agent v2.5.0
         server.addEnvVar(TestConstants.ENV_OTEL_EXPORTER_OTLP_PROTOCOL, "grpc");
 
         server.addEnvVar("OTEL_INSTRUMENTATION_COMMON_EXPERIMENTAL_CONTROLLER_TELEMETRY_ENABLED", "true"); //otel.instrumentation.common.experimental.controller-telemetry.enabled=true)
