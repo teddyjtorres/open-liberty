@@ -95,7 +95,7 @@ public class PassivationTest extends FATServletClient {
     public void testPassivationCapable() throws Exception {
         // Create more SFSB than the cache can hold, which should trigger
         // passivation of those that are capable.
-        FATServletClient.runTest(server, "PassivationCapable", testName);
+        FATServletClient.runTest(server, "PassivationCapable", getTestMethodSimpleName());
 
         // We're only expecting 3, so wait for all of them.
         Assert.assertEquals(3, server.waitForMultipleStringsInLog(3, PASSIVATION_CAPABLE_REGEXP));
