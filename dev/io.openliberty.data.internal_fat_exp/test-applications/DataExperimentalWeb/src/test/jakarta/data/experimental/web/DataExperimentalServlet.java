@@ -52,6 +52,7 @@ import org.junit.Test;
 
 import componenttest.app.FATServlet;
 import junit.framework.AssertionFailedError;
+import test.jakarta.data.experimental.web.Shipment.Instructions;
 
 @SuppressWarnings("serial")
 @WebServlet("/*")
@@ -1375,6 +1376,44 @@ public class DataExperimentalServlet extends FATServlet {
                                      .collect(Collectors.toList()));
 
         reservations.deleteByHostNot("unused@example.org");
+    }
+
+    /**
+     * Find operation that returns an entity attribute that is a record.
+     */
+    @Test
+    public void testReturnRecordAttribute() {
+        shipments.removeEverything();
+
+        Shipment s1 = new Shipment();
+        s1.setDestination("2800 37th St NW, Rochester, MN 55901");
+        s1.setLocation("44.006349, -92.4665299");
+        s1.setId(10);
+        s1.setInstructions(new Instructions(//
+                        "Handle with care", //
+                        "Leave at door, send text alert", //
+                        false));
+        s1.setOrderedAt(OffsetDateTime.now());
+        s1.setStatus("SHIPPED");
+        shipments.save(s1);
+
+        Shipment s2 = new Shipment();
+        s2.setDestination("2800 37th St NW, Rochester, MN 55901");
+        s2.setLocation("44.006349,-92.4665299");
+        s2.setId(20);
+        s2.setOrderedAt(OffsetDateTime.now());
+        s2.setStatus("ORDER_RECEIVED");
+        shipments.save(s2);
+
+        // TODO enable once #29460 is fixed
+        //Instructions inst1 = shipments.getInstructions(10).orElseThrow();
+        //assertEquals("Handle with care", inst1.handlingRequirements());
+        //assertEquals("Leave at door, send text alert", inst1.deliveryRequirements());
+        //assertEquals(false, inst1.needsSignature());
+
+        //assertEquals(false, shipments.getInstructions(20).isPresent());
+
+        shipments.removeEverything();
     }
 
     /**
