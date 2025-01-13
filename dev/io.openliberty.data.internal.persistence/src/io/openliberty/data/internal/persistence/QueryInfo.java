@@ -1991,7 +1991,7 @@ public class QueryInfo {
                                     attribute = params[p].getName();
                                 else
                                     throw exc(MappingException.class,
-                                              "CWWKD1027.anno.missing.prop.name",
+                                              "CWWKD1027.anno.missing.attr.name",
                                               p + 1,
                                               method.getName(),
                                               repositoryInterface.getName(),
@@ -2151,7 +2151,7 @@ public class QueryInfo {
             ("The " + method.getName() + " method of the " +
              repositoryInterface.getName() + " repository has a " +
              method.getGenericReturnType().getTypeName() + " return type and" +
-             " specifies to return the " + selections + " entity properties," +
+             " specifies to return the " + selections + " entity attributes," +
              " but delete operations can only return void, a deletion count," +
              " a boolean deletion indicator, or the removed entities.");
         } else {
@@ -2310,7 +2310,7 @@ public class QueryInfo {
 
     /**
      * Generates and appends JQPL to sort based on the specified entity attribute.
-     * For most properties, this will be of a form such as o.name or LOWER(o.name) DESC or ...
+     * For most attributes, this will be of a form such as o.name or LOWER(o.name) DESC or ...
      *
      * @param q             builder for the JPQL query.
      * @param Sort          sort criteria for a single attribute (name must already
@@ -2495,14 +2495,21 @@ public class QueryInfo {
     }
 
     /**
-     * Generates the JPQL WHERE clause for all findBy, deleteBy, or updateBy conditions such as MyColumn[IgnoreCase][Not]Like
+     * Generates the JPQL WHERE clause for all find/delete/count/exists/By
+     * conditions such as MyColumn[IgnoreCase][Not]Like
      */
-    private void generateWhereClause(String methodName, int start, int endBefore, StringBuilder q) {
+    private void generateWhereClause(String methodName,
+                                     int start,
+                                     int endBefore,
+                                     StringBuilder q) {
         hasWhere = true;
         q.append(" WHERE (");
-        for (int and = start, or = start, iNext = start, i = start; hasWhere && i >= start && iNext < endBefore; i = iNext) {
-            // The extra character (+1) below allows for entity property names that begin with Or or And.
-            // For example, findByOrg and findByPriceBetweenAndOrderNumber
+        for (int and = start, or = start, iNext = start, i = start; //
+             hasWhere && i >= start && iNext < endBefore; //
+             i = iNext) {
+            // The extra character (+1) below allows for entity attribute names
+            // that begin with Or or And. For example,
+            // findByOrg and findByPriceBetweenAndOrderNumber
             and = and == -1 || and > i + 1 ? and : methodName.indexOf("And", i + 1);
             or = or == -1 || or > i + 1 ? or : methodName.indexOf("Or", i + 1);
             iNext = Math.min(and, or);
@@ -2545,7 +2552,7 @@ public class QueryInfo {
                     value = ((Field) accessor).get(value);
             } else {
                 throw exc(MappingException.class,
-                          "CWWKD1059.prop.cast.err",
+                          "CWWKD1059.attr.cast.err",
                           method.getName(),
                           repositoryInterface.getName(),
                           attributeName,
@@ -2606,7 +2613,7 @@ public class QueryInfo {
                 }
             else
                 throw exc(MappingException.class,
-                          "CWWKD1010.unknown.entity.prop",
+                          "CWWKD1010.unknown.entity.attr",
                           name,
                           entityInfo.getType().getName(),
                           method.getName(),
@@ -2618,7 +2625,7 @@ public class QueryInfo {
             if (attributeName == null)
                 if (name.length() == 0) {
                     throw exc(MappingException.class,
-                              "CWWKD1024.missing.entity.prop",
+                              "CWWKD1024.missing.entity.attr",
                               method.getName(),
                               repositoryInterface.getName(),
                               entityInfo.getType().getName(),
@@ -2634,7 +2641,7 @@ public class QueryInfo {
                         if (attributeName == null && failIfNotFound) {
                             if (Util.hasOperationAnno(method))
                                 throw exc(MappingException.class,
-                                          "CWWKD1010.unknown.entity.prop",
+                                          "CWWKD1010.unknown.entity.attr",
                                           name,
                                           entityInfo.getType().getName(),
                                           method.getName(),
@@ -5009,7 +5016,8 @@ public class QueryInfo {
     }
 
     /**
-     * Validates that ignoreCase is only true if the type of the property being sort on is a String.
+     * Validates that ignoreCase is only true if the type of the attribute being
+     * sorted on is a String.
      *
      * @param sort the Jakarta Data Sort object being evaluated
      */

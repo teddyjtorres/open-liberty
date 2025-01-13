@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022,2024 IBM Corporation and others.
+ * Copyright (c) 2022,2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -1568,14 +1568,16 @@ public class DataExperimentalServlet extends FATServlet {
         assertEquals(40.0f, item.price, 0.01f);
         assertEquals("Item 2 halved", item.description);
 
-        // subtract from price and append to description via Update method with property names inferred from parameters
+        // subtract from price and append to description via Update method
+        // with entity attribute names inferred from parameters
         assertEquals(true, items.shorten(item2.pk, 1.0f, " and reduced $1"));
 
         item = items.get(item2.pk);
         assertEquals(39.0f, item.price, 0.01f);
         assertEquals("Item 2 halved and reduced $1", item.description);
 
-        // subtract from price and append to description via Update method with annotatively specified property names
+        // subtract from price and append to description via Update method
+        // with annotatively specified entity attribute names
         items.shortenBy(2, " and then another $2", item2.pk);
 
         item = items.get(item2.pk);

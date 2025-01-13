@@ -126,12 +126,12 @@ CWWKD1009.lifecycle.param.err.explanation=Lifecycle methods must have a single \
 CWWKD1009.lifecycle.param.err.useraction=Update the repository method to have a \
  single parameter that is an entity or an array of List of the entity.
 
-CWWKD1010.unknown.entity.prop=CWWKD1010E: An entity attribute named {0} is \
+CWWKD1010.unknown.entity.attr=CWWKD1010E: An entity attribute named {0} is \
  not found on the {1} entity class for the {2} method of the {3} repository \
  interface. Valid attribute names for the entity are: {4}.
-CWWKD1010.unknown.entity.prop.explanation=The repository method is attempting \
+CWWKD1010.unknown.entity.attr.explanation=The repository method is attempting \
  to use an entity attribute that does not exist.
-CWWKD1010.unknown.entity.prop.useraction=Update the repository method to match \
+CWWKD1010.unknown.entity.attr.useraction=Update the repository method to match \
  a valid attribute that is defined by the entity.
 
 CWWKD1011.unknown.method.pattern=CWWKD1011E: The {0} method of the {1} repository \
@@ -268,21 +268,21 @@ CWWKD1023.extra.param.explanation=Query conditions that define \
 CWWKD1023.extra.param.useraction=Update the repository method signature \
  to remove extra parameters that do not correspond to declared conditions.
 
-CWWKD1024.missing.entity.prop=CWWKD1024E: The {0} method of the {1} repository \
+CWWKD1024.missing.entity.attr=CWWKD1024E: The {0} method of the {1} repository \
  interface is missing an entity attribute name or was supplied with a parameter \
  that lacks an entity attribute name. Valid attribute names for the {2} entity \
  class are: {3}.
-CWWKD1024.missing.entity.prop.explanation=The query conditions and sort criteria \
+CWWKD1024.missing.entity.attr.explanation=The query conditions and sort criteria \
  for a repository method must include an entity attribute name.
-CWWKD1024.missing.entity.prop.useraction=Inspect the declaration and usage of \
+CWWKD1024.missing.entity.attr.useraction=Inspect the declaration and usage of \
  the repository method to ensure that an entity attribute name is supplied for \
  each query condition and sort criterion.
 
-CWWKD1025.missing.id.prop=CWWKD1025E: The {0} entity class that is used by the \
+CWWKD1025.missing.id.attr=CWWKD1025E: The {0} entity class that is used by the \
  {1} method of the {2} repository interface does not have an ID attribute.
-CWWKD1025.missing.id.prop.explanation=Repository methods that delete and return \
+CWWKD1025.missing.id.attr.explanation=Repository methods that delete and return \
  an entity must have an ID attribute.
-CWWKD1025.missing.id.prop.useraction=If the entity does not have a single \
+CWWKD1025.missing.id.attr.useraction=If the entity does not have a single \
  attribute for the ID, define separate repository methods that query for the \
  entity and delete the entity.
 
@@ -296,14 +296,14 @@ CWWKD1026.ignore.case.not.text.useraction=Ensure the sort criteria is applied \
  to the correct entity attribute and remove the instruction to ignore case if the \
  entity attribute does not represent text.
 
-CWWKD1027.anno.missing.prop.name=CWWKD1027E: Parameter {0} of the {1} method of \
+CWWKD1027.anno.missing.attr.name=CWWKD1027E: Parameter {0} of the {1} method of \
  the {2} repository interface is annotated with an {3} annotation that does not \
  specify an entity attribute name as its value. The annotation must either specify \
  the entity attribute name as its value, or the -parameters compile option must be \
  enabled and the parameter must have the same name as the entity attribute.
-CWWKD1027.anno.missing.prop.name.explanation=Parameters of repository update \
+CWWKD1027.anno.missing.attr.name.explanation=Parameters of repository update \
  methods must correspond to entity attributes.
-CWWKD1027.anno.missing.prop.name.useraction=Update the repository method to \
+CWWKD1027.anno.missing.attr.name.useraction=Update the repository method to \
  indicate the entity attribute to which the parameter pertains.
 
 CWWKD1028.first.exceeds.max=CWWKD1028E: The {0} method of the {1} repository \
@@ -554,14 +554,14 @@ CWWKD1054.non.unique.result.useraction=Update the repository method to either us
  a return type that supports multiple results or update the repository method \
  to return no more than a single result.
 
-CWWKD1055.unsupported.entity.prop=CWWKD1055E: The {0} attribute of the {1} entity \
+CWWKD1055.unsupported.entity.attr=CWWKD1055E: The {0} attribute of the {1} entity \
  has an unsupported type: {2}. Jakarta Data supports Java enumeration types, \
  the {3} temporal types, and the following basic types: {4}. The built-in \
  Jakarta Data provider also supports some Jakarta Persistence types, such as \
  embeddables.
-CWWKD1055.unsupported.entity.prop.explanation=Jakarta Data does not support the \
+CWWKD1055.unsupported.entity.attr.explanation=Jakarta Data does not support the \
  type used by the entity attribute.
-CWWKD1055.unsupported.entity.prop.useraction=Update the entity attribute to use \
+CWWKD1055.unsupported.entity.attr.useraction=Update the entity attribute to use \
  one of the supported types.
 
 CWWKD1056.unsupported.keyword=CWWKD1056E: The {0} method of the {1} repository \
@@ -590,12 +590,12 @@ CWWKD1058.no.args.constr.err.explanation=The public constructor without paramete
 CWWKD1058.no.args.constr.err.useraction=Fix the error in the constructor, or \
  update the repository method to use a different return type.
 
-CWWKD1059.prop.cast.err=CWWKD1059E: The {0} method of the {1} repository \
+CWWKD1059.attr.cast.err=CWWKD1059E: The {0} method of the {1} repository \
  interface cannot access the {2} attribute of the {3} entity because the \
  {4} field or method of the {5} class is incompatible with a {6} value.
-CWWKD1059.prop.cast.err.explanation=An entity attribute or a related attribute from \
+CWWKD1059.attr.cast.err.explanation=An entity attribute or a related attribute from \
  its hierarchy is not compatible with the expected type.
-CWWKD1059.prop.cast.err.useraction=Review the entity model and verify that the \
+CWWKD1059.attr.cast.err.useraction=Review the entity model and verify that the \
  correct types are used for each attribute.
 
 CWWKD1060.name.out.of.scope=CWWKD1060E: The {0} repository interface in the \
@@ -727,12 +727,12 @@ CWWKD1074.qbmn.incompat.keywords.explanation=The specified Query by Method Name 
 CWWKD1074.qbmn.incompat.keywords.useraction=Rename the method to not combine \
  the keywords on the same condition.
 
-CWWKD1075.entity.prop.conflict=CWWKD1075E: The {0} entity cannot have an attribute \
+CWWKD1075.entity.attr.conflict=CWWKD1075E: The {0} entity cannot have an attribute \
  named {1} and an attribute named {2} because the Jakarta Data specification \
  considers these names to be aliases for the same entity attribute.
-CWWKD1075.entity.prop.conflict.explanation=There is a collision between the \
+CWWKD1075.entity.attr.conflict.explanation=There is a collision between the \
  names of two entity attributes due to the underscore character.
-CWWKD1075.entity.prop.conflict.useraction=Do not use the underscore character \
+CWWKD1075.entity.attr.conflict.useraction=Do not use the underscore character \
  in entity attribute names.
 
 CWWKD1076.repo.disposed=CWWKD1076E: The {0} method of the {1} repository \
