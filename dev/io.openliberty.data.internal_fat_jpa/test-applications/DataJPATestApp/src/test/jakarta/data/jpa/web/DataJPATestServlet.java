@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, 2024 IBM Corporation and others.
+ * Copyright (c) 2022, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -27,7 +27,6 @@ import static test.jakarta.data.jpa.web.Assertions.assertIterableEquals;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
-import java.sql.Timestamp;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -4129,15 +4128,15 @@ public class DataJPATestServlet extends FATServlet {
     }
 
     /**
-     * Use an Entity which has a version attribute of type Timestamp.
+     * Use an Entity which has a version attribute of type LocalDateTime.
      */
     @Test
-    public void testTimestampAsVersion(HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public void testTimeAsVersion() throws Exception {
         /*
          * Reference Issue: https://github.com/eclipse-ee4j/eclipselink/issues/205
          * Without using the Eclipselink Oracle plugin the precision of Timestamp is 1 second
          * Therefore, we need to ensure 1 second has passed between queries where we expect
-         * the timestamp/version to be different.
+         * the LocalDateTime/version to be different.
          */
         String jdbcJarName = System.getenv().getOrDefault("DB_DRIVER", "UNKNOWN");
         boolean secondPercision = jdbcJarName.startsWith("ojdbc");
@@ -4145,10 +4144,18 @@ public class DataJPATestServlet extends FATServlet {
         assertEquals(0, counties.deleteByNameIn(List.of("Dodge", "Mower")));
 
         int[] dodgeZipCodes = new int[] { 55924, 55927, 55940, 55944, 55955, 55985 };
-        int[] mowerZipCodes = new int[] { 55912, 55917, 55918, 55926, 55933, 55936, 55950, 55951, 55961, 55953, 55967, 55970, 55973, 55975, 55982 };
+        int[] mowerZipCodes = new int[] { 55912, 55917, 55918, 55926, 55933, 55936, //
+                                          55950, 55951, 55961, 55953, 55967, 55970, //
+                                          55973, 55975, 55982 };
 
-        County dodge = new County("Dodge", "Minnesota", 20867, dodgeZipCodes, "Mantorville", "Blooming Prairie", "Claremont", "Dodge Center", "Hayfield", "Kasson", "West Concord");
-        County mower = new County("Mower", "Minnesota", 49671, mowerZipCodes, "Austin", "Adams", "Brownsdale", "Dexter", "Elkton", "Grand Meadow", "Le Roy", "Lyle", "Mapleview", "Racine", "Rose Creek", "Sargeant", "Taopi", "Waltham");
+        County dodge = new County("Dodge", "Minnesota", 20867, dodgeZipCodes, //
+                        "Mantorville", "Blooming Prairie", "Claremont", //
+                        "Dodge Center", "Hayfield", "Kasson", "West Concord");
+
+        County mower = new County("Mower", "Minnesota", 49671, mowerZipCodes, //
+                        "Austin", "Adams", "Brownsdale", "Dexter", "Elkton", //
+                        "Grand Meadow", "Le Roy", "Lyle", "Mapleview", "Racine", //
+                        "Rose Creek", "Sargeant", "Taopi", "Waltham");
 
         counties.save(dodge, mower);
 
@@ -4157,10 +4164,10 @@ public class DataJPATestServlet extends FATServlet {
         if (secondPercision)
             Thread.sleep(Duration.ofSeconds(1).toMillis());
 
-        assertEquals(true, counties.updateByNameSetZipCodes("Dodge",
-                                                            dodgeZipCodes = new int[] { 55917, 55924, 55927, 55940, 55944, 55955, 55963, 55985 }));
+        dodgeZipCodes = new int[] { 55917, 55924, 55927, 55940, 55944, 55955, 55963, 55985 };
+        assertEquals(true, counties.updateByNameSetZipCodes("Dodge", dodgeZipCodes));
 
-        // Try to update with outdated version/timestamp:
+        // Try to update with outdated version/LocalDateTime:
         try {
             dodge.population = 20873;
             counties.save(dodge);
@@ -4169,8 +4176,11 @@ public class DataJPATestServlet extends FATServlet {
             // expected
         }
 
-        // Update the version/timestamp and retry:
-        Timestamp timestamp = dodge.lastUpdated = counties.findLastUpdatedByName("Dodge");
+        // Update the version/LocalDateTime and retry:
+        Long lastUpdate;
+        // TODO switch to the following once EclipseLink bug #30534 is fixed
+        //LocalDateTime lastUpdate;
+        lastUpdate = dodge.lastUpdated = counties.findLastUpdatedByName("Dodge");
         dodge.population = 20981;
 
         if (secondPercision)
@@ -4178,15 +4188,15 @@ public class DataJPATestServlet extends FATServlet {
 
         counties.save(dodge);
 
-        // Try to delete by previous version/timestamp,
-        assertEquals(false, counties.deleteByNameAndLastUpdated("Dodge", timestamp));
+        // Try to delete by previous version/LocalDateTime,
+        assertEquals(false, counties.deleteByNameAndLastUpdated("Dodge", lastUpdate));
 
-        // Should be able to delete with latest version/timestamp,
-        timestamp = counties.findLastUpdatedByName("Dodge");
-        assertEquals(true, counties.deleteByNameAndLastUpdated("Dodge", timestamp));
+        // Should be able to delete with latest version/LocalDateTime,
+        lastUpdate = counties.findLastUpdatedByName("Dodge");
+        assertEquals(true, counties.deleteByNameAndLastUpdated("Dodge", lastUpdate));
 
-        // Try to delete with wrong version/timestamp (from other entity),
-        mower.lastUpdated = timestamp;
+        // Try to delete with wrong version/LocalDateTime (from other entity),
+        mower.lastUpdated = lastUpdate;
         try {
             counties.remove(mower);
             fail("Deletion attempt with wrong version did not raise OptimisticLockingFailureException.");
@@ -4194,7 +4204,7 @@ public class DataJPATestServlet extends FATServlet {
             // pass
         }
 
-        // Use correct version/timestamp,
+        // Use correct version/LocalDateTime,
         mower = counties.findByName("Mower").orElseThrow();
         counties.remove(mower);
     }
