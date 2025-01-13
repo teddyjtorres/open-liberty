@@ -4953,7 +4953,7 @@ public class DataTestServlet extends FATServlet {
                                              .map(o -> o.a)
                                              .collect(Collectors.toList()));
 
-        // "Or" in middle of entity attribute name is possible to to use of @Query.
+        // "Or" in middle of entity attribute name is possible when using @Query.
         assertIterableEquals(List.of("Honeycrisp"),
                              things.forPurchaseOrder(20)
                                              .map(o -> o.brand)
