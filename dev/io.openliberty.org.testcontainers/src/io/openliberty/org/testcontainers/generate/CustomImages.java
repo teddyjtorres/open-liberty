@@ -73,6 +73,7 @@ public class CustomImages {
 //                      .withBuildArg(BASE_IMAGE, baseImage.asCanonicalNameString());
               
               try {
+            	  System.out.println("Building image: " + name.asCanonicalNameString());
                   img.get();
               } catch (Exception e) {
                   throw new RuntimeException("Could not build or find image " + name.asCanonicalNameString(), e);
