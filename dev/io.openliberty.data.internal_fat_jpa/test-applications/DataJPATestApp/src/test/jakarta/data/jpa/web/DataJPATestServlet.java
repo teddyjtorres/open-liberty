@@ -450,7 +450,7 @@ public class DataJPATestServlet extends FATServlet {
     }
 
     /**
-     * Comparison ignoring case on an entity property of type char.
+     * Comparison ignoring case on an entity attribute of type char.
      */
     @Test
     public void testCharIgnoreCase() {
@@ -1573,7 +1573,7 @@ public class DataJPATestServlet extends FATServlet {
         o5 = orders.create(o5);
         int o5_v1 = o5.versionNum;
 
-        // delete even though a property doesn't match
+        // delete even though an entity attribute doesn't match
         o4.total = 44.99f;
         orders.delete(o4);
 
@@ -3984,7 +3984,7 @@ public class DataJPATestServlet extends FATServlet {
     }
 
     /**
-     * Use the JPQL version(entityVar) function as the sort property to perform
+     * Use the JPQL version(entityVar) function as the sort attribute to perform
      * an ascending sort.
      */
     @Test
@@ -4119,7 +4119,8 @@ public class DataJPATestServlet extends FATServlet {
         of = Sort.of("population", Direction.DESC, true);
         try {
             cities.allSorted(of);
-            fail("Should not be able to applay a Sort with ignoreCase=true on a non-string property");
+            fail("Should not be able to applay a Sort with ignoreCase=true on a" +
+                 " non-string entity attribute");
         } catch (UnsupportedOperationException x) {
             // expected
         }

@@ -226,7 +226,7 @@ public class EntityInfo {
         for (Entry<String, Class<?>> attrType : attributeTypes.entrySet())
             if (Util.UNSUPPORTED_ATTR_TYPES.contains(attrType.getValue()))
                 throw exc(MappingException.class,
-                          "CWWKD1055.unsupported.entity.prop",
+                          "CWWKD1055.unsupported.entity.attr",
                           attrType.getKey(),
                           entityClass.getName(),
                           attrType.getValue().getName(),
