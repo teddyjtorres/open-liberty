@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2024 IBM Corporation and others.
+ * Copyright (c) 2011, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -1711,10 +1711,14 @@ public class LibertyServer implements LogMonitorClient {
 
             startedWithJavaSecurity = bootstrapHasJava2SecProps;
             if (bootstrapHasJava2SecProps) {
-                if (info.majorVersion() >= 18) {
-                    // If we are running on Java 18+, then we need to explicitly enable the security manager
+                if (info.majorVersion() >= 18 && info.majorVersion() <= 23) {
+                    // If we are running on Java 18 through 23, then we need to explicitly enable the security manager
                     Log.info(c, "startServerWithArgs", "Java 18 + Java2Sec requested, setting -Djava.security.manager=allow");
                     JVM_ARGS += " -Djava.security.manager=allow";
+                } else if (info.majorVersion() >= 24) {
+                    // Security manager not available in Java 24+
+                    LOG.severe("The server is configured to run with Java 2 security enabled, but the security manager is permanently disabled in Java versions 24 and later.  The security manager cannot be set!");
+                    throw new RuntimeException("The security manager is permanently disabled in Java versions 24 and later.  When running FATs, use @MaximumJavaLevel(javaLevel = 23) or disable Java 2 security to prevent this server from failing to start when running in Java 24 or later.");
                 }
             }
         }
