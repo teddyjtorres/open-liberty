@@ -39,11 +39,11 @@ import io.openliberty.microprofile.telemetry.internal.tests.MetricsApiOtelCollec
 @RunWith(Suite.class)
 @SuiteClasses({
                 AlwaysPassesTest.class, //Must keep this test to run something in the Java 6 builds.
-                //AgentTest.class,
-                //Agent129Test.class,
-                //Agent210Test.class,
+                AgentTest.class,
+                Agent129Test.class,
+                Agent210Test.class,
                 AgentConfigTest.class,
-                /*AgentConfigMultiAppTest.class,
+                AgentConfigMultiAppTest.class,
                 CrossFeatureJaegerTest.class,
                 CrossFeatureZipkinTest.class,
                 JaegerSecureOtelCollectorTest.class,
@@ -55,7 +55,7 @@ import io.openliberty.microprofile.telemetry.internal.tests.MetricsApiOtelCollec
                 JvmMetricsOtelCollectorTest.class,
                 MetricsApiOtelCollectorTest.class,
                 ZipkinOtelCollectorTest.class,
-                ZipkinTest.class,*/
+                ZipkinTest.class,
 
 })
 
