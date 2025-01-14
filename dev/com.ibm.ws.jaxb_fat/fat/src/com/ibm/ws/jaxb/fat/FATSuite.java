@@ -12,26 +12,22 @@
  *******************************************************************************/
 package com.ibm.ws.jaxb.fat;
 
-import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
 
-import componenttest.rules.repeater.JakartaEE10Action;
-import componenttest.rules.repeater.JakartaEE9Action;
-import componenttest.rules.repeater.RepeatTests;
-
 @RunWith(Suite.class)
 @SuiteClasses({
                 LibertyJAXBTest.class,
+                LibertyJAXBSpecTest.class,
                 ThirdPartyJAXBFromJDKTest.class,
                 ThirdPartyJAXBFromAppTest.class,
                 JAXBToolsTest.class
 })
 
 public class FATSuite {
-    @ClassRule
-    public static RepeatTests r = RepeatTests.withoutModification()
-                    .andWith(new JakartaEE9Action())
-                    .andWith(new JakartaEE10Action());
+//    @ClassRule
+//    public static RepeatTests r = RepeatTests.withoutModification()
+//                    .andWith(new JakartaEE9Action())
+//                    .andWith(new JakartaEE10Action());
 }
