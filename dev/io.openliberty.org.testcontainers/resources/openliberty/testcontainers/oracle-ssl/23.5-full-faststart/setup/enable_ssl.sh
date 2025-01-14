@@ -56,14 +56,19 @@ chown -R oracle:oinstall $CLIENT_WALLET
 
 # PART 4: Create JKS wallet from oracle wallet
 echo "START >>> Create JKS wallet"
-CLIENT_KEYSTORE="/client/oracle/store/client-keystore.jks"
-CLIENT_TRUSTSTORE="/client/oracle/store/client-truststore.jks"
-mkdir -p /client/oracle/store
+CLIENT_STORE="/client/oracle/store"
+CLIENT_KEYSTORE="$CLIENT_STORE/client-keystore.jks"
+CLIENT_TRUSTSTORE="$CLIENT_STORE/client-truststore.jks"
+mkdir -p $CLIENT_STORE
 orapki wallet pkcs12_to_jks \
   -wallet $CLIENT_WALLET/ewallet.p12 -pwd $WALLET_PWD \
   -jksKeyStoreLoc   $CLIENT_KEYSTORE   -jksKeyStorepwd $WALLET_PWD \
   -jksTrustStoreLoc $CLIENT_TRUSTSTORE -jksTrustStorepwd $WALLET_PWD
 echo "DONE >>> Create JKS wallet"
+
+# PART 4.1: Modify readability of client files
+chmod -R 775 $CLIENT_WALLET
+chmod -R 775 $CLIENT_STORE
 
 # PART 5: Configure server network
 ## Overwrite to sqlnet.ora
