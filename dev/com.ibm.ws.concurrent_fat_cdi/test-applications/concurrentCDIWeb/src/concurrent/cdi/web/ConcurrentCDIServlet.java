@@ -166,6 +166,9 @@ public class ConcurrentCDIServlet extends HttpServlet {
     OnConstruct onConstruct;
 
     @Inject
+    OnStartup onStartup;
+
+    @Inject
     @WithAppContext
     ManagedScheduledExecutorService scheduledExecutorWithAppContext;
 
@@ -845,6 +848,14 @@ public class ConcurrentCDIServlet extends HttpServlet {
         } finally {
             Location.clear();
         }
+    }
+
+    /**
+     * Tests using an injected ManagedScheduledExecutorService from Observes Startup.
+     */
+    public void testObserveStartup() throws Exception {
+        assertEquals("SUCCESS",
+                     onStartup.getResult(TIMEOUT_NS, TimeUnit.NANOSECONDS));
     }
 
     /**

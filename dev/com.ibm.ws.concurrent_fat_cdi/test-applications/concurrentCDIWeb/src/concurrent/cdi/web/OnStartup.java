@@ -18,16 +18,18 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
-import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.concurrent.ManagedScheduledExecutorService;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.event.Observes;
+import jakarta.enterprise.event.Startup;
 import jakarta.inject.Inject;
 
 /**
- * Tests if PostConstruct can access an injected Concurrency resource.
+ * Tests if CDI bean method with Observes Startup can access an injected
+ * Concurrency resource.
  */
 @ApplicationScoped
-public class OnConstruct {
+public class OnStartup {
     private final CompletableFuture<String> result = new CompletableFuture<>();
 
     @Inject
@@ -42,16 +44,11 @@ public class OnConstruct {
         return result.get(timeout, unit);
     }
 
-    /**
-     * This does not run until the bean is constructed, which does not happen
-     * until a method is invoked on it.
-     */
-    @PostConstruct
-    public void init() {
-        System.out.println("PostConstruct: scheduling to run 1 second from now");
+    public void init(@Observes Startup event) {
+        System.out.println("Startup: scheduling to run 3 seconds from now");
         try {
             ScheduledFuture<?> future = scheduler.schedule(this::complete,
-                                                           1,
+                                                           3,
                                                            TimeUnit.SECONDS);
             System.out.println("scheduled " + future);
         } catch (RuntimeException | Error x) {

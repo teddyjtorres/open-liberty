@@ -169,6 +169,11 @@ public class ConcurrentCDITest extends FATServletClient {
     }
 
     @Test
+    public void testObserveStartup() throws Exception {
+        runTest(server, APP_NAME, testName);
+    }
+
+    @Test
     public void testOverrideContextServiceQualifiersViaDD() throws Exception {
         runTest(server, APP_NAME, testName);
     }
