@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2018 IBM Corporation and others.
+ * Copyright (c) 2024 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -12,15 +12,12 @@
  *******************************************************************************/
 package com.ibm.ws.jaxb.fat;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
 
-import java.io.File;
-import java.util.HashMap;
+import java.io.BufferedReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.Map;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.Unmarshaller;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -31,21 +28,24 @@ import org.junit.runner.RunWith;
 import com.ibm.websphere.simplicity.ShrinkHelper;
 
 import componenttest.annotation.Server;
+import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.impl.LibertyServer;
-import junit.framework.Assert;
+import componenttest.topology.utils.HttpUtils;
 
 @RunWith(FATRunner.class)
 public class LibertyJAXBSpecTest {
 
-    private static final String APP_NAME = "jaxbApp";
+    private static final String APP_NAME = "jaxbSpecApp";
 
     @Server("jaxbspec_fat")
     public static LibertyServer server;
 
+    private static final int CONN_TIMEOUT = 5;
+
     @BeforeClass
     public static void setUp() throws Exception {
-        ShrinkHelper.defaultDropinApp(server, APP_NAME, "jaxb.web", "jaxb.xmlnsform.unqualified", "jaxb.xmlnsform.qualified");
+        ShrinkHelper.defaultDropinApp(server, APP_NAME, "jaxb.web", "jaxb.xmlnsform.unqualified", "jaxb.xmlnsform.qualified", "jaxb.xmlnsform.servlet");
     }
 
     @AfterClass
@@ -58,63 +58,77 @@ public class LibertyJAXBSpecTest {
         server.stopServer();
     }
 
+    /*
+     * Test com.sun.xml.bind.backupWithParentNamespace which is introduced to JAXB 2.3.9
+     * Skipping EE9 and EE10 because they don't use this JAXB version.
+     * This property doesn't work for them.
+     */
     @Test
-    public void testBackupWithParentNamespaceTrue() throws Exception {
-        Map<String, String> map = new HashMap<String, String>();
-        map.put("com.sun.xml.bind.backupWithParentNamespace", "true");
-//        server.setJvmOptions(map);
-        server.addBootstrapProperties(map);
+    @SkipForRepeat({ SkipForRepeat.EE9_FEATURES, SkipForRepeat.EE10_FEATURES })
+    public void testBackupWithParentNamespaceTrue_Servlet() throws Exception {
+        Map<String, String> map = server.getJvmOptionsAsMap();
+        map.put("-Dcom.sun.xml.bind.backupWithParentNamespace", "true");
+        server.setJvmOptions(map);
         server.startServer();
+        server.waitForStringInLog("CWWKZ0001I:.*" + APP_NAME);
 
-        File personXml = new File(server.pathToAutoFVTTestFiles + "/Person.xml");
-        if (personXml.exists()) {
-            System.out.println("Person.xml path: " + personXml.getPath());
-        } else {
-            Assert.fail("Person.xml does not exist - " + personXml.getPath());
+        String testResultString = runTestServlet();
+        if (testResultString != null) {
+            assertTrue("When backupWithParentNamespace property is applied, an element with a prefix from a XmlNsForm.QUALIFIED package should not be null",
+                       testResultString.contains("qpwp:value")); // qpwp: Qualified Person With Prefix
+            assertTrue("When backupWithParentNamespace property is applied, an element without a prefix from a XmlNsForm.QUALIFIED package should not be null",
+                       testResultString.contains("qpnp:value")); // qpnp: Qualified Person No Prefix
+            assertTrue("When backupWithParentNamespace property is applied, an element with a prefix from a XmlNsForm.UNQUALIFIED package should be null",
+                       testResultString.contains("upwp:null")); // upwp: Unqualified Person With Prefix
+            assertTrue("When backupWithParentNamespace property is applied, an element without a prefix from a XmlNsForm.UNQUALIFIED package should not be null",
+                       testResultString.contains("upnp:value")); // upnp: Unqualified Person No Prefix
         }
-
-        JAXBContext jaxbContextQualified = JAXBContext.newInstance(jaxb.xmlnsform.qualified.Person.class);
-        Unmarshaller unmarshallerQualified = jaxbContextQualified.createUnmarshaller();
-        jaxb.xmlnsform.qualified.Person qualifiedPerson = (jaxb.xmlnsform.qualified.Person) unmarshallerQualified.unmarshal(personXml);
-        System.out.println("~qualifiedPerson: " + qualifiedPerson);
-        assertNull("1", qualifiedPerson.getFirstNameWithPrefix());
-        assertNotNull("2", qualifiedPerson.getLastNameWithOutPrefix());
-
-        JAXBContext jaxbContextUnQualified = JAXBContext.newInstance(jaxb.xmlnsform.unqualified.Person.class);
-        Unmarshaller unmarshallerUnQualified = jaxbContextUnQualified.createUnmarshaller();
-        jaxb.xmlnsform.unqualified.Person unQualifiedPerson = (jaxb.xmlnsform.unqualified.Person) unmarshallerUnQualified.unmarshal(personXml);
-        System.out.println("~unQualifiedPerson: " + unQualifiedPerson);
-        assertNotNull("3", unQualifiedPerson.getFirstNameWithPrefix());
-        assertNull("4", unQualifiedPerson.getLastNameWithOutPrefix());
     }
 
+    /*
+     * Tests JAXB specs to see if ElementFormDefault setting is honored
+     */
     @Test
     public void testBackupWithParentNamespaceFalse() throws Exception {
-//        server.setJvmOptions(new HashMap<String, String>());
-//        server.addBootstrapProperties(new HashMap<String, String>());
-        Map map = (Map) server.getBootstrapProperties().remove("com.sun.xml.bind.backupWithParentNamespace");
-
+        Map<String, String> map = server.getJvmOptionsAsMap();
+        map.clear();
+        server.setJvmOptions(map);
         server.startServer();
+        server.waitForStringInLog("CWWKZ0001I:.*" + APP_NAME);
 
-        File personXml = new File(server.pathToAutoFVTTestFiles + "/Person.xml");
-        if (personXml.exists()) {
-            System.out.println("Person.xml path: " + personXml.getPath());
-        } else {
-            Assert.fail("Person.xml does not exist - " + personXml.getPath());
+        String testResultString = runTestServlet();
+        if (testResultString != null) {
+            assertTrue("Violation of JAXB spec, an element with a prefix from a XmlNsForm.QUALIFIED package should not be null",
+                       testResultString.contains("qpwp:value")); // qpwp: Qualified Person With Prefix
+            assertTrue("Violation of JAXB spec, an element without a prefix from a XmlNsForm.QUALIFIED package should be null",
+                       testResultString.contains("qpnp:null")); // qpnp: Qualified Person No Prefix
+            assertTrue("Violation of JAXB spec, an element with a prefix from a XmlNsForm.UNQUALIFIED package should be null",
+                       testResultString.contains("upwp:null")); // upwp: Unqualified Person With Prefix
+            assertTrue("Violation of JAXB spec, an element without a prefix from a XmlNsForm.UNQUALIFIED package should not be null",
+                       testResultString.contains("upnp:value")); // upnp: Unqualified Person No Prefix
         }
+    }
 
-        JAXBContext jaxbContextQualified = JAXBContext.newInstance(jaxb.xmlnsform.qualified.Person.class);
-        Unmarshaller unmarshallerQualified = jaxbContextQualified.createUnmarshaller();
-        jaxb.xmlnsform.qualified.Person qualifiedPerson = (jaxb.xmlnsform.qualified.Person) unmarshallerQualified.unmarshal(personXml);
-        System.out.println("~qualifiedPerson: " + qualifiedPerson);
-        assertNotNull("Violation of JAXB spec, an element with a prefix from a XmlNsForm.QUALIFIED package should not be null", qualifiedPerson.getFirstNameWithPrefix());
-        assertNull("Violation of JAXB spec, an element with a prefix from a XmlNsForm.QUALIFIED package should not be null", qualifiedPerson.getLastNameWithOutPrefix());
+    /*
+     * Runs the test servlet and return all results in a string with specific keys
+     */
+    private String runTestServlet() throws Exception {
+        server.copyFileToLibertyServerRoot("Person.xml"); //Read the XML file to unmarshall
 
-        JAXBContext jaxbContextUnQualified = JAXBContext.newInstance(jaxb.xmlnsform.unqualified.Person.class);
-        Unmarshaller unmarshallerUnQualified = jaxbContextUnQualified.createUnmarshaller();
-        jaxb.xmlnsform.unqualified.Person unQualifiedPerson = (jaxb.xmlnsform.unqualified.Person) unmarshallerUnQualified.unmarshal(personXml);
-        System.out.println("~unQualifiedPerson: " + unQualifiedPerson);
-        assertNull("Violation of JAXB spec, an element with a prefix from a XmlNsForm.UNQUALIFIED package should be null", unQualifiedPerson.getFirstNameWithPrefix());
-        assertNotNull("Violation of JAXB spec, an element with a prefix from a XmlNsForm.UNQUALIFIED package should not be null", unQualifiedPerson.getLastNameWithOutPrefix());
+        String servletUrl = new StringBuilder("http://").append(server.getHostname())
+                        .append(":")
+                        .append(server.getHttpDefaultPort())
+                        .append("/")
+                        .append(APP_NAME)
+                        .append("/JaxbSpecTest")
+                        .toString(); // Build servlet url
+        HttpURLConnection con = HttpUtils.getHttpConnection(new URL(servletUrl), HttpURLConnection.HTTP_OK, CONN_TIMEOUT);
+        BufferedReader br = HttpUtils.getConnectionStream(con);
+        String result = br.readLine();
+        if (result != null && result.contains("XML not found")) {
+            assertTrue("Person.xml file is not found", false);
+            result = null;
+        }
+        return result;
     }
 }
