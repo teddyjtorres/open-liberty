@@ -1,5 +1,5 @@
 /* ============================================================================
- * Copyright (c) 2019, 2024 IBM Corporation and others.
+ * Copyright (c) 2019, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -181,12 +181,26 @@ public class JMS1AsyncSend extends ClientMain {
   @ClientTest
   public void testJMS1AsyncSendException() throws JMSException, TestException {
       //Util.setLevel(Level.FINEST);
+	  
+	  Util.CODEPATH();
 
-      try (QueueSession queueSession = queueConnection_.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {  
-          BasicCompletionListener completionListener = new BasicCompletionListener();
+      try ( QueueConnection queueConnection = queueConnectionFactory_.createQueueConnection();
+    		QueueSession queueSession = queueConnection.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {  
+          
+    	  Util.TRACE("Getting Test objects");
+    	  
+    	  BasicCompletionListener completionListener = new BasicCompletionListener();
+          Queue queue = queueSession.createTemporaryQueue();
+          
+          queueConnection.start();
+          
           try {
               MessageProducer producer = queueSession.createProducer(null);
-              producer.send(queueOne_, null, completionListener);
+
+              Util.TRACE("Sending null Message. Expected to fail");
+              producer.send(queue, null, completionListener);
+              
+              Util.LOG("Send message did not throw expected Exception");
               throw new TestException("Expected MessageFormatException not thrown, completionListener state="+completionListener.formattedState());
           } catch (MessageFormatException e) {
               if (completionListener.completionCount_ != 0 )
@@ -194,8 +208,10 @@ public class JMS1AsyncSend extends ClientMain {
               if (completionListener.exceptionCount_ != 0)         
                   throw new TestException("Non zero exceptionCount completionListener.formattedState:"+completionListener.formattedState());
           }       
-      } finally {
-          clearQueue(queueOne_, methodName(), 0);
+      }
+      catch ( JMSException | TestException e) {
+    	  Util.LOG("Exception thrown during test", e);
+    	  throw e;
       }
 
       reportSuccess();
@@ -410,13 +426,23 @@ public class JMS1AsyncSend extends ClientMain {
     @ClientTest
     public void testJMS1AsyncSendUnidentifiedProducerUnidentifiedDestination() throws JMSException, InterruptedException, TestException {
 
-        try (QueueSession session = queueConnection_.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
+    	Util.CODEPATH();
+    	
+        try ( QueueConnection queueConnection = queueConnectionFactory_.createQueueConnection();
+        	  QueueSession session = queueConnection.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
+        	
+        	Util.TRACE("Getting Test objects");
             TextMessage sentMessage = session.createTextMessage(methodName() + " at " + new Date());
             MessageProducer producer = session.createProducer(null);
             
+            queueConnection.start();
+            
             BasicCompletionListener completionListener = new BasicCompletionListener();
             try {
+            	Util.TRACE("Sending message to null Destination. Expected to fail");
                 producer.send(null, sentMessage, completionListener);
+                
+                Util.LOG("Send message did not throw expected Exception");
                 throw new TestException("InvalidDestinationException not thrown");
             } catch (InvalidDestinationException e) {
                 // Expected Exception.
@@ -427,6 +453,12 @@ public class JMS1AsyncSend extends ClientMain {
             if (!completionListener.waitFor(0, 0))
                 throw new TestException("Unexpected completion notification received, completionListener.formattedState:" + completionListener.formattedState());
         }
+        catch (JMSException | TestException e) {
+        	
+        	Util.LOG("Exception thrown during test", e);
+        	throw e;
+        	
+        }
 
         reportSuccess();
     }
@@ -434,18 +466,33 @@ public class JMS1AsyncSend extends ClientMain {
     @ClientTest
     public void testJMS1AsyncSendNullListener() throws JMSException, TestException {
         
-        try (QueueSession session = queueConnection_.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
+    	Util.CODEPATH();
+    	
+        try (QueueConnection queueConnection = queueConnectionFactory_.createQueueConnection();
+        	 QueueSession session = queueConnection.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
+
+        	Util.TRACE("Creating test objects");
+        	
+        	Queue queue = session.createTemporaryQueue();
             TextMessage sentMessage = session.createTextMessage(methodName() + " at " + new Date());
-            MessageProducer producer = session.createProducer(queueOne_);
+            MessageProducer producer = session.createProducer(queue);
+            
+            queueConnection.start();
+            
             try {
+            	Util.LOG("Sending message with null CompletionListener");
                 producer.send(sentMessage, null);
                 throw new TestException("IllegalArgumentException not thrown.");
             } catch (IllegalArgumentException e) {
                 // Expected Exception.
                 Util.TRACE(e);
             }
-        } finally {
-            clearQueue(queueOne_, methodName(), 0);
+        }
+        catch (JMSException | TestException e) {
+        	
+        	Util.LOG("Exception thrown during test", e);
+        	throw e;
+        	
         }
         
         reportSuccess();
@@ -453,13 +500,22 @@ public class JMS1AsyncSend extends ClientMain {
 
     @ClientTest
     public void testJMS1AsyncSendNoDestination() throws JMSException, TestException {
+    	
+    	Util.CODEPATH();
 
-        try (QueueSession session = queueConnection_.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
+        try (QueueConnection queueConnection = queueConnectionFactory_.createQueueConnection();
+        	 QueueSession session = queueConnection.createQueueSession(false, javax.jms.Session.AUTO_ACKNOWLEDGE)) {
+        	
+        	Util.TRACE("Creating test objects");
+        	
             TextMessage sentMessage = session.createTextMessage(methodName() + " at " + new Date());
             MessageProducer producer = session.createProducer(null);
-
             BasicCompletionListener completionListener = new BasicCompletionListener();
+
+            queueConnection.start();
+            
             try {
+            	Util.LOG("Test no destination method 1");
                 producer.send(sentMessage, completionListener);
                 throw new TestException("UnsupportedOperationException 1 not thrown");
             } catch (UnsupportedOperationException e) {
@@ -467,6 +523,7 @@ public class JMS1AsyncSend extends ClientMain {
                 Util.TRACE(e);
             }
             try {
+            	Util.LOG("Test null destination method 1");
                 producer.send(null, sentMessage, completionListener);
                 throw new TestException("InvalidDestinationException 1 not thrown");
             } catch (InvalidDestinationException e) {
@@ -474,6 +531,7 @@ public class JMS1AsyncSend extends ClientMain {
                 Util.TRACE(e);
             }
             try {
+            	Util.LOG("Test no destination method 2");
                 producer.send(sentMessage, DeliveryMode.PERSISTENT, 0, 10000, completionListener);
                 throw new TestException("UnsupportedOperationException 2 not thrown");
             } catch (UnsupportedOperationException e) {
@@ -481,12 +539,19 @@ public class JMS1AsyncSend extends ClientMain {
                 Util.TRACE(e);
             }
             try {
+            	Util.LOG("Test null destination method 2");
                 producer.send(null, sentMessage, DeliveryMode.PERSISTENT, 0, 10000, completionListener);
                 throw new TestException("InvalidDestinationException 2 not thrown");
             } catch (InvalidDestinationException e) {
                 // Expected Exception.
                 Util.TRACE(e);
             }
+        }
+        catch (JMSException | TestException e) {
+        	
+        	Util.LOG("Exception thrown during test", e);
+        	throw e;
+        	
         }
 
         reportSuccess();
