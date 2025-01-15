@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2017,2024 IBM Corporation and others.
+ * Copyright (c) 2017,2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -161,6 +161,9 @@ public class ConcurrentCDIServlet extends HttpServlet {
     @WithoutLocationContext
     @WithoutTransactionContext
     ManagedExecutorService executorWithoutLocationAndTxContext;
+
+    @Inject
+    OnConstruct onConstruct;
 
     @Inject
     @WithAppContext
@@ -1035,6 +1038,14 @@ public class ConcurrentCDIServlet extends HttpServlet {
         thread.start();
         assertEquals(3, thread.getPriority());
         assertEquals(thread, future.get(TIMEOUT_NS, TimeUnit.NANOSECONDS));
+    }
+
+    /**
+     * Tests using an injected ManagedScheduledExecutorService from PostConstruct.
+     */
+    public void testPostConstruct() throws Exception {
+        assertEquals("SUCCESS",
+                     onConstruct.getResult(TIMEOUT_NS, TimeUnit.NANOSECONDS));
     }
 
     /**
