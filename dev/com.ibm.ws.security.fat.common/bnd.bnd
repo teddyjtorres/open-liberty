@@ -84,8 +84,6 @@ generate.replacement: true
     org.jmock:jmock;strategy=exact;version=2.5.1, \
     com.ibm.ws.org.objenesis:objenesis;version=1.0, \
     com.ibm.ws.kernel.boot;version=latest, \
-    com.ibm.ws.kernel.service;version=latest,\
-    com.ibm.ws.kernel.security.thread;version=latest,\
     com.ibm.ws.security.test.common;version=latest, \
     com.ibm.ws.org.apache.httpcomponents;version=latest, \
     net.sourceforge.htmlunit:htmlunit;version=2.44.0,\

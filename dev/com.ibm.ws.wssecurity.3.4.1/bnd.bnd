@@ -149,9 +149,6 @@ instrument.classesExcludes: com/ibm/ws/wssecurity/resources/*.class
     org.jmock:jmock;strategy=exact;version=2.5.1, \
     com.ibm.ws.org.objenesis:objenesis;version=1.0, \
     com.ibm.ws.kernel.boot;version=latest, \
-	com.ibm.ws.kernel.boot.core;version=latest, \
-	com.ibm.ws.kernel.service;version=latest,\
-	com.ibm.ws.kernel.security.thread;version=latest,\
 	com.ibm.ws.org.apache.cxf.rt.security.3.4.1;version=latest,\
 	com.ibm.ws.org.apache.cxf.rt.ws.security.3.4.1;version=latest,\
 	com.ibm.ws.org.apache.neethi.3.1.1;version=latest,\

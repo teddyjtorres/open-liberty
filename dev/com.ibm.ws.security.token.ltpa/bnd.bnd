@@ -109,7 +109,4 @@ instrument.classesExcludes: com/ibm/ws/security/token/ltpa/internal/resources/*.
 	com.ibm.ws.org.objectweb.asm;version=latest, \
 	org.jmock:jmock-legacy;version=2.5.0, \
 	com.ibm.ws.kernel.boot;version=latest, \
-	com.ibm.ws.crypto.passwordutil;version=latest, \
-  com.ibm.ws.kernel.boot.core;version=latest, \
-  com.ibm.ws.kernel.service;version=latest,\
-  com.ibm.ws.kernel.security.thread;version=latest
+	com.ibm.ws.crypto.passwordutil;version=latest
