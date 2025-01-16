@@ -14,4 +14,7 @@
  * @version 1.0.0
  */
 @org.osgi.annotation.versioning.Version("1.0.0")
+@TraceOptions(traceGroup = "security", messageBundle = "com.ibm.ws.kernel.pseudo.internal.resources.Messages")
 package com.ibm.ws.common.crypto;
+
+import com.ibm.websphere.ras.annotation.TraceOptions;

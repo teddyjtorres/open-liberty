@@ -1220,7 +1220,7 @@ final class AuditCrypto {
                 BigInteger d = e.modInverse((p.subtract(BigInteger.ONE)).multiply(q.subtract(BigInteger.ONE)));
                 KeyFactory kFact = null;
                 if (fips140_3Enabled)
-                    kFact = KeyFactory.getInstance(CryptoUtils.CRYPTO_ALGORITHM_RSA, CryptoUtils.IBMJCE_PLUS_FIPS_NAME);
+                    kFact = KeyFactory.getInstance(CryptoUtils.CRYPTO_ALGORITHM_RSA, CryptoUtils.getProvider());
                 else
                     kFact = KeyFactory.getInstance(CryptoUtils.CRYPTO_ALGORITHM_RSA);
                 if (tc.isDebugEnabled())
@@ -2001,9 +2001,8 @@ final class AuditCrypto {
                 Tr.error(tc, "security.ltpa.noalgorithm", new Object[] { e });
                 com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.audit.AuditCrypto", "2279");
             } catch (NoSuchProviderException e) {
-                // TODO Auto-generated catch block
-                // Do you need FFDC here? Remember FFDC instrumentation and @FFDCIgnore
-                e.printStackTrace();
+                Tr.error(tc, "security.ltpa.noprovider", new Object[] { e });
+                com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.audit.AuditCrypto", "2282");
             }
 
         } else {
@@ -2083,9 +2082,8 @@ final class AuditCrypto {
                 Tr.error(tc, "security.ltpa.noalgorithm", new Object[] { e });
                 com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.auditAuditCrypto", "2408");
             } catch (NoSuchProviderException e) {
-                // TODO Auto-generated catch block
-                // Do you need FFDC here? Remember FFDC instrumentation and @FFDCIgnore
-                e.printStackTrace();
+                Tr.error(tc, "security.ltpa.noprovider", new Object[] { e });
+                com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.auditAuditCrypto", "2412");
             }
         } else {
             int len = key.length;

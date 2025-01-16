@@ -329,7 +329,7 @@ public class CryptoUtils {
         return md1;
     }
 
-    public static String getProperty(final String prop, final String defaultValue) {
+    public static String getPropertyLowerCase(final String prop, final String defaultValue) {
         return AccessController.doPrivileged(new PrivilegedAction<String>() {
             @Override
             public String run() {
@@ -339,7 +339,7 @@ public class CryptoUtils {
     }
 
     static String getFipsLevel() {
-        String result = getProperty("com.ibm.fips.mode", "disabled");
+        String result = getPropertyLowerCase("com.ibm.fips.mode", "disabled");
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(tc, "getFipsLevel: " + result);
         }
@@ -347,12 +347,12 @@ public class CryptoUtils {
     }
 
     public static boolean isSemeruFips() {
-        return "true".equals(getProperty("semeru.fips", "false"));
+        return "true".equals(getPropertyLowerCase("semeru.fips", "false"));
     }
 
     public static boolean isFips140_3Enabled() {
 
-        boolean result = ("140-3".equals(FIPSLevel) || "true".equals(getProperty("global.fips_140-3", "false")) || isSemeruFips())
+        boolean result = ("140-3".equals(FIPSLevel) || "true".equals(getPropertyLowerCase("global.fips_140-3", "false")) || isSemeruFips())
                          && isRunningBetaMode();
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(tc, "isFips140_3Enabled: " + result);
@@ -363,8 +363,8 @@ public class CryptoUtils {
     public static boolean isFips140_2Enabled() {
         //JDK set the fip mode default to 140-2
         //boolean result = "140-2".equals(FIPSLevel) && isRunningBetaMode();
-        boolean result = !isFips140_3Enabled() && "true".equals(getProperty(USE_FIPS_PROVIDER, "false")) &&
-                         IBMJCE_PLUS_FIPS_NAME.equalsIgnoreCase(getProperty(USE_FIPS_PROVIDER_NAME, "NO_PROVIDER_NAME"));
+        boolean result = !isFips140_3Enabled() && "true".equals(getPropertyLowerCase(USE_FIPS_PROVIDER, "false")) &&
+                         IBMJCE_PLUS_FIPS_NAME.equalsIgnoreCase(getPropertyLowerCase(USE_FIPS_PROVIDER_NAME, "NO_PROVIDER_NAME"));
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(tc, "isFips140_2Enabled: " + result);
         }
