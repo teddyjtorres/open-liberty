@@ -2026,7 +2026,7 @@ public final class PersistentMessageStoreImpl implements PersistentMessageStore,
     
                     SibTr.info(tc, "FILE_STORE_LOCK_ONE_OWNER_SIMS1566", new Object[] {storedOwner.getMeUUID(), storedOwner.getIncUUID()});
                     // F008622 -start
-                    if(_ms.getProperty(MessageStoreConstants.START_MODE, MessageStoreConstants.DEAFULT_START_MODE).equalsIgnoreCase("RECOVERY"))
+                    if(_ms.getProperty(MessageStoreConstants.START_MODE, MessageStoreConstants.DEFAULT_START_MODE).equalsIgnoreCase("RECOVERY"))
                     {
                         owner=new MELockOwner(storedOwner.getMeUUID(),storedOwner.getIncUUID(),storedOwner.getVersion(),storedOwner.getMigrationVersion(),"default");
                     }
