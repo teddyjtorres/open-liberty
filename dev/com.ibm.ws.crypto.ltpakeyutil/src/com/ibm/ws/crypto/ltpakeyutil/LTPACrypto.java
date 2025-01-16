@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 1997, 2011, 2024 IBM Corporation and others.
+ * Copyright (c) 1997, 2011, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -61,6 +61,7 @@ final class LTPACrypto {
 	private static int MAX_CACHE = 500;
 	private static IvParameterSpec ivs8 = null;
 	private static IvParameterSpec ivs16 = null;
+	private static GCMParameterSpec gcms = null;
 
 	@Trivial
 	private static class CachingKey {
@@ -633,9 +634,10 @@ final class LTPACrypto {
 
 		if (cipher.indexOf("ECB") == -1) {
 			if (cipher.indexOf("GCM") != -1) {
-				byte[] iv = new byte[12];
-				GCMParameterSpec params = new GCMParameterSpec(128, iv);
-				ci.init(cipherMode, sKey, params);
+				if (gcms == null) {
+					setGCMS(key);
+				}
+				ci.init(cipherMode, sKey, gcms);
 			} else if (cipher.indexOf("AES") != -1) {
 				if (ivs16 == null) {
 					setIVS16(key);
@@ -722,6 +724,23 @@ final class LTPACrypto {
 				iv16[i] = key[i];
 			}
 			ivs16 = new IvParameterSpec(iv16);
+		}
+	}
+
+	
+	/*
+	 * Set the GCM with 12-byte initialization vector.
+	 *
+	 * @param key The key
+	 */
+	@Trivial
+	private static final synchronized void setGCMS(byte[] key) {
+		if (gcms == null) {
+			byte[] iv = new byte[12]; // IV length of 12 bytes is recommended for GCM
+			for (int i = 0; i < 12; i++) {
+				iv[i] = key[i];
+			}
+			gcms = new GCMParameterSpec(128, iv);
 		}
 	}
 
