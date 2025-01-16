@@ -45,7 +45,6 @@ public class AuditKeyEncryptor {
         } catch (java.security.NoSuchAlgorithmException e) {
             com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.ltpa.KeyEncryptor.KeyEncryptor", "21", this);
         }
-        String provider = null;
         des = new AuditCrypto();
 
     }

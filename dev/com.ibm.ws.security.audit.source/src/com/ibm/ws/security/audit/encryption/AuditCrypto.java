@@ -59,9 +59,6 @@ final class AuditCrypto {
     private static boolean fips140_3Enabled = CryptoUtils.isFips140_3Enabled();
     private static final String encryptAlgorithm = CryptoUtils.getEncryptionAlgorithm();
 
-    public static boolean ibmJCEPlusFIPSAvailable = false;
-    public static boolean ibmJCEPlusFIPSProviderChecked = false;
-
     private static final String provider = CryptoUtils.getProvider();
 
     /**
