@@ -21,26 +21,10 @@ import java.time.format.DateTimeFormatter;
 import com.ibm.ws.sib.msgstore.persistence.dispatcher.StateUtils.StateUpdater;
 
 final class DispatcherState {
-    static final StateUpdater<DispatcherState> updaterForStart = new StateUpdater<DispatcherState>() {
-        public DispatcherState update(DispatcherState currentState) {
-            return currentState.startRequested().running(true);
-        }
-    };
-    static final StateUpdater<DispatcherState> updaterForStopped = new StateUpdater<DispatcherState>() {
-        public DispatcherState update(DispatcherState currentState) {
-            return currentState.running(false);
-        }
-    };
-    static final StateUpdater<DispatcherState> updaterForErrorOccurred = new StateUpdater<DispatcherState>() {
-        public DispatcherState update(DispatcherState currentState) {
-            return currentState.addThreadWriteError();
-        }
-    };
-    static final StateUpdater<DispatcherState> updaterForErrorCleared = new StateUpdater<DispatcherState>() {
-        public DispatcherState update(DispatcherState currentState) {
-            return currentState.clearThreadWriteError();
-        }
-    };
+    static final StateUpdater<DispatcherState> updaterForStart = state -> state.startRequested().running(true);
+    static final StateUpdater<DispatcherState> updaterForStopped = state -> state.running(false);
+    static final StateUpdater<DispatcherState> updaterForErrorOccurred = DispatcherState::addThreadWriteError;
+    static final StateUpdater<DispatcherState> updaterForErrorCleared = DispatcherState::clearThreadWriteError;
 
     public static final class StopRequesterInfo extends Throwable {
         private static final long serialVersionUID = 1L;
@@ -52,13 +36,7 @@ final class DispatcherState {
     }
 
     static StateUpdater<DispatcherState> getUpdaterForStopRequested(final Throwable requester) {
-        return new StateUpdater<DispatcherState>() {
-            @Override
-            public DispatcherState update(DispatcherState currentState) {
-                if (!currentState.isRunning) return currentState;
-                return currentState.stopRequested(new StopRequesterInfo(requester));
-            }
-        };
+        return state -> state.isRunning ? state.stopRequested(new StopRequesterInfo(requester)) : state;
     }
 
     // Flag set to indicate whether dispatcher is running.
