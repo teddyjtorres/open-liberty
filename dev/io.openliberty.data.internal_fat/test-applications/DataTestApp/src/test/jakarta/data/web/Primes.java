@@ -427,6 +427,12 @@ public interface Primes {
                                      long min2, long max2,
                                      PageRequest pageRequest);
 
+    @Query("SELECT romanNumeralSymbols WHERE numberId = ?1")
+    Optional<ArrayList<String>> romanNumeralSymbolsAsArrayList(long num);
+
+    @Query("SELECT romanNumeralSymbols WHERE numberId = ?1")
+    Optional<Collection<String>> romanNumeralSymbolsAsCollection(long num);
+
     @Query("SELECT hex WHERE numberId=:id")
     Optional<Character> singleHexDigit(long id);
 

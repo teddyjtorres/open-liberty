@@ -221,10 +221,21 @@ public class QueryInfo {
     final Class<?> returnArrayType;
 
     /**
-     * The type of a single result obtained by the query.
-     * For example, a single result of a query that returns List<MyEntity> is of the type MyEntity.
+     * The type of a single result obtained by the query. For example,
+     * A query that returns List<MyEntity> has singleType MyEntity.
+     * A query that returns List<ArrayList<String>> has singleType ArrayList<String>.
+     * A query that returns Optional<String[]> has singleType String[].
      */
     final Class<?> singleType;
+
+    /**
+     * Element type of singleType when singleType is an array or collection.
+     * Null if singleType is not an array or collection. For example,
+     * A query that returns List<MyEntity> has singleTypeElementType null.
+     * A query that returns List<ArrayList<String>> has singleTypeElementType String.
+     * A query that returns Optional<String[]> has singleTypeElementType String.
+     */
+    final Class<?> singleTypeElementType;
 
     /**
      * Positions of Sort, Sort[], and Order parameters.
@@ -264,25 +275,6 @@ public class QueryInfo {
      * Indicates whether or not to validate method results, if Jakarta Validation is available.
      */
     boolean validateResult;
-
-    /**
-     * Constructor for the withJPQL method.
-     */
-    private QueryInfo(Class<?> repositoryInterface,
-                      Method method,
-                      Class<?> entityParamType,
-                      boolean isOptional,
-                      Class<?> multiType,
-                      Class<?> returnArrayType,
-                      Class<?> singleType) {
-        this.method = method;
-        this.entityParamType = entityParamType;
-        this.isOptional = isOptional;
-        this.multiType = multiType;
-        this.repositoryInterface = repositoryInterface;
-        this.returnArrayType = returnArrayType;
-        this.singleType = singleType;
-    }
 
     /**
      * Construct partially complete query information.
@@ -374,11 +366,18 @@ public class QueryInfo {
 
         singleType = type;
 
+        if ((singleType.isArray() || Iterable.class.isAssignableFrom(singleType)) &&
+            ++d < depth)
+            singleTypeElementType = returnTypeAtDepth.get(d);
+        else
+            singleTypeElementType = null;
+
         if (trace && tc.isEntryEnabled())
             Tr.exit(this, tc, "<init>", new Object[] { this,
                                                        "result isOptional? " + isOptional,
                                                        "result multiType:  " + multiType,
-                                                       "result singleType: " + singleType });
+                                                       "result singleType: " + singleType,
+                                                       "          element: " + singleTypeElementType });
     }
 
     /**
@@ -392,7 +391,41 @@ public class QueryInfo {
         this.repositoryInterface = repositoryInterface;
         this.returnArrayType = null;
         this.singleType = null;
+        this.singleTypeElementType = null;
         this.type = type;
+    }
+
+    /**
+     * Construct a copy of a source QueryInfo, but with different JPQL and sorts.
+     *
+     * @param source QueryInfo from which to copy.
+     * @param jpql   JPQL to use instead of the JPQL from source.
+     * @param sorts  Sorts to use instead of the sorts from source.
+     */
+    QueryInfo(QueryInfo source, String jpql, List<Sort<Object>> sorts) {
+        entityInfo = source.entityInfo;
+        entityParamType = source.entityParamType;
+        entityVar = source.entityVar;
+        entityVar_ = source.entityVar_;
+        hasWhere = source.hasWhere;
+        isOptional = source.isOptional;
+        this.jpql = jpql;
+        jpqlAfterCursor = source.jpqlAfterCursor;
+        jpqlBeforeCursor = source.jpqlBeforeCursor;
+        jpqlCount = source.jpqlCount;
+        jpqlDelete = source.jpqlDelete;
+        jpqlParamCount = source.jpqlParamCount;
+        jpqlParamNames = source.jpqlParamNames;
+        maxResults = source.maxResults;
+        method = source.method;
+        multiType = source.multiType;
+        repositoryInterface = source.repositoryInterface;
+        returnArrayType = source.returnArrayType;
+        singleType = source.singleType;
+        singleTypeElementType = source.singleTypeElementType;
+        this.sorts = sorts;
+        type = source.type;
+        validateParams = source.validateParams;
     }
 
     /**
@@ -752,6 +785,11 @@ public class QueryInfo {
                 else if ("false".equalsIgnoreCase(str))
                     return false;
             }
+        } else if (value instanceof List &&
+                   Iterable.class.isAssignableFrom(toType)) {
+            return convertToIterable((List<?>) value,
+                                     singleTypeElementType,
+                                     toType);
         }
 
         if (failIfNotConverted) {
@@ -856,7 +894,7 @@ public class QueryInfo {
             Object[] a = (Object[]) results.get(0);
             for (int i = 0; i < a.length; i++) {
                 Object element = a[i];
-                if (!elementType.isInstance(element))
+                if (elementType != null && !elementType.isInstance(element))
                     element = convert(element, elementType, true);
                 list.add(element);
             }
@@ -5042,36 +5080,5 @@ public class QueryInfo {
                           method.getName(),
                           repositoryInterface.getName());
         }
-    }
-
-    /**
-     * Copy of query information, but with updated JPQL and sort criteria.
-     */
-    QueryInfo withJPQL(String jpql, List<Sort<Object>> sorts) {
-        QueryInfo q = new QueryInfo( //
-                        repositoryInterface, //
-                        method, //
-                        entityParamType, //
-                        isOptional, //
-                        multiType, //
-                        returnArrayType, //
-                        singleType);
-        q.entityInfo = entityInfo;
-        q.entityVar = entityVar;
-        q.entityVar_ = entityVar_;
-        q.hasWhere = hasWhere;
-        q.jpql = jpql;
-        q.jpqlAfterCursor = jpqlAfterCursor;
-        q.jpqlBeforeCursor = jpqlBeforeCursor;
-        q.jpqlCount = jpqlCount;
-        q.jpqlDelete = jpqlDelete;
-        q.maxResults = maxResults;
-        q.jpqlParamCount = jpqlParamCount;
-        q.jpqlParamNames = jpqlParamNames;
-        q.sorts = sorts;
-        q.type = type;
-        q.validateParams = validateParams;
-        q.validateParams = validateResult;
-        return q;
     }
 }

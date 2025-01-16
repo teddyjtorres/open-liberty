@@ -4365,6 +4365,25 @@ public class DataTestServlet extends FATServlet {
     }
 
     /**
+     * Repository Query method that selects and returns a single ArrayList attribute
+     */
+    @Test
+    public void testQueryReturnsArrayListAttribute() {
+        assertEquals(new ArrayList<String>(List.of("X", "L", "I")),
+                     primes.romanNumeralSymbolsAsArrayList(41).orElseThrow());
+    }
+
+    /**
+     * Repository Query method that selects a single attribute of type ArrayList
+     * and returns it as a Collection.
+     */
+    @Test
+    public void testQueryReturnsArrayListAttributeAsCollection() {
+        assertEquals(List.of("X", "X", "X", "V", "I", "I"),
+                     primes.romanNumeralSymbolsAsCollection(37).orElseThrow());
+    }
+
+    /**
      * Use a Repository method that has the Query annotation and has a return type
      * that uses a Java record indicating to select a subset of entity attributes.
      */
