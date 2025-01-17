@@ -36,6 +36,7 @@ import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -4381,6 +4382,52 @@ public class DataTestServlet extends FATServlet {
     public void testQueryReturnsArrayListAttributeAsCollection() {
         assertEquals(List.of("X", "X", "X", "V", "I", "I"),
                      primes.romanNumeralSymbolsAsCollection(37).orElseThrow());
+    }
+
+    /**
+     * Repository Query method that selects and returns a multiple results of an
+     * ArrayList attribute
+     */
+    @Test
+    public void testQueryReturnsArrayListAttributeAsListOfArrayList() {
+        List<ArrayList<String>> results;
+        try {
+            results = primes.romanNumeralSymbolsAsListOfArrayList("XL%");
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage().startsWith("CWWKD1103E"))
+                // work around for bad behavior from EclipseLink when selecting
+                // ElementCollection attributes (see #30575)
+                return;
+            else
+                throw x;
+        }
+        assertEquals(List.of(new ArrayList<String>(List.of("X", "L", "I")),
+                             new ArrayList<String>(List.of("X", "L", "I", "I", "I")),
+                             new ArrayList<String>(List.of("X", "L", "V", "I", "I"))),
+                     results);
+    }
+
+    /**
+     * Repository Query method that selects and returns a multiple results of an
+     * ArrayList attribute as a Set.
+     */
+    @Test
+    public void testQueryReturnsArrayListAttributeAsSetOfArrayList() {
+        LinkedHashSet<ArrayList<String>> results;
+        try {
+            results = primes.romanNumeralSymbolsAsSetOfArrayList("XL%");
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage().startsWith("CWWKD1103E"))
+                // work around for bad behavior from EclipseLink when selecting
+                // ElementCollection attributes (see #30575)
+                return;
+            else
+                throw x;
+        }
+        assertEquals(Set.of(new ArrayList<String>(List.of("X", "L", "I")),
+                            new ArrayList<String>(List.of("X", "L", "I", "I", "I")),
+                            new ArrayList<String>(List.of("X", "L", "V", "I", "I"))),
+                     results);
     }
 
     /**

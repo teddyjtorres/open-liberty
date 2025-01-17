@@ -1197,21 +1197,34 @@ public class DataJPATestServlet extends FATServlet {
                                              .sorted()
                                              .collect(Collectors.toList()));
 
-        List<Set<AccountId>> list = taxpayers.findBankAccountsByFilingStatus(TaxPayer.FilingStatus.HeadOfHousehold);
-        // TODO EclipseLink bug where
-        // SELECT o.bankAccounts FROM TaxPayer o WHERE (o.filingStatus=?1) ORDER BY o.numDependents, o.ssn
-        // combines the two Set<AccountId> values that ought to be the result into a single combined list of AccountId.
-        //assertEquals(list.toString(), 2, list.size());
-        //assertEquals(Set.of("AccountId:43014400:410224"),
-        //             list.get(0)
-        //                             .stream()
-        //                             .map(AccountId::toString)
-        //                             .collect(Collectors.toSet()));
-        //assertEquals(Set.of("AccountId:10105600:560237", "AccountId:15561600:391588"),
-        //             list.get(1)
-        //                             .stream()
-        //                             .map(AccountId::toString)
-        //                             .collect(Collectors.toSet()));
+        List<Set<AccountId>> list;
+        try {
+            list = taxpayers.findBankAccountsByFilingStatus(TaxPayer.FilingStatus.HeadOfHousehold);
+            assertEquals(list.toString(), 2, list.size());
+            assertEquals(Set.of("AccountId:43014400:410224"),
+                         list.get(0)
+                                         .stream()
+                                         .map(AccountId::toString)
+                                         .collect(Collectors.toSet()));
+            assertEquals(Set.of("AccountId:10105600:560237",
+                                "AccountId:15561600:391588"),
+                         list.get(1)
+                                         .stream()
+                                         .map(AccountId::toString)
+                                         .collect(Collectors.toSet()));
+        } catch (UnsupportedOperationException x) {
+            if (x.getMessage() != null &&
+                x.getMessage().startsWith("CWWKD1103E:"))
+                // Works around bad behavior from EclipseLink (see #30575)
+                // for ElementCollection:
+                // SELECT o.bankAccounts FROM TaxPayer o WHERE (o.filingStatus=?1)
+                //  ORDER BY o.numDependents, o.ssn
+                // combines the two Set<AccountId> values that ought to be the result
+                // into a single combined list of AccountId.
+                ;
+            else
+                throw x;
+        }
 
         // TODO report EclipseLink bug that occurs on the following
         if (false)

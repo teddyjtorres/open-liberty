@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -432,6 +433,14 @@ public interface Primes {
 
     @Query("SELECT romanNumeralSymbols WHERE numberId = ?1")
     Optional<Collection<String>> romanNumeralSymbolsAsCollection(long num);
+
+    @Query("SELECT romanNumeralSymbols WHERE romanNumeral LIKE ?1")
+    @OrderBy(ID)
+    List<ArrayList<String>> romanNumeralSymbolsAsListOfArrayList(String pattern);
+
+    @Query("SELECT romanNumeralSymbols WHERE romanNumeral LIKE ?1")
+    @OrderBy(ID)
+    LinkedHashSet<ArrayList<String>> romanNumeralSymbolsAsSetOfArrayList(String pattern);
 
     @Query("SELECT hex WHERE numberId=:id")
     Optional<Character> singleHexDigit(long id);
