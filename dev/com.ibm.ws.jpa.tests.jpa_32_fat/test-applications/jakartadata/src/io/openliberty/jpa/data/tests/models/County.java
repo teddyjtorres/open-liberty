@@ -11,13 +11,15 @@ package io.openliberty.jpa.data.tests.models;
 
 import java.time.LocalDateTime;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Version;
 
-@Entity
+/**
+ * Add the @Entity annotation when enabling testOLGH30534.
+ */
+
 public class County {
 
     @Id
