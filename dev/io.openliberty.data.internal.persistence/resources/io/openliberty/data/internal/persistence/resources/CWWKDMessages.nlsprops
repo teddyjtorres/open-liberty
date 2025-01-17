@@ -1016,3 +1016,25 @@ CWWKD1101.attr.subset.mismatch.explanation=When Java records are used to \
 CWWKD1101.attr.subset.mismatch.useraction=Rename the record components to \
  match valid entity attribute names, or use the Select annotation to explicitly \
  request entity attributes by their name.
+
+CWWKD1102.incompat.query.result=CWWKD1102E: The {0} method of the {1} repository \
+ has the {2} return type, but the Jakarta Persistence provider performed a \
+ query with results of the {3} type. Check if the Jakarta Persistence provider \
+ allows querying for the types of entity attributes that are selected by the \
+ {0} method.
+CWWKD1102.incompat.query.result.explanation=Jakarta Persistence providers might \
+ not allow returning all types of entity attributes.
+CWWKD1102.incompat.query.result.useraction=Modify the query to retrieve the whole \
+ entity or a different set of entity attributes that are allowed by the Jakarta \
+ Persistence provider.
+
+CWWKD1103.incompat.query.result=CWWKD1103E: The {0} method of the {1} repository \
+ has the {2} return type, but the Jakarta Persistence provider performed a \
+ {3} query with results of the {4} type. Check if the Jakarta Persistence provider \
+ allows querying for the types of entity attributes that are selected by the \
+ {0} method.
+CWWKD1103.incompat.query.result.explanation=Jakarta Persistence providers might \
+ not allow returning all types of entity attributes.
+CWWKD1103.incompat.query.result.useraction=Modify the query to retrieve the whole \
+ entity or a different set of entity attributes that are allowed by the Jakarta \
+ Persistence provider.

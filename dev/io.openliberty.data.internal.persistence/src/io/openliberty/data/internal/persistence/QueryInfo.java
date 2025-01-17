@@ -611,7 +611,7 @@ public class QueryInfo {
      * return type.
      *
      * @param value              value to convert.
-     * @param type               type to convert to.
+     * @param toType             type to convert to.
      * @param failIfNotConverted whether or not to fail if unable to convert.
      * @return converted value.
      */
@@ -788,8 +788,9 @@ public class QueryInfo {
         } else if (value instanceof List &&
                    Iterable.class.isAssignableFrom(toType)) {
             return convertToIterable((List<?>) value,
+                                     toType,
                                      singleTypeElementType,
-                                     toType);
+                                     null);
         }
 
         if (failIfNotConverted) {
@@ -834,15 +835,26 @@ public class QueryInfo {
      * Convert the results list into an Iterable of the specified type.
      *
      * @param results      results of a find or save operation.
-     * @param elementType  the type of each element if a find operation.
-     *                         Can be NULL if a save operation.
      * @param iterableType the desired type of Iterable.
+     * @param elementType  the type of each element, or null.
+     *                         Always null if not a find operation.
+     * @param query        the query if available.
+     *                         Always null if not a find operation.
      * @return results converted to an Iterable of the specified type.
      */
     @Trivial
     final Iterable<?> convertToIterable(List<?> results,
+                                        Class<?> iterableType,
                                         Class<?> elementType,
-                                        Class<?> iterableType) {
+                                        jakarta.persistence.Query query) {
+        final boolean trace = TraceComponent.isAnyTracingEnabled();
+        if (trace && tc.isEntryEnabled())
+            Tr.entry(this, tc, "convertToIterable",
+                     loggable(results),
+                     "to " + iterableType.getName(),
+                     elementType == null ? "of ?" : ("of " + elementType.getName()),
+                     query);
+
         Collection<Object> list;
         if (iterableType.isInterface()) {
             if (iterableType.isAssignableFrom(ArrayList.class))
@@ -899,8 +911,21 @@ public class QueryInfo {
                 list.add(element);
             }
         } else {
-            list.addAll(results);
+            for (Object element : results) {
+                if (elementType != null && !elementType.isInstance(element)) {
+                    Object converted = convert(element, elementType, false);
+                    // EclipseLink returns wrong values when selecting
+                    // ElementCollection attributes instead of rejecting it as
+                    // unsupported. Raise an error instead.
+                    if (converted == element)
+                        throw excIncompatibleQueryResult(results, query);
+                }
+                list.add(element);
+            }
         }
+
+        if (trace && tc.isEntryEnabled())
+            Tr.exit(this, tc, "convertToIterable", loggable(list));
         return list;
     }
 
@@ -1081,6 +1106,40 @@ public class QueryInfo {
                        extraParamNames,
                        qlParamNames,
                        method.getAnnotation(Query.class).value());
+    }
+
+    /**
+     * Constructs an UnsupportedOperationException for an error where the
+     * repository method return type does not match the query results.
+     * On reason this might happen is when EclipseLink returns wrong values
+     * when selecting ElementCollection attributes instead of rejecting
+     * it as unsupported.
+     *
+     * @param results list of at least 1 result.
+     * @param query   jakarta.persistence.Query, a String, or null.
+     * @return UnsupportedOperationException.
+     */
+    @Trivial
+    UnsupportedOperationException excIncompatibleQueryResult(List<?> results,
+                                                             Object query) {
+        String r = results.getClass().getName() +
+                   "<" + results.get(0).getClass().getName() + ">";
+
+        if (query == null)
+            return exc(UnsupportedOperationException.class,
+                       "CWWKD1102.incompat.query.result",
+                       method.getName(),
+                       repositoryInterface.getName(),
+                       method.getGenericReturnType().getTypeName(),
+                       r);
+        else
+            return exc(UnsupportedOperationException.class,
+                       "CWWKD1103.incompat.query.result",
+                       method.getName(),
+                       repositoryInterface.getName(),
+                       method.getGenericReturnType().getTypeName(),
+                       query instanceof String ? query : query.getClass().getName(),
+                       r);
     }
 
     /**
@@ -1313,7 +1372,7 @@ public class QueryInfo {
             else if (Stream.class.equals(multiType))
                 returnValue = results.stream();
             else if (Iterable.class.isAssignableFrom(multiType))
-                returnValue = convertToIterable(results, null, multiType);
+                returnValue = convertToIterable(results, multiType, null, null);
             else if (Iterator.class.equals(multiType))
                 returnValue = results.iterator();
             else
@@ -3801,7 +3860,7 @@ public class QueryInfo {
                 else if (Stream.class.equals(multiType))
                     returnValue = results.stream();
                 else if (Iterable.class.isAssignableFrom(multiType))
-                    returnValue = convertToIterable(results, null, multiType);
+                    returnValue = convertToIterable(results, multiType, null, null);
                 else if (Iterator.class.equals(multiType))
                     returnValue = results.iterator();
                 else
@@ -4301,7 +4360,7 @@ public class QueryInfo {
                 else if (Stream.class.equals(multiType))
                     returnValue = results.stream();
                 else if (Iterable.class.isAssignableFrom(multiType))
-                    returnValue = convertToIterable(results, null, multiType);
+                    returnValue = convertToIterable(results, multiType, null, null);
                 else if (Iterator.class.equals(multiType))
                     returnValue = results.iterator();
                 else

@@ -850,12 +850,14 @@ public class RepositoryImpl<R> implements InvocationHandler {
                                     returnValue = oneResult(queryInfo, results);
                                 } else if (multiType != null &&
                                            multiType.isInstance(results) &&
-                                           (results.isEmpty() || !(results.get(0) instanceof Object[]))) {
+                                           (results.isEmpty() || singleType.isInstance(results.get(0)) &&
+                                                                 !(results.get(0) instanceof Object[]))) {
                                     returnValue = results;
                                 } else if (multiType != null && Iterable.class.isAssignableFrom(multiType)) {
                                     returnValue = queryInfo.convertToIterable(results,
+                                                                              multiType,
                                                                               singleType,
-                                                                              multiType);
+                                                                              query);
                                 } else if (Iterator.class.equals(multiType)) {
                                     returnValue = results.iterator();
                                 } else if (queryInfo.returnArrayType != null) {
