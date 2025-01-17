@@ -2112,7 +2112,7 @@ final class AuditCrypto {
             DESedeKeySpec kSpec = new DESedeKeySpec(key);
             SecretKeyFactory kFact = null;
 
-            kFact = (CryptoUtils.isFips140_3Enabled()) ? SecretKeyFactory.getInstance(encryptAlgorithm) : SecretKeyFactory.getInstance(encryptAlgorithm, provider);
+            kFact = SecretKeyFactory.getInstance(encryptAlgorithm);
 
             sKey = kFact.generateSecret(kSpec);
         }

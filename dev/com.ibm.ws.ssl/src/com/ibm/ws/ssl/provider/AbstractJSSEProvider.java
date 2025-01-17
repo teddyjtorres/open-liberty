@@ -133,8 +133,7 @@ public abstract class AbstractJSSEProvider implements JSSEProvider {
             }
         }
 
-        //if (CryptoUtils.isFips140_2Enabled() || CryptoUtils.isFips140_3Enabled()) {
-        if (CryptoUtils.isIBMJCEPlusFIPSAvailable()) {
+        if (CryptoUtils.isFips140_2Enabled() || CryptoUtils.isFips140_3Enabled()) {
             try {
                 com.ibm.ws.ssl.JSSEProviderFactory.initializeFips();
             } catch (Exception e) {
