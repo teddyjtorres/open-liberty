@@ -136,6 +136,9 @@ public class DataJPATestServlet extends FATServlet {
     Drivers drivers;
 
     @Inject
+    ECRepo ecRepo;
+
+    @Inject
     Employees employees;
 
     @Inject
@@ -739,6 +742,146 @@ public class DataJPATestServlet extends FATServlet {
                                      .collect(Collectors.toList()));
 
         assertEquals(false, page2.hasNext());
+    }
+
+    /**
+     * Demonstrates inconsistency and wrong behavior in how EclipseLink returns an
+     * entity attribute that is an ElementCollection vs an entity attribute of the
+     * same type that is not an ElementCollection. Note that the former is not
+     * supported by Jakarta Persistence, and it would be fine if EclipseLink would
+     * reject it, but EclipseLink should not be running the query and producing
+     * wrong data.
+     */
+    @Test
+    public void testElementCollection() throws Exception {
+        ECEntity e1 = new ECEntity();
+        e1.setId("EC1");
+        e1.setIntArray(new int[] { 14, 12, 1 });
+        e1.setLongList(new ArrayList<>(List.of(14L, 12L, 1L)));
+        e1.setLongListEC(new ArrayList<>(List.of(14L, 12L, 1L)));
+        e1.setStringSet(Set.of("fourteen", "twelve", "one"));
+        e1.setStringSetEC(Set.of("fourteen", "twelve", "one"));
+        ecRepo.insert(e1);
+
+        ECEntity e2 = new ECEntity();
+        e2.setId("EC2");
+        e2.setIntArray(new int[] { 14, 12, 2 });
+        e2.setLongList(new ArrayList<>(List.of(14L, 12L, 2L)));
+        e2.setLongListEC(new ArrayList<>(List.of(14L, 12L, 2L)));
+        e2.setStringSet(Set.of("fourteen", "twelve", "two"));
+        e2.setStringSetEC(Set.of("fourteen", "twelve", "two"));
+        ecRepo.insert(e2);
+
+        try (EntityManager em = ecRepo.getEntityManager()) {
+            String jpql;
+            jakarta.persistence.Query q;
+            List<?> results;
+
+            jpql = "SELECT intArray FROM ECEntity WHERE id=?1";
+            q = em.createQuery(jpql);
+            q.setParameter(1, "EC1");
+            results = q.getResultList();
+            System.out.println();
+            System.out.println(jpql);
+            System.out.println("getResultList returned a " + results.getClass().getTypeName());
+            System.out.println("    elements are of type " + results.iterator().next().getClass().getTypeName());
+            // Vector of int[] needs special handling to print:
+            StringBuilder s = new StringBuilder();
+            boolean first = true;
+            for (Object element : results) {
+                if (first)
+                    first = false;
+                else
+                    s.append(", ");
+                if (element instanceof int[])
+                    s.append(Arrays.toString((int[]) element));
+                else
+                    s.append(element);
+            }
+            System.out.println("            contents are [" + s.toString() + "]");
+
+            jpql = "SELECT longList FROM ECEntity WHERE id=?1";
+            q = em.createQuery(jpql);
+            q.setParameter(1, "EC1");
+            results = q.getResultList();
+            System.out.println();
+            System.out.println(jpql);
+            System.out.println("getResultList returned a " + results.getClass().getTypeName());
+            System.out.println("    elements are of type " + results.iterator().next().getClass().getTypeName());
+            System.out.println("            contents are " + results);
+
+            jpql = "SELECT longListEC FROM ECEntity WHERE id=?1";
+            q = em.createQuery(jpql);
+            q.setParameter(1, "EC1");
+            results = q.getResultList();
+            System.out.println();
+            System.out.println(jpql);
+            System.out.println("getResultList returned a " + results.getClass().getTypeName());
+            System.out.println("    elements are of type " + results.iterator().next().getClass().getTypeName());
+            System.out.println("            contents are " + results);
+
+            jpql = "SELECT stringSet FROM ECEntity WHERE id=?1";
+            q = em.createQuery(jpql);
+            q.setParameter(1, "EC1");
+            results = q.getResultList();
+            System.out.println();
+            System.out.println(jpql);
+            System.out.println("getResultList returned a " + results.getClass().getTypeName());
+            System.out.println("    elements are of type " + results.iterator().next().getClass().getTypeName());
+            System.out.println("            contents are " + results);
+
+            jpql = "SELECT stringSetEC FROM ECEntity WHERE id=?1";
+            q = em.createQuery(jpql);
+            q.setParameter(1, "EC1");
+            results = q.getResultList();
+            System.out.println();
+            System.out.println(jpql);
+            System.out.println("getResultList returned a " + results.getClass().getTypeName());
+            System.out.println("    elements are of type " + results.iterator().next().getClass().getTypeName());
+            System.out.println("            contents are " + results);
+
+            // with multiple results (that ElementCollection wrongly combines into one!),
+
+            jpql = "SELECT longList FROM ECEntity WHERE id LIKE ?1";
+            q = em.createQuery(jpql);
+            q.setParameter(1, "EC%");
+            results = q.getResultList();
+            System.out.println();
+            System.out.println(jpql);
+            System.out.println("getResultList returned a " + results.getClass().getTypeName());
+            System.out.println("    elements are of type " + results.iterator().next().getClass().getTypeName());
+            System.out.println("            contents are " + results);
+
+            jpql = "SELECT longListEC FROM ECEntity WHERE id LIKE ?1";
+            q = em.createQuery(jpql);
+            q.setParameter(1, "EC%");
+            results = q.getResultList();
+            System.out.println();
+            System.out.println(jpql);
+            System.out.println("getResultList returned a " + results.getClass().getTypeName());
+            System.out.println("    elements are of type " + results.iterator().next().getClass().getTypeName());
+            System.out.println("            contents are " + results);
+
+            jpql = "SELECT stringSet FROM ECEntity WHERE id LIKE ?1";
+            q = em.createQuery(jpql);
+            q.setParameter(1, "EC%");
+            results = q.getResultList();
+            System.out.println();
+            System.out.println(jpql);
+            System.out.println("getResultList returned a " + results.getClass().getTypeName());
+            System.out.println("    elements are of type " + results.iterator().next().getClass().getTypeName());
+            System.out.println("            contents are " + results);
+
+            jpql = "SELECT stringSetEC FROM ECEntity WHERE id LIKE ?1";
+            q = em.createQuery(jpql);
+            q.setParameter(1, "EC%");
+            results = q.getResultList();
+            System.out.println();
+            System.out.println(jpql);
+            System.out.println("getResultList returned a " + results.getClass().getTypeName());
+            System.out.println("    elements are of type " + results.iterator().next().getClass().getTypeName());
+            System.out.println("            contents are " + results);
+        }
     }
 
     /**
