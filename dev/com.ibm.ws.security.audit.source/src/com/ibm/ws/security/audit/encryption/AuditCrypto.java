@@ -2033,59 +2033,43 @@ final class AuditCrypto {
         }
 
         byte[] tmpMesg = null;
-        if (fips140_3Enabled) {
-            try {
+        try {
 
-                SecretKey sKey = constructSecretKey(key, cipher);
+            SecretKey sKey = constructSecretKey(key, cipher);
 
-                Cipher ci = createCipher(Cipher.DECRYPT_MODE, key, cipher, sKey);
+            Cipher ci = createCipher(Cipher.DECRYPT_MODE, key, cipher, sKey);
 
-                tmpMesg = ci.doFinal(mesg);
+            tmpMesg = ci.doFinal(mesg);
 
-                if (tc.isDebugEnabled())
-                    Tr.debug(tc, "decrypt() Cipher.doFinal()\n   tmpMesg: " + new String(tmpMesg));
+            if (tc.isDebugEnabled())
+                Tr.debug(tc, "decrypt() Cipher.doFinal()\n   tmpMesg: " + new String(tmpMesg));
 
-            } catch (java.security.NoSuchAlgorithmException e) {
-                Tr.error(tc, "no such algorithm exception", new Object[] { e });
-                com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.audit.AuditCrypto", "2385");
-            } catch (java.security.InvalidKeyException e) {
-                Tr.debug(tc, "Error: Key invalid");
-                Tr.error(tc, "security.ltpa.noalgorithm", new Object[] { e });
-                com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.audit.AuditCrypto", "2393");
-            } catch (java.security.spec.InvalidKeySpecException e) {
-                Tr.error(tc, "security.ltpa.noalgorithm", new Object[] { e });
-                com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.audit.AuditCrypto", "2396");
-            } catch (javax.crypto.NoSuchPaddingException e) {
-                Tr.error(tc, "security.ltpa.noalgorithm", new Object[] { e });
-                com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.audit.AuditCrypto", "2399");
-            } catch (javax.crypto.IllegalBlockSizeException e) {
-                // we get this exception when validating other token types
-                com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.audit.AuditCrypto", "2402");
-            } catch (javax.crypto.BadPaddingException e) {
-                Tr.debug(tc, "BadPaddingException validating token, normal when token generated from other factory.", new Object[] { e.getMessage() });
-                com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.audit.AuditCrypto", "2405");
-            } catch (java.security.InvalidAlgorithmParameterException e) {
-                Tr.error(tc, "security.ltpa.noalgorithm", new Object[] { e });
-                com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.auditAuditCrypto", "2408");
-            } catch (NoSuchProviderException e) {
-                Tr.error(tc, "security.ltpa.noprovider", new Object[] { e });
-                com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.auditAuditCrypto", "2412");
-            }
+        } catch (java.security.NoSuchAlgorithmException e) {
+            Tr.error(tc, "no such algorithm exception", new Object[] { e });
+            com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.audit.AuditCrypto", "2385");
+        } catch (java.security.InvalidKeyException e) {
+            Tr.debug(tc, "Error: Key invalid");
+            Tr.error(tc, "security.ltpa.noalgorithm", new Object[] { e });
+            com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.audit.AuditCrypto", "2393");
+        } catch (java.security.spec.InvalidKeySpecException e) {
+            Tr.error(tc, "security.ltpa.noalgorithm", new Object[] { e });
+            com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.audit.AuditCrypto", "2396");
+        } catch (javax.crypto.NoSuchPaddingException e) {
+            Tr.error(tc, "security.ltpa.noalgorithm", new Object[] { e });
+            com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.audit.AuditCrypto", "2399");
+        } catch (javax.crypto.IllegalBlockSizeException e) {
+            // we get this exception when validating other token types
+            com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.audit.AuditCrypto", "2402");
+        } catch (javax.crypto.BadPaddingException e) {
+            Tr.debug(tc, "BadPaddingException validating token, normal when token generated from other factory.", new Object[] { e.getMessage() });
+            com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.audit.AuditCrypto", "2405");
+        } catch (java.security.InvalidAlgorithmParameterException e) {
+            Tr.error(tc, "security.ltpa.noalgorithm", new Object[] { e });
+            com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.auditAuditCrypto", "2408");
+        } catch (NoSuchProviderException e) {
+            Tr.error(tc, "security.ltpa.noprovider", new Object[] { e });
+            com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.auditAuditCrypto", "2412");
         }
-//        else {
-//            int len = key.length;
-//            int[] decrInternalKey = desKey(false, key, 0, len);
-//
-//            // REMINDER: pad message to be multiple of 8
-//
-//            des(false, decrInternalKey, null, mesg, 0, mesg.length, mesg, 0);
-//            tmpMesg = unpadPKCS5(mesg);
-//            if (null == tmpMesg) {
-//                if (tc.isDebugEnabled())
-//                    Tr.debug(tc, "Array was not properly paded");
-//                return null;
-//            }
-//        }
 
         if (tc.isDebugEnabled()) {
             long end_time = System.currentTimeMillis();
