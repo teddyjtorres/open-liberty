@@ -1952,7 +1952,7 @@ final class AuditCrypto {
     }
 
     static final byte[] encrypt(byte[] data, byte[] key) {
-        return encrypt(data, key, getCipher());
+        return encrypt(data, key, CryptoUtils.getCipherForAudit());
     }
 
     static final byte[] encrypt(byte[] data, byte[] key, String cipher) {
@@ -2018,7 +2018,7 @@ final class AuditCrypto {
     }
 
     static final byte[] decrypt(byte[] mesg, byte[] key) {
-        return decrypt(mesg, key, getCipher());
+        return decrypt(mesg, key, CryptoUtils.getCipherForAudit());
     }
 
     static final byte[] decrypt(byte[] mesg, byte[] key, String cipher) {
@@ -2111,7 +2111,7 @@ final class AuditCrypto {
             DESedeKeySpec kSpec = new DESedeKeySpec(key);
             SecretKeyFactory kFact = null;
 
-            kFact = (provider == null) ? SecretKeyFactory.getInstance(encryptAlgorithm) : SecretKeyFactory.getInstance(encryptAlgorithm, provider);
+            kFact = (CryptoUtils.isFips140_3Enabled()) ? SecretKeyFactory.getInstance(encryptAlgorithm) : SecretKeyFactory.getInstance(encryptAlgorithm, provider);
 
             sKey = kFact.generateSecret(kSpec);
         }
@@ -2315,9 +2315,4 @@ final class AuditCrypto {
             }
         }
     }
-
-    static String getCipher() {
-        return fips140_3Enabled ? CryptoUtils.AES_GCM_CIPHER : CryptoUtils.DES_ECB_CIPHER;
-    }
-
 }

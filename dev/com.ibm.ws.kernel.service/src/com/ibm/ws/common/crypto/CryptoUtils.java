@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2024 IBM Corporation and others.
+* Copyright (c) 2024, 2025 IBM Corporation and others.
 * All rights reserved. This program and the accompanying materials
 * are made available under the terms of the Eclipse Public License 2.0
 * which accompanies this distribution, and is available at
@@ -80,8 +80,8 @@ public class CryptoUtils {
     public static final String ENCRYPT_ALGORITHM_RSA = "RSA";
 
     public static final String AES_GCM_CIPHER = "AES/GCM/NoPadding";
-    public static final String DES_ECB_CIPHER = "DESede/ECB/PKCS5Padding";
-    public static final String AES_CBC_CIPHER = "AES/CBC/PKCS5Padding";
+    public static final String DES_ECB_CIPHER = "DESede/ECB/PKCS5Padding"; //Audit
+    public static final String AES_CBC_CIPHER = "AES/CBC/PKCS5Padding"; //LTPA
 
     private static boolean fipsEnabled = isFIPSEnabled();
 
@@ -129,8 +129,11 @@ public class CryptoUtils {
     }
 
     public static String getCipher() {
-        String cipher = fipsEnabled ? AES_GCM_CIPHER : DES_ECB_CIPHER;
-        return cipher;
+        return fipsEnabled ? AES_GCM_CIPHER : AES_CBC_CIPHER;
+    }
+
+    public static String getCipherForAudit() {
+        return fipsEnabled ? AES_GCM_CIPHER : DES_ECB_CIPHER;
     }
 
     public static void logInsecureAlgorithm(String configProperty, String insecureAlgorithm) {
