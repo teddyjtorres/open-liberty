@@ -21,8 +21,6 @@ import java.security.Key;
 import java.security.KeyException;
 import java.security.KeyStore;
 import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.security.NoSuchProviderException;
 import java.security.PublicKey;
 import java.security.Signature;
 import java.security.cert.X509Certificate;
@@ -103,7 +101,7 @@ public class AuditSigningImpl implements AuditSigning {
         try {
             signature = fips140_3Enabled ? Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA256WITHRSA,
                                                                  CryptoUtils.getProvider()) : Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA256WITHRSA);
-        } catch (NoSuchAlgorithmException | NoSuchProviderException e) {
+        } catch (Exception e) {
             Tr.error(tc, "security.audit.signing.init.error", new Object[] { e });
             throw new AuditSigningException(e.getMessage());
         }

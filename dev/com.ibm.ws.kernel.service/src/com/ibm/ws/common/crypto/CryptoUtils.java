@@ -316,6 +316,8 @@ public class CryptoUtils {
                     md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
                                                     IBMJCE_PLUS_FIPS_NAME);
                 }
+            } else if (CryptoUtils.isIBMJCEAvailable()) {
+                md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA, IBMJCE_NAME);
             } else {
                 md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA);
             }

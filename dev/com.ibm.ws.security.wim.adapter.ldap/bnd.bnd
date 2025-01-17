@@ -62,7 +62,7 @@ instrument.classesExcludes: com/ibm/ws/security/wim/adapter/ldap/resources/*.cla
 	com.ibm.ws.security;version=latest, \
 	com.ibm.ws.config;version=latest, \
 	com.ibm.ws.kernel.boot.core;version=latest, \
-	com.ibm.ws.kernel.boot.common;version=latest
+	com.ibm.ws.kernel.boot.common;version=latest, \
 	com.ibm.ws.kernel.service;version=latest,\
 	com.ibm.ws.kernel.security.thread;version=latest
 	
@@ -75,5 +75,4 @@ instrument.classesExcludes: com/ibm/ws/security/wim/adapter/ldap/resources/*.cla
 	com.ibm.ws.org.apache.directory.server;version=latest,\
 	org.apache.directory.server:apacheds-service;version=latest,\
 	com.ibm.ws.crypto.passwordutil;version=latest,\
-	com.ibm.ws.kernel.service;version=latest,\
 	fattest.simplicity;version=latest
