@@ -22,7 +22,9 @@ import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -44,7 +46,6 @@ import com.meterware.httpunit.WebResponse;
 
 import componenttest.annotation.CheckpointTest;
 import componenttest.annotation.Server;
-import componenttest.annotation.SkipForRepeat;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.rules.repeater.CheckpointRule;
 import componenttest.rules.repeater.CheckpointRule.ServerMode;
@@ -125,6 +126,10 @@ public class CxfSampleTests {
         //Environment variable values are not set before checkpoint.
         if (CheckpointRule.isActive()) {
             configureEnvVariable(server, emptyMap());
+            //Temporarily disabling CRIU security provider until CRIU security provider in OpenJ9 is enhanced to support wsSecurity
+            List<String> options = new ArrayList<>();
+            options.add("-XX:-CRIUSecProvider");
+            server.setJvmOptions(options);
         }
         return server;
     }
@@ -282,7 +287,6 @@ public class CxfSampleTests {
     }
 
     @Test
-    @SkipForRepeat({ CHECKPOINT_RULE })
     public void testEcho4Service() throws Exception {
         String thisMethod = "testEcho4Service";
 
