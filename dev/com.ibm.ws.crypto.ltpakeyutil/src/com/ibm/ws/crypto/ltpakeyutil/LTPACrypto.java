@@ -55,9 +55,6 @@ final class LTPACrypto {
 
 	private static final String encryptAlgorithm = CryptoUtils.getEncryptionAlgorithm();
 
-	public static RSAPublicKey rsaPubKey;
-	public static RSAPrivateCrtKey rsaPrivKey;
-
 	private static int MAX_CACHE = 500;
 	private static IvParameterSpec ivs8 = null;
 	private static IvParameterSpec ivs16 = null;
@@ -727,7 +724,6 @@ final class LTPACrypto {
 		}
 	}
 
-	
 	/*
 	 * Set the GCM with 12-byte initialization vector.
 	 *

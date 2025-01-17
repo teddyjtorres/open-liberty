@@ -1258,6 +1258,7 @@ final class AuditCrypto {
             } catch (NoSuchProviderException e1) {
                 Tr.debug(tc, "Error: No Such Provider");
                 Tr.error(tc, "security.ltpa.noalgorithm", new Object[] { e1 });
+                com.ibm.ws.ffdc.FFDCFilter.processException(e1, "com.ibm.ws.security.audit.AuditCryptoCrypto", "1314");
             }
 
         } else {

@@ -29,6 +29,7 @@ import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ssl.Constants;
 import com.ibm.websphere.ssl.JSSEProvider;
+import com.ibm.ws.common.crypto.CryptoUtils;
 import com.ibm.ws.ssl.provider.IBMJSSEProvider;
 import com.ibm.ws.ssl.provider.SunJSSEProvider;
 
@@ -315,105 +316,104 @@ public class JSSEProviderFactory {
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())
             Tr.entry(tc, "initializeFips");
 
-//        if (!fipsInitialized) {
-//            int ibmjcefips_position = 0;
-//            int ibmjceplusfips_position = 0;
-//            Provider[] provider_list = null;
-//            Provider ibmjcefips = null;
-//            Provider ibmjceplusfips = null;
-//            Provider sun = null;
-//
-//            try {
-//                System.setProperty("com.ibm.jsse2.JSSEFIPS", "true");
-//                provider_list = Security.getProviders();
-//
-//                for (int i = 0; i < provider_list.length; i++) {
-//                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
-//                        Tr.debug(tc, "Provider[" + i + "]: " + provider_list[i].getName());
-//                    if (provider_list[i].getName().equals("IBMJCEPlusFIPS")) {
-//                        ibmjceplusfips_position = i;
-//                        ibmjceplusfips = provider_list[i];
-//                    } else if (provider_list[i].getName().equals("IBMJCEFIPS")) {
-//                        ibmjcefips_position = i;
-//                        ibmjcefips = provider_list[i];
-//                    } else if (provider_list[i].getName().equals("SUN")) {
-//                        sun = provider_list[i];
-//                    }
-//                }
-//
-//                if (ibmjceplusfips == null) {
-//                    provider_list = Security.getProviders();
-//
-//                    try {
-//                        ibmjceplusfips = (Provider) Class.forName(Constants.IBMJCEPlusFIPS).newInstance();
-//
-//                        if (sun != null) {
-//                            insertProviderAt(sun, 1);
-//                            insertProviderAt(ibmjceplusfips, 2);
-//                        } else {
-//                            insertProviderAt(ibmjceplusfips, 1);
-//                        }
-//                    } catch (Exception e) {
-//                        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
-//                            Tr.debug(tc, "Exception loading provider: " + Constants.IBMJCEFIPS + "; " + e);
-//                    }
-//                } else if (ibmjceplusfips_position != 0) {
-//                    // it's there but not the first, let's reorder it.
-//                    provider_list = Security.getProviders();
-//
-//                    if (sun != null) {
-//                        insertProviderAt(sun, 1);
-//                        insertProviderAt(ibmjceplusfips, 2);
-//                    } else {
-//                        insertProviderAt(ibmjceplusfips, 1);
-//                    }
-//
-//                } else if (ibmjcefips == null) {
-//                    provider_list = Security.getProviders();
-//
-//                    try {
-//                        ibmjcefips = (Provider) Class.forName(Constants.IBMJCEFIPS).newInstance();
-//
-//                        if (sun != null) {
-//                            insertProviderAt(sun, 1);
-//                            insertProviderAt(ibmjcefips, 2);
-//                        } else {
-//                            insertProviderAt(ibmjcefips, 1);
-//                        }
-//                    } catch (Exception e) {
-//                        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
-//                            Tr.debug(tc, "Exception loading provider: " + Constants.IBMJCEFIPS + "; " + e);
-//                    }
-//                } else if (ibmjcefips_position != 0) {
-//                    // it's there but not the first, let's reorder it.
-//                    provider_list = Security.getProviders();
-//
-//                    if (sun != null) {
-//                        insertProviderAt(sun, 1);
-//                        insertProviderAt(ibmjcefips, 2);
-//                    } else {
-//                        insertProviderAt(ibmjcefips, 1);
-//                    }
-//                }
-//
-//                provider_list = Security.getProviders();
-//
-//                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-//                    for (int i = 0; i < provider_list.length; i++) {
-//                        Tr.debug(tc, "Provider[" + i + "]: " + provider_list[i].getName() + ", info: " + provider_list[i].getInfo());
-//                    }
-//                }
-//
-//                fipsInitialized = true;
-//            } catch (Exception e) {
-//                Tr.error(tc, "security.addprovider.error", new Object[] { e });
-//                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
-//                    Tr.debug(tc, "Exception caught adding IBMJCEFIPS provider.", new Object[] { e });
-//                throw e;
-//            }
-//        }
+        if (!fipsInitialized && !CryptoUtils.isFips140_3Enabled()) {
+            int ibmjcefips_position = 0;
+            int ibmjceplusfips_position = 0;
+            Provider[] provider_list = null;
+            Provider ibmjcefips = null;
+            Provider ibmjceplusfips = null;
+            Provider sun = null;
 
-        if (!fipsInitialized) {
+            try {
+                System.setProperty("com.ibm.jsse2.JSSEFIPS", "true");
+                provider_list = Security.getProviders();
+
+                for (int i = 0; i < provider_list.length; i++) {
+                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                        Tr.debug(tc, "Provider[" + i + "]: " + provider_list[i].getName());
+                    if (provider_list[i].getName().equals("IBMJCEPlusFIPS")) {
+                        ibmjceplusfips_position = i;
+                        ibmjceplusfips = provider_list[i];
+                    } else if (provider_list[i].getName().equals("IBMJCEFIPS")) {
+                        ibmjcefips_position = i;
+                        ibmjcefips = provider_list[i];
+                    } else if (provider_list[i].getName().equals("SUN")) {
+                        sun = provider_list[i];
+                    }
+                }
+
+                if (ibmjceplusfips == null) {
+                    provider_list = Security.getProviders();
+
+                    try {
+                        ibmjceplusfips = (Provider) Class.forName(Constants.IBMJCEPlusFIPS).newInstance();
+
+                        if (sun != null) {
+                            insertProviderAt(sun, 1);
+                            insertProviderAt(ibmjceplusfips, 2);
+                        } else {
+                            insertProviderAt(ibmjceplusfips, 1);
+                        }
+                    } catch (Exception e) {
+                        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                            Tr.debug(tc, "Exception loading provider: " + Constants.IBMJCEFIPS + "; " + e);
+                    }
+                } else if (ibmjceplusfips_position != 0) {
+                    // it's there but not the first, let's reorder it.
+                    provider_list = Security.getProviders();
+
+                    if (sun != null) {
+                        insertProviderAt(sun, 1);
+                        insertProviderAt(ibmjceplusfips, 2);
+                    } else {
+                        insertProviderAt(ibmjceplusfips, 1);
+                    }
+
+                } else if (ibmjcefips == null) {
+                    provider_list = Security.getProviders();
+
+                    try {
+                        ibmjcefips = (Provider) Class.forName(Constants.IBMJCEFIPS).newInstance();
+
+                        if (sun != null) {
+                            insertProviderAt(sun, 1);
+                            insertProviderAt(ibmjcefips, 2);
+                        } else {
+                            insertProviderAt(ibmjcefips, 1);
+                        }
+                    } catch (Exception e) {
+                        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                            Tr.debug(tc, "Exception loading provider: " + Constants.IBMJCEFIPS + "; " + e);
+                    }
+                } else if (ibmjcefips_position != 0) {
+                    // it's there but not the first, let's reorder it.
+                    provider_list = Security.getProviders();
+
+                    if (sun != null) {
+                        insertProviderAt(sun, 1);
+                        insertProviderAt(ibmjcefips, 2);
+                    } else {
+                        insertProviderAt(ibmjcefips, 1);
+                    }
+                }
+
+                provider_list = Security.getProviders();
+
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                    for (int i = 0; i < provider_list.length; i++) {
+                        Tr.debug(tc, "Provider[" + i + "]: " + provider_list[i].getName() + ", info: " + provider_list[i].getInfo());
+                    }
+                }
+
+                fipsInitialized = true;
+            } catch (Exception e) {
+                Tr.error(tc, "security.addprovider.error", new Object[] { e });
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled())
+                    Tr.debug(tc, "Exception caught adding IBMJCEFIPS provider.", new Object[] { e });
+                throw e;
+            }
+
+        } else if (!fipsInitialized) {
             fipsInitialized = true;
             Provider[] provider_list = Security.getProviders();
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
