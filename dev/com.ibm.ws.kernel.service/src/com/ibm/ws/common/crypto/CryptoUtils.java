@@ -129,7 +129,7 @@ public class CryptoUtils {
     }
 
     public static String getCipher() {
-        return fipsEnabled ? AES_GCM_CIPHER : AES_CBC_CIPHER;
+        return fipsEnabled ? AES_GCM_CIPHER : DES_ECB_CIPHER;
     }
 
     public static String getCipherForAudit() {
