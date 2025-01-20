@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024 IBM Corporation and others.
+ * Copyright (c) 2024,2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -52,6 +52,7 @@ import io.openliberty.jpa.data.tests.models.Business;
 import io.openliberty.jpa.data.tests.models.City;
 import io.openliberty.jpa.data.tests.models.CityId;
 import io.openliberty.jpa.data.tests.models.Coordinate;
+import io.openliberty.jpa.data.tests.models.County;
 import io.openliberty.jpa.data.tests.models.DemographicInfo;
 import io.openliberty.jpa.data.tests.models.DemographicInformation;
 import io.openliberty.jpa.data.tests.models.Item;
@@ -1794,6 +1795,36 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertEquals("Doe", results.get(1).getName().getLast());
         assertEquals("John", results.get(1).getName().getFirst());
 
+    }
+
+    @Test
+    @Ignore("Reference issue: https://github.com/OpenLiberty/open-liberty/issues/30534")
+    public void testOLGH30534() throws Exception {
+
+        County county1 = new County("CountyA");
+        County county2 = new County("CountyB");
+        County county3 = new County("CountyC");
+
+        tx.begin();
+        em.persist(county1);
+        em.persist(county2);
+        em.persist(county3);
+        tx.commit();
+
+        List<County> results;
+        tx.begin();
+        try {
+            results = em.createQuery("SELECT o FROM County o WHERE o.name = ?1 ORDER BY o.name", County.class)
+                            .setParameter(1, "CountyA")
+                            .getResultList();
+            tx.commit();
+        } catch (Exception e) {
+            tx.rollback();
+            throw e;
+        }
+
+        assertEquals(1, results.size());
+        assertEquals("CountyA", results.get(0).getName());
     }
 
     @Test
