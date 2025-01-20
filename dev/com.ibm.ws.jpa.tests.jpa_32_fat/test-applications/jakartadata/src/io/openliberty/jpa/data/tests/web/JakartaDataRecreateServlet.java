@@ -1765,7 +1765,7 @@ public class JakartaDataRecreateServlet extends FATServlet {
     }
 
     @Test
-    @Ignore("Reference issue: https://github.com/OpenLiberty/open-liberty/issues/29475 .This test includes issues in ElementCollection")
+    //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/29475 .This test includes issues in ElementCollection
     public void test_29475_ElementCollection() throws Exception {
         ECEntity e1 = new ECEntity();
         e1.setId("EC1");
