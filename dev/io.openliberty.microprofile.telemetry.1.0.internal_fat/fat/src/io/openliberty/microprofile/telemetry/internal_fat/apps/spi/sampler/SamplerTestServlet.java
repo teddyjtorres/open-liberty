@@ -15,17 +15,18 @@ package io.openliberty.microprofile.telemetry.internal_fat.apps.spi.sampler;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
+import javax.enterprise.context.ApplicationScoped;
+import javax.inject.Inject;
+import javax.servlet.annotation.WebServlet;
+
 import org.junit.Test;
 
 import componenttest.annotation.SkipForRepeat;
 import componenttest.app.FATServlet;
-import componenttest.rules.repeater.MicroProfileActions;
 import io.openliberty.microprofile.telemetry.internal_fat.shared.TelemetryActions;
+import componenttest.rules.repeater.MicroProfileActions;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
-import javax.enterprise.context.ApplicationScoped;
-import javax.inject.Inject;
-import javax.servlet.annotation.WebServlet;
 
 /**
  * Test that a sampler can be provided via SPI
@@ -39,8 +40,7 @@ public class SamplerTestServlet extends FATServlet {
     private Tracer tracer;
 
     @Test
-    @SkipForRepeat({ MicroProfileActions.MP70_EE11_ID, MicroProfileActions.MP70_EE10_ID, TelemetryActions.MP61_MPTEL20_ID, TelemetryActions.MP50_MPTEL20_ID, TelemetryActions.MP50_MPTEL20_JAVA8_ID, TelemetryActions.MP41_MPTEL20_ID,
-                     TelemetryActions.MP14_MPTEL20_ID })
+    @SkipForRepeat({TelemetryActions.MP14_MPTEL20_ID, TelemetryActions.MP41_MPTEL20_ID, TelemetryActions.MP50_MPTEL20_ID, TelemetryActions.MP50_MPTEL20_JAVA8_ID, TelemetryActions.MP61_MPTEL20_ID, MicroProfileActions.MP70_EE10_ID, MicroProfileActions.MP70_EE11_ID})
     public void testSampler() {
         // Span 1 does not set SAMPLE_ME, so it should not be sampled
         Span span1 = tracer.spanBuilder("span1").startSpan();
