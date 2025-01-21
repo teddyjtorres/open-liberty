@@ -172,6 +172,12 @@ public class HttpServerStatsMonitor extends StatisticActions {
 					HttpRequest httpRequest = httpDispatcherLink.getRequest();
 					if (!is4xxCode) {
 						builder.withHttpRoute(httpRequest.getURI());
+					} else {
+						/*
+						 * For 4xx response codes,
+						 *  set HTTP route to "/"
+						 */
+						builder.withHttpRoute("/");
 					}
 					
 					builder.withRequestMethod(httpRequest.getMethod());

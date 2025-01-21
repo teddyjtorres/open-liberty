@@ -92,15 +92,16 @@ public class NoAppTest extends BaseTestClass {
         String route = "/madeThisUp";
         String requestMethod = HttpMethod.GET;
         String responseStatus = "404";
+        String expectedRoute = "/";
 
         String res = requestHttpServlet(route, server, requestMethod);
 
-        assertTrue(validateMpMetricsHttp(getVendorMetrics(server), null, responseStatus, requestMethod));
+        assertTrue(validateMpMetricsHttp(getVendorMetrics(server), expectedRoute, responseStatus, requestMethod));
 
         String route2 = "/anotherMadeThisUp";
         String res2 = requestHttpServlet(route, server, requestMethod);
 
-        assertTrue(validateMpMetricsHttp(getVendorMetrics(server), null, responseStatus, requestMethod, null, ">1", null));
+        assertTrue(validateMpMetricsHttp(getVendorMetrics(server), expectedRoute, responseStatus, requestMethod, null, ">1", null));
 
     }
 

@@ -97,17 +97,20 @@ public class ContainerNoAppTest extends BaseTestClass {
         String route = "/madeThisUp";
         String requestMethod = HttpMethod.GET;
         String responseStatus = "404";
+        String expectedRoute = "/";
 
         String res = requestHttpServlet(route, server, requestMethod);
 
         //Allow time for the collector to receive and expose metrics
-        assertTrueRetryWithTimeout(() -> validateMpTelemetryHttp(Constants.OTEL_SERVICE_NOT_SET, getContainerCollectorMetrics(container), null, responseStatus, requestMethod));
+        assertTrueRetryWithTimeout(() -> validateMpTelemetryHttp(Constants.OTEL_SERVICE_NOT_SET, getContainerCollectorMetrics(container), expectedRoute, responseStatus,
+                                                                 requestMethod));
 
         String route2 = "/anotherMadeThisUp";
         String res2 = requestHttpServlet(route, server, requestMethod);
 
         //Allow time for the collector to receive and expose metrics
-        assertTrueRetryWithTimeout(() -> validateMpTelemetryHttp(Constants.OTEL_SERVICE_NOT_SET, getContainerCollectorMetrics(container), null, responseStatus, requestMethod, null,
+        assertTrueRetryWithTimeout(() -> validateMpTelemetryHttp(Constants.OTEL_SERVICE_NOT_SET, getContainerCollectorMetrics(container), expectedRoute, responseStatus,
+                                                                 requestMethod, null,
                                                                  ">1", null));
 
     }
