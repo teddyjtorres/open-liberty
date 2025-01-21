@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024 IBM Corporation and others.
+ * Copyright (c) 2024, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -108,6 +108,8 @@ public class CacheFiles {
                 throw new RuntimeException(e);
             }
         }
+        
+        //TODO Add all BASE_IMAGE arguments from Dockerfiles in this project
         
         String header = "# NOTICE: This file was automatically updated to reflect changes made to test projects." + System.lineSeparator() +  
                         "# Please check these changes into GitHub" + System.lineSeparator();
