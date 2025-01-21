@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2024 IBM Corporation and others.
+ * Copyright (c) 2004, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -794,7 +794,7 @@ public class AccessLogger extends LoggerOffThread implements AccessLog {
      * LogRoller task to be run/scheduled in timed log rollover.
      */
     private class TimedLogRoller extends TimerTask {
-        private final WorkerThread wt;
+        private WorkerThread wt;
 
         TimedLogRoller(WorkerThread wt) {
             this.wt = wt;
