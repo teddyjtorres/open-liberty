@@ -34,13 +34,29 @@ task assembleTestContainerData(type: JavaExec) {
 }
 
 task generateCustomImages(type: JavaExec) {
-    // TODO If artifactory is available then use it for substitution
-//    if ( gradle.userProps.containsKey("artifactory.docker.server") ) {
-//        environment "TESTCONTAINERS_IMAGE_SUBSTITUTOR", "componenttest.containers.ArtifactoryMirrorSubstitutor"
-//        environment "IMAGE_NAME_PREFIX", gradle.userProps.getProperty("artifactory.docker.server")
-//    }
+    // If artifactory is available then use it for substitution
+    if ( gradle.userProps.containsKey("artifactory.docker.server") ) {
+        environment "TESTCONTAINERS_IMAGE_SUBSTITUTOR", "componenttest.containers.ArtifactoryMirrorSubstitutor"
+        environment "ARTIFACTORY_REGISTRY", gradle.userProps.getProperty("artifactory.docker.server")
+    }
+    
+    // If custom registry is available then use it for building
+    if ( gradle.userProps.containsKey("docker_registry.server") ) {
+    	environment "INTERNAL_REGISTRY", gradle.userProps.getProperty("docker_registry.server")
+    }
     
     classpath = configurations.runtime.plus(sourceSets.main.runtimeClasspath)
     main = "io.openliberty.org.testcontainers.generate.CustomImages"
     args project.getProjectDir()
+    
+    // Debugging properties for testcontainers
+    systemProperties = [
+      'org.slf4j.simpleLogger.logFile': new File(project.getProjectDir(), 'build/testcontainers.log'),
+      'org.slf4j.simpleLogger.showDateTime': 'true',
+      'org.slf4j.simpleLogger.dateTimeFormat': '[MM/dd/yyyy HH:mm:ss:SSS z]',
+      'org.slf4j.simpleLogger.log.org.testcontainers': 'debug',
+      'org.slf4j.simpleLogger.log.tc': 'debug',
+      'org.slf4j.simpleLogger.log.com.github.dockerjava': 'warn',
+      'org.slf4j.simpleLogger.log.com.github.dockerjava.zerodep.shaded.org.apache.hc.client5.http.wire': 'off'
+    ]
 }
