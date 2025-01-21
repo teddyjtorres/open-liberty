@@ -1828,6 +1828,39 @@ public class JakartaDataRecreateServlet extends FATServlet {
     }
 
     @Test
+    public void testOLGH30351() throws Exception {
+
+        Business business1 = Business.of(43.1566f, -77.6109f, "Rochester", "NY", 14623, 123, "Main St", "N", "Acme Corp");
+        Business business2 = Business.of(43.1578f, -77.6110f, "Rochester", "NY", 14623, 456, "Broadway", "S", "Beta LLC");
+        Business business3 = Business.of(42.8864f, -78.8784f, "Buffalo", "NY", 14202, 789, "Elm St", "E", "Gamma Inc");
+
+        tx.begin();
+        em.persist(business1);
+        em.persist(business2);
+        em.persist(business3);
+        tx.commit();
+
+        List<Business> results;
+        tx.begin();
+        try {
+
+            results = em.createQuery("FROM Business WHERE location.address.city=?1 ORDER BY name", Business.class)
+                            .setParameter(1, "Rochester")
+                            .getResultList();
+
+            tx.commit();
+        } catch (Exception e) {
+            tx.rollback();
+            throw e;
+        }
+
+        assertNotNull(results);
+        assertEquals(2, results.size());
+        assertEquals("Acme Corp", results.get(0).name);
+        assertEquals("Beta LLC", results.get(1).name);
+    }
+
+    @Test
     @SkipIfSysProp(DB_Postgres) //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/30400
     public void testOLGH30400() throws Exception {
         deleteAllEntities(PurchaseOrder.class, "Orders");
