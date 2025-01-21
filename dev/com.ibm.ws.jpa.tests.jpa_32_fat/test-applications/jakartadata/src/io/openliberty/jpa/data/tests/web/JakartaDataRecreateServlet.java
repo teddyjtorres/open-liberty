@@ -33,7 +33,9 @@ import java.time.LocalTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoField;
+import java.util.Arrays;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -55,6 +57,7 @@ import io.openliberty.jpa.data.tests.models.Coordinate;
 import io.openliberty.jpa.data.tests.models.County;
 import io.openliberty.jpa.data.tests.models.DemographicInfo;
 import io.openliberty.jpa.data.tests.models.DemographicInformation;
+import io.openliberty.jpa.data.tests.models.ECEntity;
 import io.openliberty.jpa.data.tests.models.Item;
 import io.openliberty.jpa.data.tests.models.Line;
 import io.openliberty.jpa.data.tests.models.Line.Point;
@@ -78,6 +81,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.PersistenceException;
+import jakarta.persistence.Query;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.transaction.RollbackException;
 import jakarta.transaction.UserTransaction;
@@ -1759,6 +1763,173 @@ public class JakartaDataRecreateServlet extends FATServlet {
         assertNotNull(result.comments);
         assertEquals(3, result.comments.size());
 
+    }
+
+    @Test
+    //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/29475 .This test includes issues in ElementCollection
+    public void test_29475_ElementCollection() throws Exception {
+        ECEntity e1 = new ECEntity();
+        e1.setId("EC1");
+        e1.setIntArray(new int[] { 14, 12, 1 });
+        e1.setLongList(new ArrayList<>(List.of(14L, 12L, 1L)));
+        e1.setLongListEC(new ArrayList<>(List.of(14L, 12L, 1L)));
+        e1.setStringSet(Set.of("fourteen", "twelve", "one"));
+        e1.setStringSetEC(Set.of("fourteen", "twelve", "one"));
+       
+        ECEntity e2 = new ECEntity();
+        e2.setId("EC2");
+        e2.setIntArray(new int[] { 14, 12, 2 });
+        e2.setLongList(new ArrayList<>(List.of(14L, 12L, 2L)));
+        e2.setLongListEC(new ArrayList<>(List.of(14L, 12L, 2L)));
+        e2.setStringSet(Set.of("fourteen", "twelve", "two"));
+        e2.setStringSetEC(Set.of("fourteen", "twelve", "two"));
+
+
+        tx.begin();
+        em.persist(e1);
+        em.persist(e2);
+        tx.commit();
+         // Test JPQL queries
+    String jpql;
+    List<?> results;
+    // Query for intArray
+    tx.begin();
+    try {
+        jpql = "SELECT intArray FROM ECEntity WHERE id=?1";
+        results = em.createQuery(jpql)
+                    .setParameter(1, "EC1")
+                    .getResultList();
+                    logQueryResults(jpql,results);
+        tx.commit();
+    } catch (Exception e) {
+        tx.rollback();
+        throw e;
+    }
+
+    // Query for longList
+    tx.begin();
+    try {
+        jpql = "SELECT longList FROM ECEntity WHERE id=?1";
+        results = em.createQuery(jpql)
+                    .setParameter(1, "EC1")
+                    .getResultList();
+                    logQueryResults(jpql,results);
+        tx.commit();
+    } catch (Exception e) {
+        tx.rollback();
+        throw e;
+    }
+    // Query for stringSet
+    tx.begin();
+    try {
+        jpql = "SELECT stringSet FROM ECEntity WHERE id=?1";
+        results = em.createQuery(jpql)
+                    .setParameter(1, "EC1")
+                    .getResultList();
+        logQueryResults(jpql,results);
+        tx.commit();
+    } catch (Exception e) {
+        tx.rollback();
+        throw e;
+    }
+    tx.begin();
+    try {
+        jpql = "SELECT longListEC FROM ECEntity WHERE id=?1";
+        results = em.createQuery(jpql)
+                    .setParameter(1, "EC1")
+                    .getResultList();
+                    logQueryResults(jpql,results);
+        tx.commit();
+    } catch (Exception e) {
+        tx.rollback();
+        throw e;
+    }
+    // Query for longListEC
+    tx.begin();
+    try {
+        jpql = "SELECT longListEC FROM ECEntity WHERE id LIKE ?1";
+        results = em.createQuery(jpql)
+                    .setParameter(1, "EC%")
+                    .getResultList();
+                    logQueryResults(jpql,results);
+        tx.commit();
+    } catch (Exception e) {
+        tx.rollback();
+        throw e;
+    }
+    tx.begin();
+    try {
+        jpql = "SELECT longList FROM ECEntity WHERE id LIKE ?1";
+        results = em.createQuery(jpql)
+                    .setParameter(1, "EC%")
+                    .getResultList();
+                    logQueryResults(jpql,results);
+        tx.commit();
+    } catch (Exception e) {
+        tx.rollback();
+        throw e;
+    }
+    // Query for stringSetEC
+    tx.begin();
+    try {
+        jpql = "SELECT stringSetEC FROM ECEntity WHERE id LIKE ?1";
+        results = em.createQuery(jpql)
+                    .setParameter(1, "EC%")
+                    .getResultList();
+                    logQueryResults(jpql,results);
+        tx.commit();
+    } catch (Exception e) {
+        tx.rollback();
+        throw e;
+    }
+    tx.begin();
+    try {
+        jpql = "SELECT stringSet FROM ECEntity WHERE id LIKE ?1";
+        results = em.createQuery(jpql)
+                    .setParameter(1, "EC%")
+                    .getResultList();
+                    logQueryResults(jpql,results);
+        tx.commit();
+    } catch (Exception e) {
+        tx.rollback();
+        throw e;
+    }
+
+    tx.begin();
+    try {
+        jpql = "SELECT stringSetEC FROM ECEntity WHERE id=?1";
+        results = em.createQuery(jpql)
+                    .setParameter(1, "EC1")
+                    .getResultList();
+                    logQueryResults(jpql,results);
+        tx.commit();
+    } catch (Exception e) {
+        tx.rollback();
+        throw e;
+    }
+
+    }
+    public void logQueryResults(String jpql, Collection<?> results) {
+        System.out.println(jpql);
+        System.out.println("getResultList returned a " + results.getClass().getTypeName());
+        if (!results.isEmpty()) {
+            System.out.println("    elements are of type " + results.iterator().next().getClass().getTypeName());
+        } else {
+            System.out.println("    elements are of type <empty>");
+        }
+        StringBuilder s = new StringBuilder();
+            boolean first = true;
+            for (Object element : results) {
+                if (first)
+                    first = false;
+                else
+                    s.append(", ");
+                if (element instanceof int[])
+                    s.append(Arrays.toString((int[]) element));
+                else
+                    s.append(element);
+            }
+            System.out.println("            contents are [" + s.toString() + "]");
     }
 
     @Test //Reference issue: https://github.com/OpenLiberty/open-liberty/issues/29460
