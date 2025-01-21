@@ -22,6 +22,19 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.List;
 
+import org.junit.Test;
+
+import componenttest.annotation.SkipForRepeat;
+import componenttest.app.FATServlet;
+import componenttest.rules.repeater.MicroProfileActions;
+import io.openliberty.microprofile.telemetry.internal_fat.common.TestSpans;
+import io.openliberty.microprofile.telemetry.internal_fat.common.spanexporter.InMemorySpanExporter;
+import io.openliberty.microprofile.telemetry.internal_fat.shared.TelemetryActions;
+import io.opentelemetry.api.baggage.Baggage;
+import io.opentelemetry.api.common.AttributeKey;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.context.Scope;
+import io.opentelemetry.sdk.trace.data.SpanData;
 import javax.inject.Inject;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -32,19 +45,6 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Application;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.HttpHeaders;
-
-import org.junit.Test;
-
-import componenttest.annotation.SkipForRepeat;
-import componenttest.app.FATServlet;
-import componenttest.rules.repeater.MicroProfileActions;
-import io.openliberty.microprofile.telemetry.internal_fat.common.TestSpans;
-import io.openliberty.microprofile.telemetry.internal_fat.common.spanexporter.InMemorySpanExporter;
-import io.opentelemetry.api.baggage.Baggage;
-import io.opentelemetry.api.common.AttributeKey;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.context.Scope;
-import io.opentelemetry.sdk.trace.data.SpanData;
 
 /**
  * Test that a custom Propagator can be provided.
@@ -68,11 +68,9 @@ public class PropagatorTestServlet extends FATServlet {
     @Inject
     private TestSpans testSpans;
 
-    //All MpTelemetry 2.0 actions to be used in SkipForRepeat() method annotations
-    public static final String[] MpTelemetry20Repeats = { MicroProfileActions.MP70_EE10_ID, MicroProfileActions.MP70_EE11_ID };
-
     @Test
-    @SkipForRepeat({ MicroProfileActions.MP70_EE10_ID, MicroProfileActions.MP70_EE11_ID })
+    @SkipForRepeat({ MicroProfileActions.MP70_EE11_ID, MicroProfileActions.MP70_EE10_ID, TelemetryActions.MP61_MPTEL20_ID, TelemetryActions.MP50_MPTEL20_ID, TelemetryActions.MP50_MPTEL20_JAVA8_ID, TelemetryActions.MP41_MPTEL20_ID,
+                     TelemetryActions.MP14_MPTEL20_ID })
     public void testPropagator() {
         Span span = testSpans.withTestSpan(() -> {
             // Add a key to the baggage that we will look for later
