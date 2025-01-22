@@ -169,6 +169,8 @@ class ImageBuilder {
      * @return          The substituted docker image of the BASE_IMAGE argument
      */
     private static DockerImageName findBaseImageFrom(String resource) {
+        final String BASE_IMAGE_PREFIX = "ARG BASE_IMAGE=\"";
+
         /*
          * Finds the Dockerfile on classpath and will extract the file to a temporary location so we can read it.
          * This will be done during the image build step anyway so this is just front-loading that work for our benefit.
@@ -185,9 +187,11 @@ class ImageBuilder {
         String errorMessage = "The Dockerfile did not contain a BASE_IMAGE argument declaration. "
                               + "This is required to allow us to pull and substitute the BASE_IMAGE using the ImageNameSubstitutor.";
 
-        String baseImageName = dockerfileLines.filter(line -> line.startsWith("ARG BASE_IMAGE"))
+        String baseImageLine = dockerfileLines.filter(line -> line.startsWith("ARG BASE_IMAGE"))
                         .findFirst()
                         .orElseThrow(() -> new IllegalStateException(errorMessage));
+
+        String baseImageName = baseImageLine.substring(BASE_IMAGE_PREFIX.length(), baseImageLine.lastIndexOf('"'));
 
         return ImageNameSubstitutor.instance().apply(DockerImageName.parse(baseImageName));
     }
@@ -227,6 +231,15 @@ class ImageBuilder {
             return "ImageBuilderSubstitutor with registry " + REGISTRY;
         }
 
-    }
+        // Hide instance method from parent class.
+        // which will choose the ImageNameSubstitutor based on environment.
+        private static ImageBuilderSubstitutor instance;
 
+        public static synchronized ImageNameSubstitutor instance() {
+            if (Objects.isNull(instance)) {
+                instance = new ImageBuilderSubstitutor();
+            }
+            return instance;
+        }
+    }
 }

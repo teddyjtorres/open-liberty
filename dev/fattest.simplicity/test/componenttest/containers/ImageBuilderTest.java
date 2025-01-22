@@ -60,7 +60,7 @@ public class ImageBuilderTest {
     }
 
     private DockerImageName getImage(ImageBuilder builder) throws Exception {
-        Field image = builder.getClass().getField("image");
+        Field image = builder.getClass().getDeclaredField("image");
         image.setAccessible(true);
         return (DockerImageName) image.get(builder);
     }
