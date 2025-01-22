@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Deque;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -404,17 +405,6 @@ public interface Primes {
     @Insert
     void persist(Prime... primes);
 
-    @Query("SELECT DISTINCT LENGTH(p.romanNumeral) FROM Prime p WHERE p.numberId <= ?1 ORDER BY LENGTH(p.romanNumeral) DESC")
-    Page<Integer> romanNumeralLengths(long maxNumber, PageRequest pagination);
-
-    @Query("SELECT romanNumeral" +
-           " WHERE (numberId BETWEEN ?1 AND ?2)" +
-           "    OR (numberId BETWEEN ?3 AND ?4)" +
-           " ORDER BY numberId ASC")
-    Page<String> romanNumerals(long min1, long max1,
-                               long min2, long max2,
-                               PageRequest pageRequest);
-
     @Query("SELECT DISTINCT(romanNumeral)" +
            " WHERE (numberId BETWEEN ?1 AND ?2)" +
            "    OR (numberId BETWEEN ?3 AND ?4)" +
@@ -422,6 +412,35 @@ public interface Primes {
     Page<String> romanNumeralsDistinct(long min1, long max1,
                                        long min2, long max2,
                                        PageRequest pageRequest);
+
+    @Query("SELECT DISTINCT LENGTH(p.romanNumeral) FROM Prime p WHERE p.numberId <= ?1 ORDER BY LENGTH(p.romanNumeral) DESC")
+    Page<Integer> romanNumeralLengths(long maxNumber, PageRequest pagination);
+
+    @Query("WHERE numberId <= ?1")
+    @OrderBy("name")
+    List<RomanNumeral> romanNumeralsLessThanEq(long max);
+
+    @Query("SELECT romanNumeral" +
+           " WHERE (numberId BETWEEN ?1 AND ?2)" +
+           "    OR (numberId BETWEEN ?3 AND ?4)" +
+           " ORDER BY numberId ASC")
+    Page<String> romanNumeralsWithin(long min1, long max1,
+                                     long min2, long max2,
+                                     PageRequest pageRequest);
+
+    @Query("SELECT romanNumeralSymbols WHERE numberId = ?1")
+    Optional<ArrayList<String>> romanNumeralSymbolsAsArrayList(long num);
+
+    @Query("SELECT romanNumeralSymbols WHERE numberId = ?1")
+    Optional<Collection<String>> romanNumeralSymbolsAsCollection(long num);
+
+    @Query("SELECT romanNumeralSymbols WHERE romanNumeral LIKE ?1")
+    @OrderBy(ID)
+    List<ArrayList<String>> romanNumeralSymbolsAsListOfArrayList(String pattern);
+
+    @Query("SELECT romanNumeralSymbols WHERE romanNumeral LIKE ?1")
+    @OrderBy(ID)
+    LinkedHashSet<ArrayList<String>> romanNumeralSymbolsAsSetOfArrayList(String pattern);
 
     @Query("SELECT hex WHERE numberId=:id")
     Optional<Character> singleHexDigit(long id);
