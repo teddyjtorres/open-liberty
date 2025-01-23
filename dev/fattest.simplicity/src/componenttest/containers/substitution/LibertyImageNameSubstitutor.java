@@ -20,6 +20,8 @@ import org.testcontainers.utility.ImageNameSubstitutor;
 import com.ibm.websphere.simplicity.log.Log;
 
 import componenttest.containers.ImageVerifier;
+import componenttest.containers.registry.ArtifactoryRegistry;
+import componenttest.containers.registry.InternalRegistry;
 
 /**
  * An image name substituter is configured in testcontainers.properties and will transform docker image names.
@@ -31,13 +33,8 @@ public class LibertyImageNameSubstitutor extends ImageNameSubstitutor {
 
     private static final Class<?> c = LibertyImageNameSubstitutor.class;
 
-    private static final LibertyMirrorSubstitutor MIRROR = new LibertyMirrorSubstitutor();
-    private static final LibertyRegistrySubstitutor REGISTRY = new LibertyRegistrySubstitutor();
-
-    /**
-     * Manual override that will allow builds or users to pull from the default registry instead of Artifactory.
-     */
-    private static final String forceExternal = "fat.test.artifactory.force.external.repo";
+    private static final ImageNameSubstitutor MIRROR = new LibertyMirrorSubstitutor();
+    private static final ImageNameSubstitutor REGISTRY = new LibertyRegistrySubstitutor();
 
     @Override
     public DockerImageName apply(final DockerImageName original) {
@@ -63,25 +60,19 @@ public class LibertyImageNameSubstitutor extends ImageNameSubstitutor {
             // Priority 3: If a public registry was explicitly set on an image, do not substitute
             // This is now handled directly by the MIRROR substitutor
 
-            // Priority 4: Always use Artifactory if using remote docker host.
+            // Priority 4: Always use mirror registry if using remote docker host.
             if (DockerClientFactory.instance().isUsing(EnvironmentAndSystemPropertyClientProviderStrategy.class)) {
                 ImageVerifier.collectImage(original);
                 result = REGISTRY.apply(MIRROR.apply(original));
-                reason = "Using a remote docker host, must use Artifactory registry";
+                reason = "Using a remote docker host, must use mirrored registry";
                 break;
             }
 
             // Priority 5: System property artifactory.force.external.repo
-            // (NOTE: only honor this property if set to true)
-            if (Boolean.getBoolean(forceExternal)) {
-                ImageVerifier.collectImage(original);
-                result = original;
-                reason = "System property [ fat.test.artifactory.force.external.repo ] was set to true, must use original image name.";
-                break;
-            }
+            // This is now handled directly by the ArtifactoryRegistry
 
-            // Priority 6: If Artifactory registry is available use it to avoid rate limits on other registries
-            if (ArtifactoryRegistry.instance().isArtifactoryAvailable()) {
+            // Priority 6: If mirror registry is available use it to avoid rate limits on other registries
+            if (ArtifactoryRegistry.instance().isRegistryAvailable() || InternalRegistry.instance().isRegistryAvailable()) {
                 ImageVerifier.collectImage(original);
                 result = REGISTRY.apply(MIRROR.apply(original));
                 reason = "Artifactory was available.";
@@ -102,7 +93,7 @@ public class LibertyImageNameSubstitutor extends ImageNameSubstitutor {
 
     @Override
     protected String getDescription() {
-        return "ArtifactoryImageNameSubstitutor: Chained subsitutor of ArtifactoryMirrorSubstitutor and ArtifactoryRegistrySubstitutor";
+        return "LibertyImageNameSubstitutor";
     }
 
     /**

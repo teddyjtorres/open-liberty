@@ -14,37 +14,95 @@ import org.testcontainers.utility.ImageNameSubstitutor;
 
 import com.ibm.websphere.simplicity.log.Log;
 
+import componenttest.containers.registry.ArtifactoryRegistry;
+import componenttest.containers.registry.InternalRegistry;
+import componenttest.containers.registry.Registry;
+
 /**
- * Appends the Artifactory registry required for the mirror repositories.
- * Example: wasliberty-aws-docker-remote/docker/library/postgres:17.0-alpine -> [artifactory_registry_url]/wasliberty-aws-docker-remote/docker/library/postgres:17.0-alpine
+ * Prepends the appropriate registry for the known mirrored image name.
+ * It is expected for this substitution to be applied AFTER the LibertyMirrorSubstitutor.
+ * These two substitutions are split because we expect the LibertyMirrorSubstitutor
+ * to always produce the same results, whereas this substitution is locale dependent.
+ *
+ * Examples:
+ *
+ * <pre>
+ * - Already mirrored
+ *   - Input: wasliberty-[department]-remote/docker/library/postgres:17.0-alpine
+ *   - Output: [supported-registry]/wasliberty-[department]-remote/docker/library/postgres:17.0-alpine
+ * - Using ArtifactoryRegistry
+ *   - Input: wasliberty-aws-docker-remote/docker/library/postgres:17.0-alpine
+ *   - Output: [artifactory-registry]/wasliberty-aws-docker-remote/docker/library/postgres:17.0-alpine
+ * - Using InternalRegistry (for mirrored images)
+ *   - Input: wasliberty-internal-docker-remote/testcontainers/ryuk:0.9.0
+ *   - Output: [internal-registry]/wasliberty-internal-docker-remote/testcontainers/ryuk:0.9.0
+ * - Using InternalRegistry (for built images)
+ *   - Input: wasliberty-internal-docker-local/openliberty/testcontainers/prostgres-init/17.0-alpine
+ *   - Output: [internal-registry]/wasliberty-internal-docker-local/openliberty/testcontainers/prostgres-init/17.0-alpine
+ * - When ArtifactoryRegistry nor InternalRegistry support image
+ *   - Input: [unsupported-registry]/repository/image:1.0
+ *   - Output: IllegalStateException
+ * </pre>
  */
 public class LibertyRegistrySubstitutor extends ImageNameSubstitutor {
 
     private static final Class<?> c = LibertyRegistrySubstitutor.class;
 
     @Override
-    public DockerImageName apply(DockerImageName original) {
-        if (!ArtifactoryRegistry.instance().isArtifactoryAvailable()) {
-            throw new RuntimeException("Needed to append Artifactory registry to the docker image name: " + original.asCanonicalNameString()
-                                       + System.lineSeparator() + "No Artfiactory registry was available because "
-                                       + ArtifactoryRegistry.instance().getSetupException().getMessage());
+    public DockerImageName apply(final DockerImageName mirrored) {
+        final String m = "apply";
+
+        Registry artifactory = ArtifactoryRegistry.instance();
+        Registry internal = InternalRegistry.instance();
+
+        // Artifactory registry supports the mirrored image, but was not available
+        if (artifactory.supportRepository(mirrored) && !artifactory.isRegistryAvailable()) {
+            throw new IllegalStateException("Needed to append Artifactory registry to the docker image name: " + mirrored.asCanonicalNameString()
+                                            + System.lineSeparator() + "No Artfiactory registry was available because "
+                                            + artifactory.getSetupException().getMessage());
         }
 
-        if (!original.getRegistry().isEmpty()) {
-            throw new RuntimeException("A registry (" + original.getRegistry() + ") was already configured on the docker image name."
-                                       + System.lineSeparator() + "This substitutor cannot replace an existing registry.");
+        // Internal registry supports the mirrored image, but was not available
+        if (internal.supportRepository(mirrored) && !internal.isRegistryAvailable()) {
+            throw new IllegalStateException("Needed to append Internal registry to the docker image name: " + mirrored.asCanonicalNameString()
+                                            + System.lineSeparator() + "No Internal registry was available because "
+                                            + internal.getSetupException().getMessage());
         }
 
-        DockerImageName result = original;
-        result = result.withRegistry(ArtifactoryRegistry.instance().getRegistry());
+        // Mirrored image name already has a registry, this indicates that a developer
+        // may have introduced an unsupported registry, throw an error so they know to fix it.
+        if (!mirrored.getRegistry().isEmpty()) {
+            throw new IllegalStateException("The mirrored image name " + mirrored.asCanonicalNameString() + " already has a registry."
+                                            + System.lineSeparator() + "We cannot append another registry, "
+                                            + "this usually indicates the registry of the original image is currently unsupported.");
+        }
 
-        Log.finer(c, "apply", original.asCanonicalNameString() + " --> " + result.asCanonicalNameString());
+        final String registry;
+        final String reason;
+
+        if (artifactory.supportRepository(mirrored)) {
+            registry = artifactory.getRegistry();
+            reason = "The Artifactory registry supports the mirrored image name " + mirrored.asCanonicalNameString();
+        } else if (internal.supportRepository(mirrored)) {
+            registry = internal.getRegistry();
+            reason = "The Internal registry supports the mirrored image name " + mirrored.asCanonicalNameString();
+        } else {
+            throw new IllegalStateException("Neither the Artifactory nor Internal registries supported the mirrrored image name " +
+                                            mirrored.asCanonicalNameString() + " this likely indicates a new mirrored repository has not been " +
+                                            "fully implemented within our test infrastructure.");
+        }
+
+        DockerImageName result = mirrored;
+        result = result.withRegistry(registry);
+
+        Log.finer(c, m, "Applied substitution because: " + reason);
+        Log.finer(c, m, mirrored.asCanonicalNameString() + " --> " + result.asCanonicalNameString());
         return result;
     }
 
     @Override
     protected String getDescription() {
-        return "Appends the Artifactory registry required for the mirror repositories.";
+        return "LibertyRegistrySubstitutor";
     }
 
 }
