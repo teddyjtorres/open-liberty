@@ -16,162 +16,162 @@ import org.testcontainers.utility.ImageNameSubstitutor;
  * A record of a Dockerfile
  */
 public class Dockerfile {
-	public final Path location;
-	public final DockerImageName imageName;
-	public final DockerImageName baseImageName;
-	public final DockerImageName baseImageNameSubstituted;
-	
-	public Dockerfile(Path location) {
-		this.location = location;
-		this.imageName = constructImageName(this.location);
-		this.baseImageName = findBaseImageFrom(this.location);
-		this.baseImageNameSubstituted = substituteBaseImage(this.baseImageName);
-	}
-	
-	public boolean isCached() {
+    public final Path location;
+    public final DockerImageName imageName;
+    public final DockerImageName baseImageName;
+    public final DockerImageName baseImageNameSubstituted;
+    
+    public Dockerfile(Path location) {
+        this.location = location;
+        this.imageName = constructImageName(this.location);
+        this.baseImageName = findBaseImageFrom(this.location);
+        this.baseImageNameSubstituted = substituteBaseImage(this.baseImageName);
+    }
+    
+    public boolean isCached() {
         if (PullPolicy.defaultPolicy().shouldPull(imageName)) {
-        	System.out.println("Did not find image locally: " + imageName.asCanonicalNameString());
+            System.out.println("Did not find image locally: " + imageName.asCanonicalNameString());
             return false;
         } else {
-        	System.out.println("Found image locally: " + imageName.asCanonicalNameString());
+            System.out.println("Found image locally: " + imageName.asCanonicalNameString());
             return true;
         }
-	}
-	
-	/**
-	 * Using the Dockerfile's path, parse the directory structure to construct a
-	 * fully qualified DockerImageName to be associated with this Dockerfile.
-	 * 
-	 * @param location of Dockerfile to be built
-	 * @return The DockerImageName for this Dockerfile
-	 */
-	private static DockerImageName constructImageName(Path location) {
+    }
+    
+    /**
+     * Using the Dockerfile's path, parse the directory structure to construct a
+     * fully qualified DockerImageName to be associated with this Dockerfile.
+     * 
+     * @param location of Dockerfile to be built
+     * @return The DockerImageName for this Dockerfile
+     */
+    private static DockerImageName constructImageName(Path location) {
 
-		// io.openliberty.org.testcontainers/resources/openliberty/testcontainers/[repository]/[version]/Dockerfile
-		final String fullPath = location.toString();
+        // io.openliberty.org.testcontainers/resources/openliberty/testcontainers/[repository]/[version]/Dockerfile
+        final String fullPath = location.toString();
 
-		// Find version (between the last two backslash / characters)
-		int end = fullPath.lastIndexOf('/');
-		int start = fullPath.substring(0, end).lastIndexOf('/') + 1;
-		final String version = fullPath.substring(start, end);
+        // Find version (between the last two backslash / characters)
+        int end = fullPath.lastIndexOf('/');
+        int start = fullPath.substring(0, end).lastIndexOf('/') + 1;
+        final String version = fullPath.substring(start, end);
 
-		// Find repository (between "resources/" and version)
-		start = fullPath.lastIndexOf("resources/") + 10;
-		end = fullPath.indexOf(version) - 1;
-		final String repository = fullPath.substring(start, end);
+        // Find repository (between "resources/" and version)
+        start = fullPath.lastIndexOf("resources/") + 10;
+        end = fullPath.indexOf(version) - 1;
+        final String repository = fullPath.substring(start, end);
 
-		// Construct and return name
-		DockerImageName name = ImageBuilderSubstitutor.instance()
-				.apply(DockerImageName.parse(repository).withTag(version));
-		System.out.println("DockerImageName from path: " + name.asCanonicalNameString());
-		return name;
-	}
-	
-	/**
-	 * Walk through all files nested within a shared path and find every Dockerfile.
-	 * 
-	 * @param commonPath the shared path within which all Dockerfiles are nested
-	 *                   within
-	 * @return A list of paths to every Dockerfile
-	 */
-	public static List<Path> findDockerfiles(Path commonPath) {
-		final String FILE_NAME = "Dockerfile";
-		final List<Path> Dockerfiles = new ArrayList<>();
+        // Construct and return name
+        DockerImageName name = ImageBuilderSubstitutor.instance()
+                .apply(DockerImageName.parse(repository).withTag(version));
+        System.out.println("DockerImageName from path: " + name.asCanonicalNameString());
+        return name;
+    }
+    
+    /**
+     * Walk through all files nested within a shared path and find every Dockerfile.
+     * 
+     * @param commonPath the shared path within which all Dockerfiles are nested
+     *                   within
+     * @return A list of paths to every Dockerfile
+     */
+    public static List<Path> findDockerfiles(Path commonPath) {
+        final String FILE_NAME = "Dockerfile";
+        final List<Path> Dockerfiles = new ArrayList<>();
 
-		try (Stream<Path> paths = Files.walk(commonPath)) {
-			paths.filter(Files::isRegularFile).filter(path -> path.getFileName().toString().endsWith(FILE_NAME))
-					.forEach(Dockerfiles::add);
-		} catch (IOException e) {
-			throw new RuntimeException("Error searching files: " + e.getMessage());
-		}
+        try (Stream<Path> paths = Files.walk(commonPath)) {
+            paths.filter(Files::isRegularFile).filter(path -> path.getFileName().toString().endsWith(FILE_NAME))
+                    .forEach(Dockerfiles::add);
+        } catch (IOException e) {
+            throw new RuntimeException("Error searching files: " + e.getMessage());
+        }
 
-		return Dockerfiles;
-	}
+        return Dockerfiles;
+    }
 
-	/**
-	 * Similar logic to ImageBuilder.findBaseImageFrom(resource)
-	 * 
-	 * However, in this case we can only use the ArtifactoryMirrorSubstitutor so we
-	 * have to manually put in the Artifactory registry (when available)
-	 * 
-	 * @param location of Dockerfile the resource path of the Dockerfile
-	 * @return The substituted docker image of the BASE_IMAGE argument
-	 */
-	private DockerImageName findBaseImageFrom(Path location) {
-		final String BASE_IMAGE_PREFIX = "ARG BASE_IMAGE=\"";
+    /**
+     * Similar logic to ImageBuilder.findBaseImageFrom(resource)
+     * 
+     * However, in this case we can only use the ArtifactoryMirrorSubstitutor so we
+     * have to manually put in the Artifactory registry (when available)
+     * 
+     * @param location of Dockerfile the resource path of the Dockerfile
+     * @return The substituted docker image of the BASE_IMAGE argument
+     */
+    private DockerImageName findBaseImageFrom(Path location) {
+        final String BASE_IMAGE_PREFIX = "ARG BASE_IMAGE=\"";
 
-		Stream<String> dockerfileLines;
-		try {
-			dockerfileLines = Files.readAllLines(location).stream();
-		} catch (IOException e) {
-			throw new RuntimeException("Could not read or find Dockerfile in " + location.toString(), e);
-		}
+        Stream<String> dockerfileLines;
+        try {
+            dockerfileLines = Files.readAllLines(location).stream();
+        } catch (IOException e) {
+            throw new RuntimeException("Could not read or find Dockerfile in " + location.toString(), e);
+        }
 
-		String errorMessage = "The Dockerfile did not contain a BASE_IMAGE argument declaration. "
-				+ "This is required to allow us to pull and substitute the BASE_IMAGE using the ImageNameSubstitutor.";
+        String errorMessage = "The Dockerfile did not contain a BASE_IMAGE argument declaration. "
+                + "This is required to allow us to pull and substitute the BASE_IMAGE using the ImageNameSubstitutor.";
 
-		String baseImageLine = dockerfileLines.filter(line -> line.startsWith(BASE_IMAGE_PREFIX)).findFirst()
-				.orElseThrow(() -> new IllegalStateException(errorMessage));
+        String baseImageLine = dockerfileLines.filter(line -> line.startsWith(BASE_IMAGE_PREFIX)).findFirst()
+                .orElseThrow(() -> new IllegalStateException(errorMessage));
 
-		String baseImageName = baseImageLine.substring(BASE_IMAGE_PREFIX.length(), baseImageLine.lastIndexOf('"'));
+        String baseImageName = baseImageLine.substring(BASE_IMAGE_PREFIX.length(), baseImageLine.lastIndexOf('"'));
 
-		return DockerImageName.parse(baseImageName);
+        return DockerImageName.parse(baseImageName);
 
-	}
-	
-	private DockerImageName substituteBaseImage(final DockerImageName original) {
-		final String ARTIFACTORY_REGISTRY = System.getenv("ARTIFACTORY_REGISTRY");
-		
-		DockerImageName substituted = ImageNameSubstitutor.instance().apply(original);
+    }
+    
+    private DockerImageName substituteBaseImage(final DockerImageName original) {
+        final String ARTIFACTORY_REGISTRY = System.getenv("ARTIFACTORY_REGISTRY");
+        
+        DockerImageName substituted = ImageNameSubstitutor.instance().apply(original);
 
-		if (original.equals(substituted)) {
-			System.out.println("Keep original BASE_IMAGE: " + original.asCanonicalNameString());
-			return original;
-		} else {
-			// Substitutor was used, also prepend the registry.
-			System.out.println("Use substituted BASE_IMAGE: " + substituted.asCanonicalNameString());
-			return substituted.withRegistry(ARTIFACTORY_REGISTRY);
-		}
-	}
-	
-	/**
-	 * A ImageNameSubstitutor for images built by this outer class.
-	 */
-	private static class ImageBuilderSubstitutor extends ImageNameSubstitutor {
+        if (original.equals(substituted)) {
+            System.out.println("Keep original BASE_IMAGE: " + original.asCanonicalNameString());
+            return original;
+        } else {
+            // Substitutor was used, also prepend the registry.
+            System.out.println("Use substituted BASE_IMAGE: " + substituted.asCanonicalNameString());
+            return substituted.withRegistry(ARTIFACTORY_REGISTRY);
+        }
+    }
+    
+    /**
+     * A ImageNameSubstitutor for images built by this outer class.
+     */
+    private static class ImageBuilderSubstitutor extends ImageNameSubstitutor {
 
-		// TODO replace with the finalized property expected on our build systems
-		private static final String INTERNAL_REGISTRY_ENV = "INTERNAL_REGISTRY";
+        // TODO replace with the finalized property expected on our build systems
+        private static final String INTERNAL_REGISTRY_ENV = "INTERNAL_REGISTRY";
 
-		// Ensures when we look for cached images Docker only attempt to find images
-		// locally or from an internally configured registry.
-		private static final String REGISTRY = System.getenv(INTERNAL_REGISTRY_ENV) == null 
-				? "localhost"
-				: System.getenv(INTERNAL_REGISTRY_ENV);
+        // Ensures when we look for cached images Docker only attempt to find images
+        // locally or from an internally configured registry.
+        private static final String REGISTRY = System.getenv(INTERNAL_REGISTRY_ENV) == null 
+                ? "localhost"
+                : System.getenv(INTERNAL_REGISTRY_ENV);
 
-		// The repository where all Open Liberty images will be cached
-		private static final String REPOSITORY_PREFIX = "openliberty/testcontainers/";
+        // The repository where all Open Liberty images will be cached
+        private static final String REPOSITORY_PREFIX = "openliberty/testcontainers/";
 
-		@Override
-		public DockerImageName apply(final DockerImageName original) {
-			Objects.requireNonNull(original);
+        @Override
+        public DockerImageName apply(final DockerImageName original) {
+            Objects.requireNonNull(original);
 
-			if (!original.getRegistry().isEmpty()) {
-				throw new IllegalArgumentException("DockerImageName with the registry " + original.getRegistry()
-						+ " cannot be substituted with registry " + REGISTRY);
-			}
+            if (!original.getRegistry().isEmpty()) {
+                throw new IllegalArgumentException("DockerImageName with the registry " + original.getRegistry()
+                        + " cannot be substituted with registry " + REGISTRY);
+            }
 
-			if (original.getRepository().startsWith(REPOSITORY_PREFIX)) {
-				return original.withRegistry(REGISTRY);
-			} else {
-				return original.withRepository(REPOSITORY_PREFIX + original.getRepository()).withRegistry(REGISTRY);
-			}
-		}
+            if (original.getRepository().startsWith(REPOSITORY_PREFIX)) {
+                return original.withRegistry(REGISTRY);
+            } else {
+                return original.withRepository(REPOSITORY_PREFIX + original.getRepository()).withRegistry(REGISTRY);
+            }
+        }
 
-		@Override
-		protected String getDescription() {
-			return "ImageBuilderSubstitutor with registry " + REGISTRY;
-		}
-		
+        @Override
+        protected String getDescription() {
+            return "ImageBuilderSubstitutor with registry " + REGISTRY;
+        }
+        
         // Hide instance method from parent class.
         // which will choose the ImageNameSubstitutor based on environment.
         private static ImageBuilderSubstitutor instance;
@@ -182,5 +182,5 @@ public class Dockerfile {
             }
             return instance;
         }
-	}
+    }
 }

@@ -112,12 +112,12 @@ public class CacheFiles {
         }
         
         // Investigate all Dockerfiles and add the BASE_NAME to externals list
-		Path commonPath = Paths.get(projectPath, "resources", "openliberty", "testcontainers");
-		Dockerfile.findDockerfiles(commonPath).stream()
-			.map(location -> new Dockerfile(location))
-			.forEach(dockerfile -> {
-				externals.add(dockerfile.baseImageName.asCanonicalNameString());
-			});
+        Path commonPath = Paths.get(projectPath, "resources", "openliberty", "testcontainers");
+        Dockerfile.findDockerfiles(commonPath).stream()
+            .map(location -> new Dockerfile(location))
+            .forEach(dockerfile -> {
+                externals.add(dockerfile.baseImageName.asCanonicalNameString());
+            });
         
         String header = "# NOTICE: This file was automatically updated to reflect changes made to test projects." + System.lineSeparator() +  
                         "# Please check these changes into GitHub" + System.lineSeparator();

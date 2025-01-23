@@ -23,52 +23,52 @@ import org.testcontainers.images.builder.ImageFromDockerfile;
  */
 public class CustomImages {
 
-	// The --build-arg necessary to overwrite the default BASE_IMAGE in the
-	// Dockerfile
-	// with the mirrored image in artifactory
-	public static final String BASE_IMAGE = "BASE_IMAGE";
+    // The --build-arg necessary to overwrite the default BASE_IMAGE in the
+    // Dockerfile
+    // with the mirrored image in artifactory
+    public static final String BASE_IMAGE = "BASE_IMAGE";
 
-	public static void main(String[] args) {
-		long start = System.currentTimeMillis();
+    public static void main(String[] args) {
+        long start = System.currentTimeMillis();
 
-		if (args == null || args[0] == null || args.length > 1) {
-			throw new RuntimeException(
-					"CustomImages expects a single argument (projectPath) which is the path to the io.openliberty.org.testcontainers project.");
-		}
+        if (args == null || args[0] == null || args.length > 1) {
+            throw new RuntimeException(
+                    "CustomImages expects a single argument (projectPath) which is the path to the io.openliberty.org.testcontainers project.");
+        }
 
-		// Get data from calling script
-		String projectPath = args[0];
+        // Get data from calling script
+        String projectPath = args[0];
 
-		// Where to find instructions to build images
-		Path commonPath = Paths.get(projectPath, "resources", "openliberty", "testcontainers");
+        // Where to find instructions to build images
+        Path commonPath = Paths.get(projectPath, "resources", "openliberty", "testcontainers");
 
-		// Construct a list of Dockerfiles
-		Dockerfile.findDockerfiles(commonPath).stream()
-				.map(location -> new Dockerfile(location))
-				.forEach(dockerfile -> {
-					// Find or build all images
-					if(dockerfile.isCached()) {
-						System.out.println("Skipping build: " + dockerfile.imageName.asCanonicalNameString());
-						System.out.println("-----");
-						return;
-					}
-					
-					ImageFromDockerfile img = new ImageFromDockerfile(dockerfile.imageName.asCanonicalNameString(), false)
-							.withDockerfile(dockerfile.location)
-							.withBuildArg(BASE_IMAGE, dockerfile.baseImageNameSubstituted.asCanonicalNameString());
+        // Construct a list of Dockerfiles
+        Dockerfile.findDockerfiles(commonPath).stream()
+                .map(location -> new Dockerfile(location))
+                .forEach(dockerfile -> {
+                    // Find or build all images
+                    if(dockerfile.isCached()) {
+                        System.out.println("Skipping build: " + dockerfile.imageName.asCanonicalNameString());
+                        System.out.println("-----");
+                        return;
+                    }
+                    
+                    ImageFromDockerfile img = new ImageFromDockerfile(dockerfile.imageName.asCanonicalNameString(), false)
+                            .withDockerfile(dockerfile.location)
+                            .withBuildArg(BASE_IMAGE, dockerfile.baseImageNameSubstituted.asCanonicalNameString());
 
-					try {
-						System.out.println("Building image: " + dockerfile.imageName.asCanonicalNameString());
-						img.get();
-						System.out.println("Built image successfully: " + dockerfile.imageName.asCanonicalNameString());
-					} catch (Exception e) {
-						throw new RuntimeException("Could not build or find image " + dockerfile.imageName.asCanonicalNameString(), e);
-					} finally {
-						System.out.println("-----");
-					}
-				});
+                    try {
+                        System.out.println("Building image: " + dockerfile.imageName.asCanonicalNameString());
+                        img.get();
+                        System.out.println("Built image successfully: " + dockerfile.imageName.asCanonicalNameString());
+                    } catch (Exception e) {
+                        throw new RuntimeException("Could not build or find image " + dockerfile.imageName.asCanonicalNameString(), e);
+                    } finally {
+                        System.out.println("-----");
+                    }
+                });
 
-		long end = System.currentTimeMillis();
-		System.out.println("Execution time in ms: " + (end - start));
-	}
+        long end = System.currentTimeMillis();
+        System.out.println("Execution time in ms: " + (end - start));
+    }
 }
