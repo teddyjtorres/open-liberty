@@ -84,7 +84,9 @@ class ImageBuilder {
      * @return RemoteDockerImage that points to a cached or built image.
      */
     public RemoteDockerImage get() {
-        return getCached().orElse(pullCached().orElse(buildFromDockerfile()));
+        return getCached()
+                        .orElseGet(() -> pullCached()
+                                        .orElseGet(() -> buildFromDockerfile()));
     }
 
     /*
