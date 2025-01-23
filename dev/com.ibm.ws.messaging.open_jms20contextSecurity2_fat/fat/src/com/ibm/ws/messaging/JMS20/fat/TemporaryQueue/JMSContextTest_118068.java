@@ -93,8 +93,6 @@ public class JMSContextTest_118068 {
         server1.copyFileToLibertyServerRoot("resources/security",
                                             "serverLTPAKeys/ltpa.keys");
         server1.copyFileToLibertyServerRoot("resources/security",
-                                            "serverLTPAKeys/ltpaFIPS.keys");
-        server1.copyFileToLibertyServerRoot("resources/security",
                                             "serverLTPAKeys/mykey.jks");
 
         server.copyFileToLibertyInstallRoot("lib/features",
