@@ -41,15 +41,14 @@ class ImageBuilder {
     private static final Class<?> c = ImageBuilder.class;
 
     // The --build-arg necessary to overwrite the default BASE_IMAGE in the Dockerfile
-    // with the mirrored image in artifactory
+    // with the mirrored image in an alternative registry
     private static final String BASE_IMAGE = "BASE_IMAGE";
 
     // Image to build
     private final DockerImageName image;
 
-    // Constructor
+    // Constructor - builder class
     private ImageBuilder(DockerImageName image) {
-        //builder class
         this.image = image;
     }
 
@@ -59,10 +58,11 @@ class ImageBuilder {
      * The Dockerfile with instructions on how to build this image must be saved in source control in directory
      * io.openliberty.org.testcontainers/resources/openliberty/testcontainers/<image-name>/<image-version>/Dockerfile
      *
-     * Note: The resulting image will be cached with name "localhost/openliberty/testcontainers/<image-name>:<image-version>"
+     * Note: The resulting image will be cached with the name "localhost/openliberty/testcontainers/<image-name>:<image-version>"
      * therefore, you must update the image version whenever a change is made to the corresponding Dockerfile.
      *
-     * @param  customImage the image to build in format "<image-name>:<image-version>" or "openliberty/testcontainers/<image-name>:<image-version>"
+     * @param  customImage the image to build in the format "<image-name>:<image-version>"
+     *                         or "openliberty/testcontainers/<image-name>:<image-version>"
      *
      * @return             instance of ImageBuilder
      */
@@ -78,6 +78,7 @@ class ImageBuilder {
      * Termination point of this builder class.
      *
      * We will first attempt to find a cached version of the image,
+     * if unsuccessful, we will attempt to pull the image from a registry,
      * if unsuccessful, we will then build the image from the Dockerfile.
      *
      * @return RemoteDockerImage that points to a cached or built image.
@@ -90,16 +91,14 @@ class ImageBuilder {
      * Helper method, attempts to find a cached version of the image.
      */
     private Optional<RemoteDockerImage> getCached() {
-        final String m = "getLocalCache";
-
-        RemoteDockerImage cachedImage = new RemoteDockerImage(image);
+        final String m = "getCached";
 
         if (PullPolicy.defaultPolicy().shouldPull(image)) {
-            Log.info(c, m, "Unable to find cached image " + image.asCanonicalNameString());
+            Log.info(c, m, "Unable to find cached image: " + image.asCanonicalNameString());
             return Optional.empty();
         } else {
-            Log.info(c, m, "Found cached image " + image.asCanonicalNameString());
-            return Optional.of(cachedImage);
+            Log.info(c, m, "Found cached image: " + image.asCanonicalNameString());
+            return Optional.of(new RemoteDockerImage(image));
         }
     }
 
@@ -110,7 +109,7 @@ class ImageBuilder {
         final String m = "pullCached";
 
         if (image.getRegistry().equalsIgnoreCase("localhost")) {
-            Log.info(c, m, "Assumed we cannot pull image from " + image.asCanonicalNameString());
+            Log.info(c, m, "Did not attempt to pull cached image from localhost for image: " + image.asCanonicalNameString());
             return Optional.empty();
         }
 
@@ -118,10 +117,10 @@ class ImageBuilder {
 
         try {
             cachedImage.get();
-            Log.info(c, m, "Found pullable image " + image.asCanonicalNameString());
+            Log.info(c, m, "Found pullable image: " + image.asCanonicalNameString());
             return Optional.of(cachedImage);
         } catch (Exception e) {
-            Log.info(c, m, "Unable to find pullable image " + image.asCanonicalNameString());
+            Log.info(c, m, "Unable to find pullable image: " + image.asCanonicalNameString());
             return Optional.empty();
         }
     }
@@ -130,11 +129,11 @@ class ImageBuilder {
      * Helper method, constructs an image from a Dockerfile
      */
     private RemoteDockerImage buildFromDockerfile() {
-        String resource = constructResource(image);
-        String baseImage = findBaseImageFrom(resource).asCanonicalNameString();
+        String resourcePath = constructResourcePath(image);
+        String baseImage = findBaseImageFrom(resourcePath).asCanonicalNameString();
 
         ImageFromDockerfile builtImage = new ImageFromDockerfile(image.asCanonicalNameString(), false)
-                        .withFileFromClasspath(".", resource)
+                        .withFileFromClasspath(".", resourcePath)
                         .withBuildArg(BASE_IMAGE, baseImage);
 
         return new RemoteDockerImage(builtImage);
@@ -145,10 +144,11 @@ class ImageBuilder {
      * Dockerfile and supporting files that define this image.
      *
      *
-     * @param  image The name of this image in the form: openliberty/testcontainers/<image-name>:<image-version>
+     * @param  image The name of this image in the form:
+     *                   [registry | localhost]/openliberty/testcontainers/<image-name>:<image-version>
      * @return       the resource path in the form: /openliberty/testcontainers/<image-name>/<image-version>/
      */
-    private static String constructResource(DockerImageName image) {
+    private static String constructResourcePath(DockerImageName image) {
         StringBuffer buffer = new StringBuffer();
         buffer.append("/");
         buffer.append(image.getRepository()).append("/");
@@ -158,26 +158,27 @@ class ImageBuilder {
     }
 
     /**
-     * Helper method, searches for the Dockerfile on the classpath,
-     * and attempts to find the line:
+     * Helper method, searches for the Dockerfile on the classpath
+     * given it's resource path, and attempts to find the line:
      * - ARG BASE_IMAGE="[base-image-of-docker-file]"
      *
      * Once found, run the BASE_IMAGE through the ImageNameSubstitutor
      * and return the DockerImageName result.
      *
-     * @param  resource the resource path of the Dockerfile
-     * @return          The substituted docker image of the BASE_IMAGE argument
+     * @param  resourcePath of the directory that contains a Dockerfile
+     * @return              The substituted docker image of the BASE_IMAGE argument
      */
-    private static DockerImageName findBaseImageFrom(String resource) {
+    private static DockerImageName findBaseImageFrom(String resourcePath) {
         final String BASE_IMAGE_PREFIX = "ARG BASE_IMAGE=\"";
 
         /*
-         * Finds the Dockerfile on classpath and will extract the file to a temporary location so we can read it.
+         * Finds the resource directory on the classpath and will extract the directory to a temporary location so we can read it.
          * This will be done during the image build step anyway so this is just front-loading that work for our benefit.
          */
-        String resourceDir = MountableFile.forClasspathResource(resource).getResolvedPath();
+        String resourceDir = MountableFile.forClasspathResource(resourcePath).getResolvedPath();
 
         Stream<String> dockerfileLines;
+
         try {
             dockerfileLines = Files.readAllLines(Paths.get(resourceDir, "Dockerfile")).stream();
         } catch (IOException e) {
@@ -193,22 +194,24 @@ class ImageBuilder {
 
         String baseImageName = baseImageLine.substring(BASE_IMAGE_PREFIX.length(), baseImageLine.lastIndexOf('"'));
 
+        // NOTE: this is NOT the ImageBuilderSubstitutor
         return ImageNameSubstitutor.instance().apply(DockerImageName.parse(baseImageName));
     }
 
     /**
-     * A ImageNameSubstitutor for images built by this outer class
+     * An ImageNameSubstitutor for images built by this outer class.
+     * Built images are not kept in a public registry and are typically cached locally
+     * or within an internal registry on the network.
      */
     private static class ImageBuilderSubstitutor extends ImageNameSubstitutor {
 
-        // TODO replace with the finalized property expected on our build systems
-        private static final String INTERNAL_REGISTRY_PROP = "io.openliberty.internal.registry";
+        private static final String INTERNAL_REGISTRY_PROP = "docker_registry.server";
 
         // Ensures when we look for cached images Docker only attempt to find images
         // locally or from an internally configured registry.
         private static final String REGISTRY = System.getProperty(INTERNAL_REGISTRY_PROP, "localhost");
 
-        // The repository where all Open Liberty images will be cached
+        // The repository where all Open Liberty images are located
         private static final String REPOSITORY_PREFIX = "openliberty/testcontainers/";
 
         @Override
@@ -216,7 +219,8 @@ class ImageBuilder {
             Objects.requireNonNull(original);
 
             if (!original.getRegistry().isEmpty()) {
-                throw new IllegalArgumentException("DockerImageName with the registry " + original.getRegistry() + " cannot be substituted with registry " + REGISTRY);
+                throw new IllegalArgumentException("DockerImageName with the registry " + original.getRegistry() +
+                                                   " cannot be substituted with registry " + REGISTRY);
             }
 
             if (original.getRepository().startsWith(REPOSITORY_PREFIX)) {
@@ -231,7 +235,7 @@ class ImageBuilder {
             return "ImageBuilderSubstitutor with registry " + REGISTRY;
         }
 
-        // Hide instance method from parent class.
+        // Hide instance method from parent class
         // which will choose the ImageNameSubstitutor based on environment.
         private static ImageBuilderSubstitutor instance;
 

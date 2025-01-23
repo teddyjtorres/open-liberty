@@ -39,6 +39,8 @@ public class ImageBuilderTest {
             assertEquals("expected " + expected.asCanonicalNameString() + " but was " + actual.asCanonicalNameString(),
                          expected, actual);
         }
+
+        // TODO write test when using an internal registry
     }
 
     @Test

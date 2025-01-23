@@ -23,9 +23,8 @@ import org.testcontainers.images.builder.ImageFromDockerfile;
  */
 public class CustomImages {
 
-    // The --build-arg necessary to overwrite the default BASE_IMAGE in the
-    // Dockerfile
-    // with the mirrored image in artifactory
+    // The --build-arg necessary to overwrite the default BASE_IMAGE in the Dockerfile
+    // with the mirrored image from an alternative registry
     public static final String BASE_IMAGE = "BASE_IMAGE";
 
     public static void main(String[] args) {
@@ -42,7 +41,7 @@ public class CustomImages {
         // Where to find instructions to build images
         Path commonPath = Paths.get(projectPath, "resources", "openliberty", "testcontainers");
 
-        // Construct a list of Dockerfiles
+        // Find all dockerfiles and attempt to build their corresponding images
         Dockerfile.findDockerfiles(commonPath).stream()
                 .map(location -> new Dockerfile(location))
                 .forEach(dockerfile -> {

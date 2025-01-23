@@ -13,7 +13,7 @@ import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.ImageNameSubstitutor;
 
 /**
- * A record of a Dockerfile
+ * A record that represents a Dockerfile
  */
 public class Dockerfile {
     public final Path location;
@@ -136,10 +136,10 @@ public class Dockerfile {
     
     /**
      * A ImageNameSubstitutor for images built by this outer class.
+     * TODO figure out if there is a way to use the ImageBuilderSubstitutor from the ImageBuilder class of fattest.simplicity
      */
     private static class ImageBuilderSubstitutor extends ImageNameSubstitutor {
 
-        // TODO replace with the finalized property expected on our build systems
         private static final String INTERNAL_REGISTRY_ENV = "INTERNAL_REGISTRY";
 
         // Ensures when we look for cached images Docker only attempt to find images
@@ -148,7 +148,7 @@ public class Dockerfile {
                 ? "localhost"
                 : System.getenv(INTERNAL_REGISTRY_ENV);
 
-        // The repository where all Open Liberty images will be cached
+        // The repository where all Open Liberty images are located
         private static final String REPOSITORY_PREFIX = "openliberty/testcontainers/";
 
         @Override
