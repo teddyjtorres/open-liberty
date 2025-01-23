@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2023, 2024 IBM Corporation and others.
+ * Copyright (c) 2023, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -10,37 +10,45 @@
 package componenttest.containers.registry;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Base64;
+import java.util.HashMap;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.util.DefaultIndenter;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.databind.json.JsonMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
+import org.testcontainers.utility.DockerImageName;
+
 import com.ibm.websphere.simplicity.log.Log;
 
 /**
  * This class maintains the Artifactory registry information.
- * The registry name is provided via system property.
- * The registry auth token is pulled from an internal service.
+ * The registry name, user, and token is provided via system properties.
+ * The registry auth token is constructed at runtime.
  */
-public class ArtifactoryRegistry {
+public class ArtifactoryRegistry extends Registry {
 
     private static final Class<?> c = ArtifactoryRegistry.class;
+
+    /**
+     * Manual override that will allow builds or users to pull from the default registry instead of Artifactory.
+     */
+    private static final String FORCE_EXTERNAL = "fat.test.artifactory.force.external.repo";
 
     /**
      * Expect this to be set on remote build machines, and local build machines that want to test against
      * remote docker hosts.
      */
-    static final String artifactoryRegistryKey = "fat.test.artifactory.docker.server";
-    static final String artifactoryRegistryUser = "fat.test.artifactory.download.user";
-    static final String artifactoryRegistryToken = "fat.test.artifactory.download.token";
+    private static final String REGISTRY = "fat.test.artifactory.docker.server";
+    private static final String REGISTRY_USER = "fat.test.artifactory.download.user";
+    private static final String REGISTRY_PASSWORD = "fat.test.artifactory.download.token";
+
+    private static final String DEFAULT_REGISTRY = ""; //Blank registry is the default setting
+
+    private static final HashMap<String, String> REGISTRY_MIRRORS = new HashMap<>();
+    static {
+        REGISTRY_MIRRORS.put("docker.io", "wasliberty-docker-remote"); //Only for verified images
+        REGISTRY_MIRRORS.put("ghcr.io", "wasliberty-ghcr-docker-remote");
+        REGISTRY_MIRRORS.put("icr.io", "wasliberty-icr-docker-remote");
+        REGISTRY_MIRRORS.put("mcr.microsoft.com", "wasliberty-mcr-docker-remote");
+        REGISTRY_MIRRORS.put("public.ecr.aws", "wasliberty-aws-docker-remote");
+//        MIRRORS.put("quay.io", "wasliberty-quay-docker-remote"); TODO
+    }
 
     private String registry = ""; //Blank registry is the default setting
     private String authToken;
@@ -58,10 +66,21 @@ public class ArtifactoryRegistry {
     }
 
     private ArtifactoryRegistry() {
+        // Priority 0: If forced external do not attempt to initialize Artifactory registry
+        if (Boolean.getBoolean(FORCE_EXTERNAL)) {
+            String message = "System property [ " + FORCE_EXTERNAL + " ] was set to true, "
+                             + "make Artifactory registry unavailable.";
+            registry = DEFAULT_REGISTRY;
+            isArtifactoryAvailable = false;
+            setupException = new IllegalStateException(message);
+            return;
+        }
+
         // Priority 1: Is there an Artifactory registry configured?
         try {
-            registry = findRegistry();
+            registry = findRegistry(REGISTRY);
         } catch (Throwable t) {
+            registry = DEFAULT_REGISTRY;
             isArtifactoryAvailable = false;
             setupException = t;
             return;
@@ -69,7 +88,7 @@ public class ArtifactoryRegistry {
 
         // Priority 2: Are we able to get an auth token to Artifactory?
         try {
-            authToken = generateAuthToken();
+            authToken = generateAuthToken(REGISTRY_USER, REGISTRY_PASSWORD);
         } catch (Throwable t) {
             isArtifactoryAvailable = false;
             setupException = t;
@@ -88,21 +107,49 @@ public class ArtifactoryRegistry {
 
     }
 
+    @Override
     public String getRegistry() {
         return registry;
     }
 
+    @Override
     public Throwable getSetupException() {
         return setupException;
     }
 
-    public boolean isArtifactoryAvailable() {
+    @Override
+    public boolean isRegistryAvailable() {
         return isArtifactoryAvailable;
+    }
+
+    @Override
+    public boolean supportsRegistry(DockerImageName original) {
+        return REGISTRY_MIRRORS.containsKey(original.getRegistry());
+    }
+
+    @Override
+    public boolean supportRepository(DockerImageName modified) {
+        return REGISTRY_MIRRORS.values()
+                        .stream()
+                        .filter(mirror -> modified.getRepository().startsWith(mirror))
+                        .findAny()
+                        .isPresent();
+    }
+
+    @Override
+    public String getMirrorRepository(DockerImageName original) throws IllegalArgumentException {
+        if (supportsRegistry(original)) {
+            return REGISTRY_MIRRORS.get(original.getRegistry());
+        } else {
+            throw new IllegalArgumentException("The Artifactory registry does not have a mirror for the registry " + original.getRegistry());
+        }
     }
 
     /**
      * Generates a temporary copy of the config.json file and returns the file.
+     * TODO drop support for this
      */
+    @Deprecated
     public File generateTempDockerConfig(String registry) throws Exception {
         if (authToken == null) {
             throw new IllegalStateException("Auth token was not available", setupException);
@@ -114,198 +161,5 @@ public class ArtifactoryRegistry {
         Log.info(c, "generateTempDockerConfig", "Creating a temporary docker configuration file at: " + configFile.getAbsolutePath());
 
         return configFile;
-    }
-
-    //  SETUP METHODS
-
-    private static String findRegistry() {
-        Log.info(c, "findRegistry", "Searching system property " + artifactoryRegistryKey + " for an Artifactory registry.");
-        String registry = System.getProperty(artifactoryRegistryKey);
-        if (registry == null || registry.isEmpty() || registry.startsWith("${") || registry.equals("null")) {
-            throw new IllegalStateException("No Artifactory registry configured. System property '" + artifactoryRegistryKey + "' was: " + registry
-                                            + " Ensure Artifactory properties are set in gradle.startup.properties");
-        }
-        return registry;
-    }
-
-    private static String generateAuthToken() throws Exception {
-        final String m = "generateAuthToken";
-        Log.info(c, m, "Generating Artifactory registry auth token from system properties:"
-                       + " [ " + artifactoryRegistryUser + ", " + artifactoryRegistryToken + "]");
-
-        String username = System.getProperty(artifactoryRegistryUser);
-        String token = System.getProperty(artifactoryRegistryToken);
-
-        if (username == null || username.isEmpty() || username.startsWith("${")) {
-            throw new IllegalStateException("No Artifactory username configured. System property '" + artifactoryRegistryUser + "' was: " + username
-                                            + " Ensure Artifactory properties are set in gradle.startup.properties");
-        }
-
-        if (token == null || token.isEmpty() || token.startsWith("${")) {
-            throw new IllegalStateException("No Artifactory username configured. System property '" + artifactoryRegistryToken
-                                            + " was not set. Ensure Artifactory properties are set in gradle.startup.properties");
-        }
-
-        Log.finer(c, m, "Generating Artifactory registry auth token for user " + username);
-
-        String authData = username + ':' + token;
-        String authToken = Base64.getEncoder().encodeToString(authData.getBytes());
-
-        Log.info(c, m, "Generated Artifactory registry auth token starting with: " + authToken.substring(0, 4) + "....");
-        return authToken;
-    }
-
-    /**
-     * Generate a config file config.json in the provided config directory if a private docker registry will be used
-     * Or if a config.json already exists, make sure that the private registry is listed. If not, add
-     * the private registry to the existing config
-     */
-    private static File generateDockerConfig(String registry, String authToken, File configDir) throws Exception {
-        final String m = "generateDockerConfig";
-
-        File configFile = new File(configDir, "config.json");
-
-        final ObjectMapper mapper = JsonMapper.builder()
-                        .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY) // alpha properties
-                        .disable(MapperFeature.SORT_CREATOR_PROPERTIES_FIRST) // ensures new properties are not excluded from alpha
-                        .enable(SerializationFeature.ORDER_MAP_ENTRIES_BY_KEYS) // alpha maps
-                        .enable(SerializationFeature.INDENT_OUTPUT) // use pretty printer by default
-                        .defaultPrettyPrinter(
-                                              // pretty printer should use tabs and new lines
-                                              new DefaultPrettyPrinter().withObjectIndenter(new DefaultIndenter("\t", "\n")))
-                        .build();
-        ObjectNode root;
-
-        //If config file already exists, read it, otherwise create a new json object
-        if (configFile.exists()) {
-            try {
-                root = (ObjectNode) mapper.readTree(configFile);
-
-                Log.info(c, m, "Config already exists at: " + configFile.getAbsolutePath());
-                logConfigContents(m, "Original contents", serializeOutput(mapper, root));
-
-                //If existing config contains correct registry and auth token combination, return original file.
-                if (testExistingConfig(root, registry, authToken)) {
-                    Log.info(c, m, "Config already contains the correct auth token for registry: " + registry);
-                    return configFile;
-                }
-            } catch (Exception e) {
-                Log.error(c, m, e);
-                Log.warning(c, "Could not read config file, or it was malformed, recreating from scrach");
-                root = mapper.createObjectNode();
-            }
-        } else {
-            root = mapper.createObjectNode();
-
-            configDir.mkdirs();
-            Log.info(c, m, "Generating a private registry config file at: " + configFile.getAbsolutePath());
-        }
-
-        //Get existing nodes
-        ObjectNode authsObject = root.has("auths") ? (ObjectNode) root.get("auths") : mapper.createObjectNode();
-        ObjectNode registryObject = authsObject.has(registry) ? (ObjectNode) authsObject.get(registry) : mapper.createObjectNode();
-        TextNode registryAuthObject = TextNode.valueOf(authToken); //Replace existing auth token with this one.
-
-        //Replace nodes with updated/new configuration
-        registryObject.replace("auth", registryAuthObject);
-        authsObject.replace(registry, registryObject);
-        root.set("auths", authsObject);
-
-        //Output results to file
-        String newContent = serializeOutput(mapper, root);
-        logConfigContents(m, "New config.json contents are", newContent);
-        writeFile(configFile, newContent);
-        return configFile;
-    }
-
-    //   UTILITY METHODS
-
-    /**
-     * Deletes current file if it exists and writes the content to a new file
-     *
-     * @param outFile - The output file destination
-     * @param content - The content to be written
-     */
-    static void writeFile(final File outFile, final String content) {
-        try {
-            Files.deleteIfExists(outFile.toPath());
-            Files.write(outFile.toPath(), content.getBytes());
-        } catch (IOException e) {
-            Log.error(c, "writeFile", e);
-            throw new RuntimeException(e);
-        }
-        Log.info(c, "writeFile", "Wrote property to: " + outFile.getAbsolutePath());
-    }
-
-    /**
-     * Tests to see if the existing JSON object contains the expected registry
-     *
-     * @param  root      - The collected JSON object
-     * @param  registry  - The expected registry
-     * @param  authToken - The expected authToken
-     * @return           true, if the existing json object contains the registry and authToken, false otherwise.
-     */
-    static boolean testExistingConfig(final ObjectNode root, final String registry, final String authToken) {
-        final String m = "testExistingConfig";
-
-        try {
-            if (root.isNull()) {
-                return false;
-            }
-
-            if (!root.hasNonNull("auths")) {
-                Log.finer(c, m, "Config does not contain the auths element");
-                return false;
-            }
-
-            if (!root.get("auths").hasNonNull(registry)) {
-                Log.finer(c, m, "Config does not contain the registry [ " + registry + " ] element under the auths element");
-                return false;
-            }
-
-            if (!root.get("auths").get(registry).hasNonNull("auth")) {
-                Log.finer(c, m, "Config does not contain the auth element under registry [ " + registry + " ] element");
-                return false;
-            }
-
-            if (!root.get("auths").get(registry).get("auth").isTextual()) {
-                Log.finer(c, m, "Config contains an auth element that is not textual");
-                return false;
-            }
-
-            return root.get("auths").get(registry).get("auth").textValue().equals(authToken);
-        } catch (Exception e) {
-            //Unexpected exception log it and consider fixing the logic above to void it
-            Log.error(c, m, e);
-            return false;
-        }
-
-    }
-
-    /**
-     * Takes a modified JSON object and will serialize it to ensure proper formatting
-     *
-     * @param  mapper                  - The ObjectMapper to use for serialization
-     * @param  root                    - The modified JSON object
-     * @return                         - The serialized JSON object as a string
-     * @throws JsonProcessingException - if any error occurs during serialization.
-     */
-    static String serializeOutput(final ObjectMapper mapper, final ObjectNode root) throws JsonProcessingException {
-        String input = mapper.writeValueAsString(root);
-        Object pojo = mapper.readValue(input, Object.class);
-        String output = mapper.writeValueAsString(pojo);
-        return output;
-    }
-
-    /**
-     * Log the contents of a config file that may contain authentication data which should be redacted.
-     *
-     * @param method   - The method calling this logger
-     * @param msg      - The message to output
-     * @param contents - The content that needs to be sanitized
-     */
-    static void logConfigContents(final String method, final String msg, final String contents) {
-        String sanitizedContents = contents.replaceAll("\"auth\" : \".*\"", "\"auth\" : \"****Token Redacted****\"");
-        Log.info(c, method, msg + ":\n" + sanitizedContents);
     }
 }
