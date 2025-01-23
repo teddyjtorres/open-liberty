@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2023, 2024 IBM Corporation and others.
+ * Copyright (c) 2023, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -20,55 +20,51 @@ import java.util.Base64;
 
 import org.junit.Test;
 
-import componenttest.containers.ArtifactoryRegistry;
-
 public class ArtifactoryRegistryTest {
-
-    private static final String nl = System.lineSeparator();
 
     @Test
     public void testArtifactoryRegistry() throws Exception {
         Method findRegistry = getFindRegistry();
 
         // Unset
-        System.clearProperty(ArtifactoryRegistry.artifactoryRegistryKey);
+        System.clearProperty(ArtifactoryRegistry.REGISTRY);
         try {
             findRegistry.invoke(null);
-            fail("Should not have found registry when property " + ArtifactoryRegistry.artifactoryRegistryKey + " was unset");
+            fail("Should not have found registry when property " + ArtifactoryRegistry.REGISTRY + " was unset");
         } catch (InvocationTargetException e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
 
         // Empty
-        System.setProperty(ArtifactoryRegistry.artifactoryRegistryKey, "");
+        System.setProperty(ArtifactoryRegistry.REGISTRY, "");
         try {
             findRegistry.invoke(null);
-            fail("Should not have found registry when property " + ArtifactoryRegistry.artifactoryRegistryKey + " was empty");
+            fail("Should not have found registry when property " + ArtifactoryRegistry.REGISTRY + " was empty");
         } catch (InvocationTargetException e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
 
         // Missing
-        System.setProperty(ArtifactoryRegistry.artifactoryRegistryKey, "${" + ArtifactoryRegistry.artifactoryRegistryKey.substring(9) + "}");
+        System.setProperty(ArtifactoryRegistry.REGISTRY, "${" + ArtifactoryRegistry.REGISTRY.substring(9) + "}");
         try {
             findRegistry.invoke(null);
-            fail("Should not have found registry when property " + ArtifactoryRegistry.artifactoryRegistryKey + " was missing from gradle");
+            fail("Should not have found registry when property " + ArtifactoryRegistry.REGISTRY + " was missing from gradle");
         } catch (InvocationTargetException e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
 
         // Null
-        System.setProperty(ArtifactoryRegistry.artifactoryRegistryKey, "null");
+        System.setProperty(ArtifactoryRegistry.REGISTRY, "null");
         try {
             findRegistry.invoke(null);
-            fail("Should not have found registry when property " + ArtifactoryRegistry.artifactoryRegistryKey + " was null");
+            fail("Should not have found registry when property " + ArtifactoryRegistry.REGISTRY + " was null");
         } catch (InvocationTargetException e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
 
         // Valid
         String expected = "docker-na-public.artifactory.swg-devops.com";
-        System.setProperty(ArtifactoryRegistry.artifactoryRegistryKey, expected);
+        System.setProperty(ArtifactoryRegistry.REGISTRY, expected);
         String actual = (String) findRegistry.invoke(null);
 
         assertEquals(expected, actual);
@@ -83,20 +79,20 @@ public class ArtifactoryRegistryTest {
         Method generateAuthToken = getGenerateAuthToken();
 
         // Ensure failure path
-        System.clearProperty(ArtifactoryRegistry.artifactoryRegistryUser);
-        System.clearProperty(ArtifactoryRegistry.artifactoryRegistryToken);
+        System.clearProperty(ArtifactoryRegistry.REGISTRY_USER);
+        System.clearProperty(ArtifactoryRegistry.REGISTRY_PASSWORD);
 
         try {
             generateAuthToken.invoke(null);
             fail("Should not have generated authToken when property "
-                 + ArtifactoryRegistry.artifactoryRegistryUser + " and " + ArtifactoryRegistry.artifactoryRegistryToken + " were unset");
+                 + ArtifactoryRegistry.REGISTRY_USER + " and " + ArtifactoryRegistry.REGISTRY_PASSWORD + " were unset");
         } catch (InvocationTargetException e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
 
         // Ensure successful path
-        System.setProperty(ArtifactoryRegistry.artifactoryRegistryUser, testUsername);
-        System.setProperty(ArtifactoryRegistry.artifactoryRegistryToken, testToken);
+        System.setProperty(ArtifactoryRegistry.REGISTRY_USER, testUsername);
+        System.setProperty(ArtifactoryRegistry.REGISTRY_PASSWORD, testToken);
 
         String actualAuthToken = (String) generateAuthToken.invoke(null);
 
