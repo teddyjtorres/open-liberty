@@ -7,7 +7,7 @@
  *
  * SPDX-License-Identifier: EPL-2.0
  *******************************************************************************/
-package componenttest.containers;
+package componenttest.containers.registry;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
@@ -19,6 +19,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 
 import org.junit.Test;
+
+import componenttest.containers.ArtifactoryRegistry;
 
 public class ArtifactoryRegistryTest {
 

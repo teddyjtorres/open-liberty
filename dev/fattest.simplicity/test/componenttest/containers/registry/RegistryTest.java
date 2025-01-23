@@ -27,8 +27,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import componenttest.containers.ArtifactoryRegistry;
-
 /**
  *
  */
@@ -85,7 +83,7 @@ public class RegistryTest {
     public void testExistingEmptyConfig() throws Exception {
         final String m = "testExistingEmptyConfig";
         String existingConfig = "{" + nl + "}";
-        ArtifactoryRegistry.writeFile(TESTFILE, "{" + nl + "}");
+        Registry.writeFile(TESTFILE, "{" + nl + "}");
         getGenerateDockerConfig().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
 
         //TODO convert this to a text block once we are building and running on Java 17!
@@ -111,7 +109,7 @@ public class RegistryTest {
                                 tab + "\"credsStore\" : \"desktop\"," + nl +
                                 tab + "\"currentContext\" : \"desktop-linux\"" + nl +
                                 "}";
-        ArtifactoryRegistry.writeFile(TESTFILE, existingConfig);
+        Registry.writeFile(TESTFILE, existingConfig);
         getGenerateDockerConfig().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
 
         //TODO convert this to a text block once we are building and running on Java 17!
@@ -144,7 +142,7 @@ public class RegistryTest {
                                 tab + tab + "}" + nl +
                                 tab + "}" + nl +
                                 "}";
-        ArtifactoryRegistry.writeFile(TESTFILE, existingConfig);
+        Registry.writeFile(TESTFILE, existingConfig);
         getGenerateDockerConfig().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
 
         //TODO convert this to a text block once we are building and running on Java 17!
@@ -177,7 +175,7 @@ public class RegistryTest {
                                 tab + tab + "}" + nl +
                                 tab + "}" + nl +
                                 "}";
-        ArtifactoryRegistry.writeFile(TESTFILE, existingConfig);
+        Registry.writeFile(TESTFILE, existingConfig);
         getGenerateDockerConfig().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
 
         //TODO convert this to a text block once we are building and running on Java 17!
@@ -216,7 +214,7 @@ public class RegistryTest {
                                 tab + "\"currentContext\" : \"desktop-linux\"" + nl +
                                 "}";
 
-        ArtifactoryRegistry.writeFile(TESTFILE, existingConfig);
+        Registry.writeFile(TESTFILE, existingConfig);
         getGenerateDockerConfig().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
 
         //TODO convert this to a text block once we are building and running on Java 17!
@@ -250,7 +248,7 @@ public class RegistryTest {
                           tab + tab + "}" + nl +
                           tab + "}" + nl +
                           "}";
-        ArtifactoryRegistry.writeFile(TESTFILE, expected);
+        Registry.writeFile(TESTFILE, expected);
         getGenerateDockerConfig().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
 
         String actual = Files.readAllLines(TESTFILE.toPath()).stream().collect(Collectors.joining(nl));
@@ -269,7 +267,7 @@ public class RegistryTest {
                                 tab + "},}," + nl + // MALFORMED: extra },
                                 "}";
 
-        ArtifactoryRegistry.writeFile(TESTFILE, existingConfig);
+        Registry.writeFile(TESTFILE, existingConfig);
         getGenerateDockerConfig().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
 
         //TODO convert this to a text block once we are building and running on Java 17!
@@ -304,61 +302,61 @@ public class RegistryTest {
         //root.has auths
         json = "{ \"name\" : \"kyle\" }";
         root = (ObjectNode) mapper.readTree(json);
-        result = ArtifactoryRegistry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
+        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
         assertFalse(result);
 
         //root.nonNull auths
         json = "{ \"auths\" : null }";
         root = (ObjectNode) mapper.readTree(json);
-        result = ArtifactoryRegistry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
+        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
         assertFalse(result);
 
         //root.auths.has registry
         json = "{ \"auths\" : { \"name\" : \"kyle\" } }";
         root = (ObjectNode) mapper.readTree(json);
-        result = ArtifactoryRegistry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
+        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
         assertFalse(result);
 
         //root.auths.nonNull registry
         json = "{ \"auths\" : { \"" + TESTREGISTRY + "\" : null } }";
         root = (ObjectNode) mapper.readTree(json);
-        result = ArtifactoryRegistry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
+        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
         assertFalse(result);
 
         //root.auths.registry.has auth
         json = "{ \"auths\" : { \"" + TESTREGISTRY + "\" : { \"name\" : \"kyle\" } } }";
         root = (ObjectNode) mapper.readTree(json);
-        result = ArtifactoryRegistry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
+        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
         assertFalse(result);
 
         //root.auths.registry.nonNull auth
         json = "{ \"auths\" : { \"" + TESTREGISTRY + "\" : { \"auth\" : null } } }";
         root = (ObjectNode) mapper.readTree(json);
-        result = ArtifactoryRegistry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
+        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
         assertFalse(result);
 
         //root.auths.registry.auth.isTextual
         json = "{ \"auths\" : { \"" + TESTREGISTRY + "\" : { \"auth\" : { \"name\" : \"kyle\" } } } }";
         root = (ObjectNode) mapper.readTree(json);
-        result = ArtifactoryRegistry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
+        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
         assertFalse(result);
 
         //root.auths.registry.auth.isTextual
         json = "{ \"auths\" : { \"" + TESTREGISTRY + "\" : { \"auth\" : { \"name\" : \"kyle\" } } } }";
         root = (ObjectNode) mapper.readTree(json);
-        result = ArtifactoryRegistry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
+        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
         assertFalse(result);
 
         //root.auths.registry.auth equals - false
         json = "{ \"auths\" : { \"" + TESTREGISTRY + "\" : { \"auth\" : \"" + additionalToken + "\" } } }";
         root = (ObjectNode) mapper.readTree(json);
-        result = ArtifactoryRegistry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
+        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
         assertFalse(result);
 
         //root.auths.registry.auth equals - true
         json = "{ \"auths\" : { \"" + TESTREGISTRY + "\" : { \"auth\" : \"" + TESTAUTHTOKEN + "\" } } }";
         root = (ObjectNode) mapper.readTree(json);
-        result = ArtifactoryRegistry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
+        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
         assertTrue(result);
     }
 
@@ -382,7 +380,7 @@ public class RegistryTest {
     }
 
     private static Method getGenerateDockerConfig() throws Exception {
-        Method method = ArtifactoryRegistry.class.getDeclaredMethod("generateDockerConfig", String.class, String.class, File.class);
+        Method method = Registry.class.getDeclaredMethod("generateDockerConfig", String.class, String.class, File.class);
         method.setAccessible(true);
         return method;
     }
