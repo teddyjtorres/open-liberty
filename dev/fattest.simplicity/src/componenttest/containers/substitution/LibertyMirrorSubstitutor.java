@@ -21,9 +21,9 @@ import com.ibm.websphere.simplicity.log.Log;
  * Substitutes a known registry for a known remote mirror repository within Artifactory.
  * Example: public.ecr.aws/docker/library/postgres:17.0-alpine --> wasliberty-aws-docker-remote/docker/library/postgres:17.0-alpine
  */
-public class ArtifactoryMirrorSubstitutor extends ImageNameSubstitutor {
+public class LibertyMirrorSubstitutor extends ImageNameSubstitutor {
 
-    private static final Class<?> c = ArtifactoryMirrorSubstitutor.class;
+    private static final Class<?> c = LibertyMirrorSubstitutor.class;
 
     private static final String MIRROR_PREFIX = "wasliberty-";
 

@@ -18,9 +18,9 @@ import com.ibm.websphere.simplicity.log.Log;
  * Appends the Artifactory registry required for the mirror repositories.
  * Example: wasliberty-aws-docker-remote/docker/library/postgres:17.0-alpine -> [artifactory_registry_url]/wasliberty-aws-docker-remote/docker/library/postgres:17.0-alpine
  */
-public class ArtifactoryRegistrySubstitutor extends ImageNameSubstitutor {
+public class LibertyRegistrySubstitutor extends ImageNameSubstitutor {
 
-    private static final Class<?> c = ArtifactoryRegistrySubstitutor.class;
+    private static final Class<?> c = LibertyRegistrySubstitutor.class;
 
     @Override
     public DockerImageName apply(DockerImageName original) {

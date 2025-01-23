@@ -27,12 +27,12 @@ import componenttest.containers.ImageVerifier;
  * Artifactory mirror for a number of supported Docker image registries.
  */
 @SuppressWarnings("deprecation")
-public class ArtifactoryImageNameSubstitutor extends ImageNameSubstitutor {
+public class LibertyImageNameSubstitutor extends ImageNameSubstitutor {
 
-    private static final Class<?> c = ArtifactoryImageNameSubstitutor.class;
+    private static final Class<?> c = LibertyImageNameSubstitutor.class;
 
-    private static final ArtifactoryMirrorSubstitutor MIRROR = new ArtifactoryMirrorSubstitutor();
-    private static final ArtifactoryRegistrySubstitutor REGISTRY = new ArtifactoryRegistrySubstitutor();
+    private static final LibertyMirrorSubstitutor MIRROR = new LibertyMirrorSubstitutor();
+    private static final LibertyRegistrySubstitutor REGISTRY = new LibertyRegistrySubstitutor();
 
     /**
      * Manual override that will allow builds or users to pull from the default registry instead of Artifactory.
