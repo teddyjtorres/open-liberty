@@ -112,8 +112,6 @@ public class JMSConsumerTest {
         server1.copyFileToLibertyServerRoot("resources/security",
                                             "serverLTPAKeys/ltpa.keys");
         server1.copyFileToLibertyServerRoot("resources/security",
-                                              "serverLTPAKeys/ltpaFIPS.keys");
-        server1.copyFileToLibertyServerRoot("resources/security",
                                             "serverLTPAKeys/mykey.jks");
         server.copyFileToLibertyInstallRoot("lib/features",
                                             "features/testjmsinternals-1.0.mf");
