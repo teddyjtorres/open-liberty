@@ -147,15 +147,14 @@ public class DataErrPathsTest extends FATServletClient {
         System.out.println("Dump file name: " + dumpFileName);
 
         // Example of file within the zip:
-        // dump_18.04.11_14.30.55/introspections/JakartaDataIntrospector.txt
+        // dump_25.01.24_14.50.04/introspections/JakartaDataIntrospector.txt
 
         end = dumpFileName.indexOf(".zip");
         String prefix = "io.openliberty.data.internal.fat.errpaths.dump-";
         begin = dumpFileName.lastIndexOf(prefix, end) + prefix.length();
 
-        // TODO once it exists, switch to "/introspections/JakartaDataIntrospector.txt";
         String introspectorFileName = "dump_" + dumpFileName.substring(begin, end) +
-                                      "/introspections/ThreadingIntrospector.txt";
+                                      "/introspections/JakartaDataIntrospector.txt";
 
         System.out.println("Looking for introspector entry: " + introspectorFileName);
 

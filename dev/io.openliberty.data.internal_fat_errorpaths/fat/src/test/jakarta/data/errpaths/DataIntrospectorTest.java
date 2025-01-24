@@ -13,6 +13,7 @@
 package test.jakarta.data.errpaths;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -37,6 +38,24 @@ public class DataIntrospectorTest extends FATServletClient {
     static final List<String> introspectorOutput = new ArrayList<>();
 
     /**
+     * Asserts that a line is found within the Jakarta Data introspector output.
+     *
+     * @param expected the line to search for.
+     */
+    private static void assertLineFound(String expected) {
+        if (introspectorOutput.isEmpty())
+            fail("JakartaDataIntrospector output not found. Unable to run test. " +
+                 "Check server logs for errors.");
+
+        if (!introspectorOutput.contains(expected))
+            fail("Information not found in introspector output. " +
+                 "To view introspector output from the test results page, " +
+                 "follow the System.out link and then search for " +
+                 "testIntrospectorOutputObtained. Missing line is: " +
+                 expected);
+    }
+
+    /**
      * Verify that introspector output was obtained.
      */
     @Test
@@ -47,5 +66,19 @@ public class DataIntrospectorTest extends FATServletClient {
         // and search for "testIntrospectorOutputObtained"
         for (String line : introspectorOutput)
             System.out.println(line);
+    }
+
+    /**
+     * Verify that introspector output contains the config display id of
+     * databaseStore elements that are used by repositories.
+     */
+    @Test
+    public void testOutputContainsDatabaseStore() {
+        assertLineFound("    for databaseStore application[DataErrPathsTestApp]" +
+                        "/databaseStore[java:app/jdbc/DerbyDataSource]");
+
+        assertLineFound("    for databaseStore application[DataErrPathsTestApp]" +
+                        "/module[DataErrPathsTestApp.war]" +
+                        "/databaseStore[java:comp/jdbc/InvalidDatabase]");
     }
 }
