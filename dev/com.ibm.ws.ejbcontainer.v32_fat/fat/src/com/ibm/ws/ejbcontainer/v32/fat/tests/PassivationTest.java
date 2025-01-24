@@ -43,7 +43,7 @@ public class PassivationTest extends FATServletClient {
     private static boolean checkLogsAfterServerStop;
 
     @ClassRule
-    public static RepeatTests r = RepeatTests.with(FeatureReplacementAction.NO_REPLACEMENT().forServers("com.ibm.ws.ejbcontainer.v32.fat.passivation")) //
+    public static RepeatTests r = RepeatTests.with(FeatureReplacementAction.EE7_FEATURES().forServers("com.ibm.ws.ejbcontainer.v32.fat.passivation")) //
                     .andWith(FeatureReplacementAction.EE8_FEATURES().fullFATOnly().forServers("com.ibm.ws.ejbcontainer.v32.fat.passivation")) //
                     .andWith(FeatureReplacementAction.EE9_FEATURES().conditionalFullFATOnly(FeatureReplacementAction.GREATER_THAN_OR_EQUAL_JAVA_11).forServers("com.ibm.ws.ejbcontainer.v32.fat.passivation")) //
                     .andWith(FeatureReplacementAction.EE10_FEATURES().conditionalFullFATOnly(FeatureReplacementAction.GREATER_THAN_OR_EQUAL_JAVA_17).forServers("com.ibm.ws.ejbcontainer.v32.fat.passivation")) //
