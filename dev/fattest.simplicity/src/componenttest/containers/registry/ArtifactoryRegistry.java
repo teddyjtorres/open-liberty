@@ -34,9 +34,9 @@ public class ArtifactoryRegistry extends Registry {
      * Expect this to be set on remote build machines, and local build machines that want to test against
      * remote docker hosts.
      */
-    public static final String REGISTRY = "fat.test.artifactory.docker.server";
-    public static final String REGISTRY_USER = "fat.test.artifactory.download.user";
-    public static final String REGISTRY_PASSWORD = "fat.test.artifactory.download.token";
+    private static final String REGISTRY = "fat.test.artifactory.docker.server";
+    private static final String REGISTRY_USER = "fat.test.artifactory.download.user";
+    private static final String REGISTRY_PASSWORD = "fat.test.artifactory.download.token";
 
     private static final String DEFAULT_REGISTRY = ""; //Blank registry is the default setting
 
