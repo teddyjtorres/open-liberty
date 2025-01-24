@@ -466,7 +466,6 @@ public class OIDCClientAuthenticatorUtil {
     public static String getIssuerIdentifier(ConvergedClientConfig clientConfig) {
         String issuer = null;
         issuer = clientConfig.getIssuerIdentifier();
-        setThreadClientId(clientConfig.getClientId());
         if (issuer == null || issuer.isEmpty()) {
             issuer = extractIssuerFromTokenEndpointUrl(clientConfig);
         }
@@ -490,7 +489,7 @@ public class OIDCClientAuthenticatorUtil {
         return issuer;
     }
 
-    private static void setThreadClientId(String clientID) {
+    private void setThreadClientId(String clientID) {
         threadClientID.set(clientID);
     }
 
