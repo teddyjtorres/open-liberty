@@ -50,6 +50,8 @@ public class ArtifactoryRegistry extends Registry {
 //        MIRRORS.put("quay.io", "wasliberty-quay-docker-remote"); TODO
     }
 
+    private static File configDir = new File(System.getProperty("user.home"), ".docker");
+
     private String registry = ""; //Blank registry is the default setting
     private String authToken;
     private boolean isArtifactoryAvailable;
@@ -97,7 +99,6 @@ public class ArtifactoryRegistry extends Registry {
 
         // Finally: Attempt to generate docker configuration for Artifactory
         try {
-            File configDir = new File(System.getProperty("user.home"), ".docker");
             generateDockerConfig(registry, authToken, configDir);
             isArtifactoryAvailable = true;
         } catch (Throwable t) {
@@ -128,7 +129,7 @@ public class ArtifactoryRegistry extends Registry {
     }
 
     @Override
-    public boolean supportRepository(DockerImageName modified) {
+    public boolean supportsRepository(DockerImageName modified) {
         return REGISTRY_MIRRORS.values()
                         .stream()
                         .filter(mirror -> modified.getRepository().startsWith(mirror))

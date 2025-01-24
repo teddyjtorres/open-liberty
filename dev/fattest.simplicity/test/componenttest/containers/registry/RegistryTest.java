@@ -32,7 +32,8 @@ import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
- *
+ * Tests methods on {@link componenttest.containers.registry.Registry}
+ * Utility methods + Setup methods
  */
 public class RegistryTest {
 
@@ -393,56 +394,67 @@ public class RegistryTest {
 
     // SETUP METHOD TESTS
 
+    private static final String REGISTRY = "test.registry.prop";
+    private static final String REGISTRY_USER = "test.registry.user";
+    private static final String REGISTRY_PASSWORD = "test.registry.password";
+
     @Test
-    public void testArtifactoryRegistry() throws Exception {
+    public void testFindRegistry() throws Exception {
         Method findRegistry = getFindRegistry();
 
         // Unset
-        System.clearProperty(ArtifactoryRegistry.REGISTRY);
+        System.clearProperty(REGISTRY);
         try {
-            findRegistry.invoke(null);
-            fail("Should not have found registry when property " + ArtifactoryRegistry.REGISTRY + " was unset");
+            findRegistry.invoke(null, REGISTRY);
+            fail("Should not have found registry when property " + REGISTRY + " was unset");
         } catch (InvocationTargetException e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
 
         // Empty
-        System.setProperty(ArtifactoryRegistry.REGISTRY, "");
+        System.setProperty(REGISTRY, "");
         try {
-            findRegistry.invoke(null);
-            fail("Should not have found registry when property " + ArtifactoryRegistry.REGISTRY + " was empty");
+            findRegistry.invoke(null, REGISTRY);
+            fail("Should not have found registry when property " + REGISTRY + " was empty");
         } catch (InvocationTargetException e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
 
         // Missing
-        System.setProperty(ArtifactoryRegistry.REGISTRY, "${" + ArtifactoryRegistry.REGISTRY.substring(9) + "}");
+        System.setProperty(REGISTRY, "${" + REGISTRY.substring(9) + "}");
         try {
-            findRegistry.invoke(null);
-            fail("Should not have found registry when property " + ArtifactoryRegistry.REGISTRY + " was missing from gradle");
+            findRegistry.invoke(null, REGISTRY);
+            fail("Should not have found registry when property " + REGISTRY + " was missing from gradle");
         } catch (InvocationTargetException e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
 
         // Null
-        System.setProperty(ArtifactoryRegistry.REGISTRY, "null");
+        System.setProperty(REGISTRY, "null");
         try {
-            findRegistry.invoke(null);
-            fail("Should not have found registry when property " + ArtifactoryRegistry.REGISTRY + " was null");
+            findRegistry.invoke(null, REGISTRY);
+            fail("Should not have found registry when property " + REGISTRY + " was null");
         } catch (InvocationTargetException e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
 
-        // Valid
-        String expected = "docker-na-public.artifactory.swg-devops.com";
-        System.setProperty(ArtifactoryRegistry.REGISTRY, expected);
-        String actual = (String) findRegistry.invoke(null);
+        // Valid (host name)
+        String expected = "artifactory.swg-devops.com";
+        System.setProperty(REGISTRY, expected);
+        String actual = (String) findRegistry.invoke(null, REGISTRY);
+
+        assertEquals(expected, actual);
+
+        // Valid (IP Address)
+        expected = "127.0.0.1";
+        System.setProperty(REGISTRY, expected);
+        actual = (String) findRegistry.invoke(null, REGISTRY);
 
         assertEquals(expected, actual);
     }
 
     @Test
-    public void testArtifactoryAuthToken() throws Exception {
+    public void testGenerateAuthToken() throws Exception {
         String testUsername = "test.email@example.com";
         String testToken = "aToTallyFakeTokenThaTWouldNeverBeUsed";
         String expectedAuthToken = "dGVzdC5lbWFpbEBleGFtcGxlLmNvbTphVG9UYWxseUZha2VUb2tlblRoYVRXb3VsZE5ldmVyQmVVc2Vk";
@@ -450,22 +462,22 @@ public class RegistryTest {
         Method generateAuthToken = getGenerateAuthToken();
 
         // Ensure failure path
-        System.clearProperty(ArtifactoryRegistry.REGISTRY_USER);
-        System.clearProperty(ArtifactoryRegistry.REGISTRY_PASSWORD);
+        System.clearProperty(REGISTRY_USER);
+        System.clearProperty(REGISTRY_PASSWORD);
 
         try {
-            generateAuthToken.invoke(null);
+            generateAuthToken.invoke(null, REGISTRY_USER, REGISTRY_PASSWORD);
             fail("Should not have generated authToken when property "
-                 + ArtifactoryRegistry.REGISTRY_USER + " and " + ArtifactoryRegistry.REGISTRY_PASSWORD + " were unset");
+                 + REGISTRY_USER + " and " + REGISTRY_PASSWORD + " were unset");
         } catch (InvocationTargetException e) {
             assertTrue(e.getCause() instanceof IllegalStateException);
         }
 
         // Ensure successful path
-        System.setProperty(ArtifactoryRegistry.REGISTRY_USER, testUsername);
-        System.setProperty(ArtifactoryRegistry.REGISTRY_PASSWORD, testToken);
+        System.setProperty(REGISTRY_USER, testUsername);
+        System.setProperty(REGISTRY_PASSWORD, testToken);
 
-        String actualAuthToken = (String) generateAuthToken.invoke(null);
+        String actualAuthToken = (String) generateAuthToken.invoke(null, REGISTRY_USER, REGISTRY_PASSWORD);
 
         assertEquals(expectedAuthToken, actualAuthToken);
 
@@ -478,13 +490,13 @@ public class RegistryTest {
     }
 
     private static Method getFindRegistry() throws Exception {
-        Method method = ArtifactoryRegistry.class.getDeclaredMethod("findRegistry");
+        Method method = Registry.class.getDeclaredMethod("findRegistry", String.class);
         method.setAccessible(true);
         return method;
     }
 
     private static Method getGenerateAuthToken() throws Exception {
-        Method method = ArtifactoryRegistry.class.getDeclaredMethod("generateAuthToken");
+        Method method = Registry.class.getDeclaredMethod("generateAuthToken", String.class, String.class);
         method.setAccessible(true);
         return method;
     }

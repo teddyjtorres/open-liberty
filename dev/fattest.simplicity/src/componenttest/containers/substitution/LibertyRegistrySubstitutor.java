@@ -56,14 +56,14 @@ public class LibertyRegistrySubstitutor extends ImageNameSubstitutor {
         Registry internal = InternalRegistry.instance();
 
         // Artifactory registry supports the mirrored image, but was not available
-        if (artifactory.supportRepository(mirrored) && !artifactory.isRegistryAvailable()) {
+        if (artifactory.supportsRepository(mirrored) && !artifactory.isRegistryAvailable()) {
             throw new IllegalStateException("Needed to append Artifactory registry to the docker image name: " + mirrored.asCanonicalNameString()
                                             + System.lineSeparator() + "No Artfiactory registry was available because "
                                             + artifactory.getSetupException().getMessage());
         }
 
         // Internal registry supports the mirrored image, but was not available
-        if (internal.supportRepository(mirrored) && !internal.isRegistryAvailable()) {
+        if (internal.supportsRepository(mirrored) && !internal.isRegistryAvailable()) {
             throw new IllegalStateException("Needed to append Internal registry to the docker image name: " + mirrored.asCanonicalNameString()
                                             + System.lineSeparator() + "No Internal registry was available because "
                                             + internal.getSetupException().getMessage());
@@ -80,10 +80,10 @@ public class LibertyRegistrySubstitutor extends ImageNameSubstitutor {
         final String registry;
         final String reason;
 
-        if (artifactory.supportRepository(mirrored)) {
+        if (artifactory.supportsRepository(mirrored)) {
             registry = artifactory.getRegistry();
             reason = "The Artifactory registry supports the mirrored image name " + mirrored.asCanonicalNameString();
-        } else if (internal.supportRepository(mirrored)) {
+        } else if (internal.supportsRepository(mirrored)) {
             registry = internal.getRegistry();
             reason = "The Internal registry supports the mirrored image name " + mirrored.asCanonicalNameString();
         } else {

@@ -75,7 +75,7 @@ public abstract class Registry {
      * @param  modified image name after determining appropriate mirror
      * @return          true if the registry supports this repository, false otherwise.
      */
-    public abstract boolean supportRepository(DockerImageName modified);
+    public abstract boolean supportsRepository(DockerImageName modified);
 
     /**
      * If this registry has a mirror repository for the provided image
@@ -115,7 +115,7 @@ public abstract class Registry {
         }
 
         if (password == null || password.isEmpty() || password.startsWith("${")) {
-            throw new IllegalStateException("No password configured. System property '" + password
+            throw new IllegalStateException("No password configured. System property '" + registryPassword
                                             + " was not set. Ensure properties are set on system.");
         }
 

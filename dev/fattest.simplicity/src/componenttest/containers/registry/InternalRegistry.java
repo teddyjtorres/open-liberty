@@ -14,6 +14,8 @@ import java.util.HashMap;
 
 import org.testcontainers.utility.DockerImageName;
 
+import componenttest.containers.ImageHelper;
+
 /**
  * This class maintains the internal registry information.
  * The registry name, user, and password is provided via system properties.
@@ -38,6 +40,8 @@ public class InternalRegistry extends Registry {
         REGISTRY_MIRRORS.put("UNSUPPORTED", "wasliberty-intops-docker-local"); // TODO drop support for this local repository
         REGISTRY_MIRRORS.put("localhost", "wasliberty-internal-docker-local"); // images we build
     }
+
+    private final File configDir = new File(System.getProperty("user.home"), ".docker");
 
     private String registry;
     private String authToken;
@@ -76,7 +80,6 @@ public class InternalRegistry extends Registry {
 
         // Finally: Attempt to generate docker configuration for this registry
         try {
-            File configDir = new File(System.getProperty("user.home"), ".docker");
             generateDockerConfig(registry, authToken, configDir);
             isRegistryAvailable = true;
         } catch (Throwable t) {
@@ -103,12 +106,16 @@ public class InternalRegistry extends Registry {
 
     @Override
     public boolean supportsRegistry(DockerImageName original) {
+        if (original.getRegistry().isEmpty() && ImageHelper.isCommittedImage(original)) {
+            return false;
+        }
+
         String registry = original.getRegistry().isEmpty() ? "NONE" : original.getRegistry();
         return REGISTRY_MIRRORS.containsKey(registry);
     }
 
     @Override
-    public boolean supportRepository(DockerImageName modified) {
+    public boolean supportsRepository(DockerImageName modified) {
         return REGISTRY_MIRRORS.values()
                         .stream()
                         .filter(mirror -> modified.getRepository().startsWith(mirror))
