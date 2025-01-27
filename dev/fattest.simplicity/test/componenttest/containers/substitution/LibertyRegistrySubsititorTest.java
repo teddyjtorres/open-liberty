@@ -29,8 +29,8 @@ public class LibertyRegistrySubsititorTest {
 
     @Test
     public void testWithArtifactoryWithoutInternal() {
-        try (MockedStatic<ArtifactoryRegistry> artifactory = MockRegistries.artifactoryRegistry("artifactory.swg-devops.com", null, true);
-                        MockedStatic<InternalRegistry> internal = MockRegistries.internalRegistry("", new IllegalStateException("TEST EXCEPTION"), false)) {
+        try (MockedStatic<ArtifactoryRegistry> artifactory = MockedInstances.artifactoryRegistry("artifactory.swg-devops.com", null, true);
+                        MockedStatic<InternalRegistry> internal = MockedInstances.internalRegistry("", new IllegalStateException("TEST EXCEPTION"), false)) {
 
             LibertyRegistrySubstitutor substitutor = new LibertyRegistrySubstitutor();
 
@@ -71,8 +71,8 @@ public class LibertyRegistrySubsititorTest {
 
     @Test
     public void testWithoutArtifactoryWithInternal() {
-        try (MockedStatic<ArtifactoryRegistry> artifactory = MockRegistries.artifactoryRegistry("", new IllegalStateException("TEST EXCEPTION"), false);
-                        MockedStatic<InternalRegistry> internal = MockRegistries.internalRegistry("172.0.0.1", null, true)) {
+        try (MockedStatic<ArtifactoryRegistry> artifactory = MockedInstances.artifactoryRegistry("", new IllegalStateException("TEST EXCEPTION"), false);
+                        MockedStatic<InternalRegistry> internal = MockedInstances.internalRegistry("172.0.0.1", null, true)) {
 
             LibertyRegistrySubstitutor substitutor = new LibertyRegistrySubstitutor();
 

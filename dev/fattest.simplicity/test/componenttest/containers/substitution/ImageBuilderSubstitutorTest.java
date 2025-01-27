@@ -30,7 +30,7 @@ public class ImageBuilderSubstitutorTest {
     @Test
     public void testApplyLocalhost() throws Exception {
 
-        try (MockedStatic<InternalRegistry> registry = MockRegistries.internalRegistry("", null, false)) {
+        try (MockedStatic<InternalRegistry> registry = MockedInstances.internalRegistry("", null, false)) {
             Map<DockerImageName, DockerImageName> testMap = new HashMap<>();
             // With and without prefix
             testMap.put(DockerImageName.parse("postgres-init:1.0"),
@@ -54,7 +54,7 @@ public class ImageBuilderSubstitutorTest {
     @Test
     public void testApplyIpAddress() throws Exception {
 
-        try (MockedStatic<InternalRegistry> registry = MockRegistries.internalRegistry("172.0.0.1", null, true)) {
+        try (MockedStatic<InternalRegistry> registry = MockedInstances.internalRegistry("172.0.0.1", null, true)) {
             Map<DockerImageName, DockerImageName> testMap = new HashMap<>();
             // With and without prefix
             testMap.put(DockerImageName.parse("postgres-init:1.0"),
@@ -78,7 +78,7 @@ public class ImageBuilderSubstitutorTest {
     @Test
     public void testErrorConditions() throws Exception {
 
-        try (MockedStatic<InternalRegistry> registry = MockRegistries.internalRegistry("", null, false)) {
+        try (MockedStatic<InternalRegistry> registry = MockedInstances.internalRegistry("", null, false)) {
             ImageBuilderSubstitutor substitutor = getConstructor().newInstance();
             // Null
             try {

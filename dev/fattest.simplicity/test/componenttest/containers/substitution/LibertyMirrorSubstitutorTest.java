@@ -29,8 +29,8 @@ public class LibertyMirrorSubstitutorTest {
     @Test
     public void testWithArtifactoryWithoutInternal() {
 
-        try (MockedStatic<ArtifactoryRegistry> artifactory = MockRegistries.artifactoryRegistry("artifactory.swg-devops.com", null, true);
-                        MockedStatic<InternalRegistry> internal = MockRegistries.internalRegistry("", null, false)) {
+        try (MockedStatic<ArtifactoryRegistry> artifactory = MockedInstances.artifactoryRegistry("artifactory.swg-devops.com", null, true);
+                        MockedStatic<InternalRegistry> internal = MockedInstances.internalRegistry("", null, false)) {
 
             Map<DockerImageName, DockerImageName> testMap = new HashMap<>();
             // Images that exist in an artifactory mirror only
@@ -63,8 +63,8 @@ public class LibertyMirrorSubstitutorTest {
     @Test
     public void testWithoutArtifactoryWithInternal() {
 
-        try (MockedStatic<ArtifactoryRegistry> artifactory = MockRegistries.artifactoryRegistry("", null, false);
-                        MockedStatic<InternalRegistry> internal = MockRegistries.internalRegistry("172.0.0.1", null, true)) {
+        try (MockedStatic<ArtifactoryRegistry> artifactory = MockedInstances.artifactoryRegistry("", null, false);
+                        MockedStatic<InternalRegistry> internal = MockedInstances.internalRegistry("172.0.0.1", null, true)) {
 
             Map<DockerImageName, DockerImageName> testMap = new HashMap<>();
             // Images that exist in an artifactory mirror only

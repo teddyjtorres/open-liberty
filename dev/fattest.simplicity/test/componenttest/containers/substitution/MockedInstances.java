@@ -14,12 +14,14 @@ import static org.mockito.Mockito.when;
 
 import org.mockito.MockedStatic;
 import org.mockito.Mockito;
+import org.testcontainers.DockerClientFactory;
+import org.testcontainers.dockerclient.DockerClientProviderStrategy;
 import org.testcontainers.utility.DockerImageName;
 
 import componenttest.containers.registry.ArtifactoryRegistry;
 import componenttest.containers.registry.InternalRegistry;
 
-public class MockRegistries {
+public class MockedInstances {
 
     /**
      * Must be called in a try-with-resources block
@@ -64,5 +66,22 @@ public class MockRegistries {
         mockInternalRegistry.when(InternalRegistry::instance).thenReturn(instance);
 
         return mockInternalRegistry;
+    }
+
+    /**
+     * Must be called in a try-with-resources block
+     */
+    public static MockedStatic<DockerClientFactory> dockerClientFactory(Class<? extends DockerClientProviderStrategy> providerStrategyClass) {
+        // Create a mocked instance
+        // Note: last matcher wins
+        DockerClientFactory instance = Mockito.mock(DockerClientFactory.class);
+        when(instance.isUsing(any())).thenReturn(Boolean.FALSE);
+        when(instance.isUsing(providerStrategyClass)).thenReturn(Boolean.TRUE);
+
+        // Mock the DockerClientFactory.instance() static method
+        MockedStatic<DockerClientFactory> mockDockerClientFactory = Mockito.mockStatic(DockerClientFactory.class);
+        mockDockerClientFactory.when(DockerClientFactory::instance).thenReturn(instance);
+
+        return mockDockerClientFactory;
     }
 }
