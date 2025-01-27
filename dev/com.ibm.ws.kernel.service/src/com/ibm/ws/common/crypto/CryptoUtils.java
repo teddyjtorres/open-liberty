@@ -139,7 +139,7 @@ public class CryptoUtils {
     public static void logInsecureAlgorithm(String configProperty, String insecureAlgorithm) {
         // TODO remove beta check
         if (isRunningBetaMode()) {
-            Tr.warning(tc, "CRYPTO_INSECURE", configProperty, insecureAlgorithm);
+            Tr.warning(tc, "CRYPTO_INSECURE", configProperty, insecureAlgorithm, getSecureAlternative(insecureAlgorithm));
         }
     }
 
