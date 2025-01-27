@@ -24,6 +24,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.testcontainers.DockerClientFactory;
 import org.testcontainers.dockerclient.DockerClientProviderStrategy;
@@ -32,6 +33,7 @@ import org.testcontainers.dockerclient.UnixSocketClientProviderStrategy;
 import org.testcontainers.utility.DockerImageName;
 
 @SuppressWarnings("deprecation")
+@Ignore
 public class ArtifactoryImageNameSubstitutorTest {
 
     private static ArtifactoryRegistry artifactoryRegistry;

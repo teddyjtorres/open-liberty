@@ -63,6 +63,7 @@ public class ArtifactoryRegistry extends Registry {
     public static ArtifactoryRegistry instance() {
         if (instance == null) {
             instance = new ArtifactoryRegistry();
+            Log.info(c, "instance", instance.toString());
         }
         return instance;
     }

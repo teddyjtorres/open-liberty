@@ -14,6 +14,8 @@ import java.util.HashMap;
 
 import org.testcontainers.utility.DockerImageName;
 
+import com.ibm.websphere.simplicity.log.Log;
+
 import componenttest.containers.ImageHelper;
 
 /**
@@ -22,6 +24,8 @@ import componenttest.containers.ImageHelper;
  * The registry auth token is constructed at runtime.
  */
 public class InternalRegistry extends Registry {
+
+    private static final Class<?> c = InternalRegistry.class;
 
     /**
      * Expect this to be set on remote build machines. Local build machines will
@@ -41,7 +45,7 @@ public class InternalRegistry extends Registry {
         REGISTRY_MIRRORS.put("localhost", "wasliberty-internal-docker-local"); // images we build
     }
 
-    private final File configDir = new File(System.getProperty("user.home"), ".docker");
+    private static File configDir = new File(System.getProperty("user.home"), ".docker");
 
     private String registry;
     private String authToken;
@@ -54,6 +58,7 @@ public class InternalRegistry extends Registry {
     public static InternalRegistry instance() {
         if (instance == null) {
             instance = new InternalRegistry();
+            Log.info(c, "instance", instance.toString());
         }
         return instance;
     }
@@ -106,7 +111,7 @@ public class InternalRegistry extends Registry {
 
     @Override
     public boolean supportsRegistry(DockerImageName original) {
-        if (original.getRegistry().isEmpty() && ImageHelper.isCommittedImage(original)) {
+        if (ImageHelper.isCommittedImage(original) || ImageHelper.isSyntheticImage(original)) {
             return false;
         }
 

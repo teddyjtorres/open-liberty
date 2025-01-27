@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -52,6 +53,14 @@ public class ArtifactoryRegistryTest {
 
     @Before
     public void setupTest() {
+        System.clearProperty(FORCE_EXTERNAL);
+        System.clearProperty(REGISTRY);
+        System.clearProperty(REGISTRY_USER);
+        System.clearProperty(REGISTRY_PASSWORD);
+    }
+
+    @AfterClass
+    public static void teardown() {
         System.clearProperty(FORCE_EXTERNAL);
         System.clearProperty(REGISTRY);
         System.clearProperty(REGISTRY_USER);

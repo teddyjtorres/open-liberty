@@ -14,6 +14,7 @@ import java.util.Objects;
 import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.ImageNameSubstitutor;
 
+import componenttest.containers.ImageHelper;
 import componenttest.containers.registry.InternalRegistry;
 
 /**
@@ -42,6 +43,11 @@ public class ImageBuilderSubstitutor extends ImageNameSubstitutor {
         if (!original.getRegistry().isEmpty()) {
             throw new IllegalArgumentException("DockerImageName with the registry " + original.getRegistry() +
                                                " cannot be substituted with registry " + registry);
+        }
+
+        if (ImageHelper.isSyntheticImage(original) || ImageHelper.isCommittedImage(original)) {
+            throw new IllegalArgumentException("DockerImageName " + original.asCanonicalNameString() +
+                                               " cannot be substituted because it is synthetic or a commit hash.");
         }
 
         if (original.getRepository().startsWith(REPOSITORY_PREFIX)) {

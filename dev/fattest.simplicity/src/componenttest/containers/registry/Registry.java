@@ -281,4 +281,10 @@ public abstract class Registry {
         String sanitizedContents = contents.replaceAll("\"auth\" : \".*\"", "\"auth\" : \"****Token Redacted****\"");
         Log.info(c, method, msg + ":\n" + sanitizedContents);
     }
+
+    @Override
+    public String toString() {
+        return this.getClass().getName() + " [getRegistry=" + this.getRegistry() + ", isRegistryAvailable=" + this.isRegistryAvailable() +
+               ", getSetupException=" + this.getSetupException() + "]";
+    }
 }

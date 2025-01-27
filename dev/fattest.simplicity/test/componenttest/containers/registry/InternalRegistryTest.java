@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -50,6 +51,13 @@ public class InternalRegistryTest {
 
     @Before
     public void setupTest() {
+        System.clearProperty(REGISTRY);
+        System.clearProperty(REGISTRY_USER);
+        System.clearProperty(REGISTRY_PASSWORD);
+    }
+
+    @AfterClass
+    public static void teardown() throws Exception {
         System.clearProperty(REGISTRY);
         System.clearProperty(REGISTRY_USER);
         System.clearProperty(REGISTRY_PASSWORD);
