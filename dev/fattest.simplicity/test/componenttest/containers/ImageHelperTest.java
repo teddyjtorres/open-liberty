@@ -18,7 +18,7 @@ import org.junit.Test;
 import org.testcontainers.utility.DockerImageName;
 
 /**
- *
+ * Unit tests for {@link ImageHelper}
  */
 public class ImageHelperTest {
 

@@ -18,7 +18,6 @@ import componenttest.containers.registry.InternalRegistry;
 /**
  * A helper class that can determine the type of docker image based
  * off of heristics of the docker image name.
- * TODO test
  */
 public class ImageHelper {
 
