@@ -129,11 +129,11 @@ public class CryptoUtils {
     }
 
     public static String getCipher() {
-        return fipsEnabled ? AES_GCM_CIPHER : DES_ECB_CIPHER;
+        return fipsEnabled ? AES_CBC_CIPHER : DES_ECB_CIPHER;
     }
 
     public static String getCipherForAudit() {
-        return fipsEnabled ? AES_GCM_CIPHER : DES_ECB_CIPHER;
+        return fipsEnabled ? AES_CBC_CIPHER : DES_ECB_CIPHER;
     }
 
     public static void logInsecureAlgorithm(String configProperty, String insecureAlgorithm) {
