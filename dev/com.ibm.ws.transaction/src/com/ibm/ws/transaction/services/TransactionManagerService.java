@@ -516,7 +516,7 @@ public class TransactionManagerService implements ExtendedTransactionManager, Tr
             // On Liberty concatenate the user directory, the server name and the host name. Then add in the time.
             String s = userDir + serverName + hostName + System.currentTimeMillis();
             // Create a 20-byte hash value using a secure one-way hash function
-            result = java.security.MessageDigest.getInstance("SHA").digest(s.getBytes());
+            result = java.security.MessageDigest.getInstance("SHA-256").digest(s.getBytes());
         } catch (Throwable t) {
             FFDCFilter.processException(t, "com.ibm.ws.transaction.createApplicationId", "608", this);
             String tempStr = "j" + (System.currentTimeMillis() % 9997) + ":" + userDir + hostName;
