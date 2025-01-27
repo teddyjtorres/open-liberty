@@ -66,18 +66,12 @@ public class LibertyMirrorSubstitutor extends ImageNameSubstitutor {
         Registry artifactory = ArtifactoryRegistry.instance();
         Registry internal = InternalRegistry.instance();
 
-        if (artifactory.isRegistryAvailable() &&
-            artifactory.supportsRegistry(original)) {
-
+        if (artifactory.supportsRegistry(original)) {
             repository = artifactory.getMirrorRepository(original) + "/" + original.getRepository();
             reason = "Artifactory has a mirror for: " + original.getRegistry();
-
-        } else if (internal.isRegistryAvailable() &&
-                   internal.supportsRegistry(original)) {
-
+        } else if (internal.supportsRegistry(original)) {
             repository = internal.getMirrorRepository(original) + "/" + original.getRepository();
             reason = "Internal registry has a mirror for: " + original.getRegistry();
-
         } else {
             return original; //No mirror available, therefore return original
         }

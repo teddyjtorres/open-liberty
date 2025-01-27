@@ -38,6 +38,8 @@ Export-Package: \
     componenttest.common.apiservices;version=2.0,\
     componenttest.common.apiservices.cmdline;version=2.0,\
     componenttest.containers;version=2.0,\
+    componenttest.containers.registry;version=2.0,\
+    componenttest.containers.substitution;version=2.0,\
     componenttest.custom.junit.runner;version=2.0,\
     componenttest.exception;version=2.0,\
     componenttest.logging.ffdc;version=2.0,\
