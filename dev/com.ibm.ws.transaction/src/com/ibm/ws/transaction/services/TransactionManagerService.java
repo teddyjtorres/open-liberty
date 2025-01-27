@@ -515,7 +515,7 @@ public class TransactionManagerService implements ExtendedTransactionManager, Tr
             // tWAS - String s = CORBAUtils.getORB().object_to_string(CurrentImpl.instance());
             // On Liberty concatenate the user directory, the server name and the host name. Then add in the time.
             String s = userDir + serverName + hostName + System.currentTimeMillis();
-            // Create a 20-byte hash value using a secure one-way hash function
+            // Create a 32-byte hash value using a secure one-way hash function
             result = java.security.MessageDigest.getInstance("SHA-256").digest(s.getBytes());
         } catch (Throwable t) {
             FFDCFilter.processException(t, "com.ibm.ws.transaction.createApplicationId", "608", this);
