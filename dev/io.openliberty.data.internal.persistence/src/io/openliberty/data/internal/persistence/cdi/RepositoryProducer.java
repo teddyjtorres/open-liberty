@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022,2024 IBM Corporation and others.
+ * Copyright (c) 2022,2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -12,6 +12,7 @@
  *******************************************************************************/
 package io.openliberty.data.internal.persistence.cdi;
 
+import java.io.PrintWriter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Proxy;
 import java.lang.reflect.Type;
@@ -75,6 +76,7 @@ public class RepositoryProducer<R> implements Producer<R>, ProducerFactory<R>, B
         this.provider = provider;
         this.queriesPerEntityClass = queriesPerEntityClass;
         this.repositoryInterface = repositoryInterface;
+        provider.producerCreated(futureEMBuilder.moduleName.getApplication(), this);
     }
 
     @Override
@@ -128,6 +130,18 @@ public class RepositoryProducer<R> implements Producer<R>, ProducerFactory<R>, B
     @Trivial
     public Set<Type> getTypes() {
         return beanTypes;
+    }
+
+    /**
+     * Write information about this instance to the introspection file for
+     * Jakarta Data.
+     *
+     * @param writer writes to the introspection file.
+     * @param indent indentation for lines.
+     */
+    @Trivial
+    public void introspect(PrintWriter writer, String indent) {
+        writer.println(indent + toString()); // TODO more information
     }
 
     @Override
