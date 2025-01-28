@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, 2024 IBM Corporation and others.
+ * Copyright (c) 2022, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@
 package io.openliberty.data.internal.persistence;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
 import java.util.Collection;
@@ -60,6 +61,7 @@ import com.ibm.ws.runtime.metadata.ApplicationMetaData;
 import com.ibm.ws.runtime.metadata.ComponentMetaData;
 import com.ibm.ws.runtime.metadata.ModuleMetaData;
 import com.ibm.ws.tx.embeddable.EmbeddableWebSphereTransactionManager;
+import com.ibm.wsspi.logging.Introspector;
 import com.ibm.wsspi.persistence.DDLGenerationParticipant;
 import com.ibm.wsspi.resource.ResourceConfigFactory;
 import com.ibm.wsspi.resource.ResourceFactory;
@@ -88,7 +90,8 @@ import jakarta.persistence.EntityManagerFactory;
            service = { CDIExtensionMetadata.class,
                        DataProvider.class,
                        DeferredMetaDataFactory.class,
-                       ApplicationStateListener.class },
+                       ApplicationStateListener.class,
+                       Introspector.class },
            property = { "deferredMetaData=DATA" })
 public class DataProvider implements //
                 CDIExtensionMetadata, //
@@ -97,7 +100,8 @@ public class DataProvider implements //
                 // be visible to our extension (and override the value to true),
                 // CDIExtensionMetadataInternal, //
                 DeferredMetaDataFactory, //
-                ApplicationStateListener {
+                ApplicationStateListener, //
+                Introspector {
     private static final TraceComponent tc = Tr.register(DataProvider.class);
 
     private static final Set<Class<?>> beanClasses = //
@@ -445,6 +449,22 @@ public class DataProvider implements //
     }
 
     /**
+     * Introspector description that is included within the introspection file.
+     */
+    @Override
+    public String getIntrospectorDescription() {
+        return "Jakarta Data repository diagnostics";
+    }
+
+    /**
+     * Name for the introspector that is used within the introspection file name.
+     */
+    @Override
+    public String getIntrospectorName() {
+        return "JakartaDataIntrospector";
+    }
+
+    /**
      * Create an identifier for metadata that is constructed by this
      * DeferredMetaDataFactory.
      *
@@ -472,6 +492,29 @@ public class DataProvider implements //
     @Override
     @Trivial
     public void initialize(ComponentMetaData metadata) throws IllegalStateException {
+    }
+
+    /**
+     * Write to the introspection file for Jakarta Data.
+     */
+    @Override
+    public void introspect(PrintWriter writer) throws Exception {
+        writer.println("createTables? " + createTables);
+        writer.println("dropTables? " + dropTables);
+        writer.println("logValues for " + logValues);
+        writer.println();
+        writer.println("databaseStore config:");
+        dbStoreConfigAllApps.forEach((appName, dbStoreToConfig) -> {
+            writer.println("  for application " + appName);
+            dbStoreToConfig.forEach((dbStore, config) -> {
+                writer.println("    for databaseStore " + dbStore);
+                Util.alphabetize(config.getProperties()).forEach((name, value) -> {
+                    writer.println("      " + name + "=" + value);
+                });
+            });
+        });
+
+        // TODO more information
     }
 
     /**

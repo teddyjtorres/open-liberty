@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024 IBM Corporation and others.
+ * Copyright (c) 2024, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -108,6 +110,14 @@ public class CacheFiles {
                 throw new RuntimeException(e);
             }
         }
+        
+        // Investigate all Dockerfiles and add the BASE_NAME to externals list
+        Path commonPath = Paths.get(projectPath, "resources", "openliberty", "testcontainers");
+        Dockerfile.findDockerfiles(commonPath).stream()
+            .map(location -> new Dockerfile(location))
+            .forEach(dockerfile -> {
+                externals.add(dockerfile.baseImageName.asCanonicalNameString());
+            });
         
         String header = "# NOTICE: This file was automatically updated to reflect changes made to test projects." + System.lineSeparator() +  
                         "# Please check these changes into GitHub" + System.lineSeparator();
