@@ -18,11 +18,15 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Dictionary;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import com.ibm.websphere.ras.annotation.Trivial;
 
@@ -125,6 +129,21 @@ public class Util {
                            long.class, Long.class,
                            short.class, Short.class,
                            void.class, Void.class);
+
+    /**
+     * Alphabetize properties to make them more readable when debugging.
+     *
+     * @param props key/value pairs
+     * @return sorted map
+     */
+    public static SortedMap<String, Object> alphabetize(Dictionary<String, Object> props) {
+        SortedMap<String, Object> sorted = new TreeMap<>();
+        for (Enumeration<String> keys = props.keys(); keys.hasMoreElements();) {
+            String key = keys.nextElement();
+            sorted.put(key, props.get(key));
+        }
+        return sorted;
+    }
 
     /**
      * Returns true if it is certain the class cannot be an entity

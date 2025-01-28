@@ -43,7 +43,6 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.DESedeKeySpec;
-import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -56,7 +55,6 @@ final class AuditCrypto {
     private static TraceComponent tc = Tr.register(AuditCrypto.class, null, "com.ibm.ejs.resources.security");
     private static IvParameterSpec ivs8 = null;
     private static IvParameterSpec ivs16 = null;
-    private static GCMParameterSpec gcms = null;
     private static boolean fips140_3Enabled = CryptoUtils.isFips140_3Enabled();
     private static final String encryptAlgorithm = CryptoUtils.getEncryptionAlgorithm();
 
@@ -65,8 +63,7 @@ final class AuditCrypto {
     /**
      * @param provider
      */
-    public AuditCrypto() {
-    }
+    public AuditCrypto() {}
 
     static final boolean cmp(byte[] b1, int off1, byte[] b2, int off2, int n) {
         while (--n >= 0)
@@ -2120,12 +2117,7 @@ final class AuditCrypto {
         ci = (provider == null) ? Cipher.getInstance(cipher) : Cipher.getInstance(cipher, provider);
 
         if (cipher.indexOf("ECB") == -1) {
-            if (cipher.indexOf("GCM") != -1) {
-                if (gcms == null) {
-                    setGCMS(key);
-                }
-                ci.init(cipherMode, sKey, gcms);
-            } else if (cipher.indexOf("AES") != -1) {
+            if (cipher.indexOf("AES") != -1) {
                 if (ivs16 == null) {
                     setIVS16(key);
                 }
@@ -2272,31 +2264,6 @@ final class AuditCrypto {
                 if (tc.isDebugEnabled())
                     Tr.debug(tc, "setIVS16 unxepected exception setting initialization vector", new Object[] { e });
                 com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.ltpa.LTPAToken2Factory.initialize", "2568");
-            }
-        }
-    }
-
-    /**
-     * Set GCM with 12 byte initialization vctor
-     **/
-    public static synchronized void setGCMS(byte[] key) {
-        if (tc.isEntryEnabled())
-            Tr.entry(tc, "setGCMS");
-
-        if (gcms == null) // only set it once
-        {
-            try {
-                byte[] iv = new byte[12]; // IV length of 12 bytes is recommended for GCM
-                for (int i = 0; i < 12; i++) {
-                    iv[i] = key[i];
-                }
-                gcms = new GCMParameterSpec(128, iv);
-                if (tc.isDebugEnabled())
-                    Tr.debug(tc, "setGCMS: gcms successfully set");
-            } catch (Exception e) {
-                if (tc.isDebugEnabled())
-                    Tr.debug(tc, "setGCMS unxepected exception setting GCM", new Object[] { e });
-                com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.ltpa.LTPAToken2Factory.initialize", "2572");
             }
         }
     }
