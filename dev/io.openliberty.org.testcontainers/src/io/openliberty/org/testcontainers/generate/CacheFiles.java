@@ -29,6 +29,12 @@ import org.testcontainers.utility.DockerImageName;
 import org.testcontainers.utility.ImageNameSubstitutor;
 
 public class CacheFiles {
+	
+	/**
+	 * Always maintain generated files with a new line separator to avoid git 
+	 * from complaining about carriage returns on windows. 
+	 */
+	private static final String LINE_SEPERATOR = "\n";
     
     public static void main(String[] args) {
         long start = System.currentTimeMillis();
@@ -119,8 +125,8 @@ public class CacheFiles {
                 externals.add(dockerfile.baseImageName.asCanonicalNameString());
             });
         
-        String header = "# NOTICE: This file was automatically updated to reflect changes made to test projects." + System.lineSeparator() +  
-                        "# Please check these changes into GitHub" + System.lineSeparator();
+        String header = "# NOTICE: This file was automatically updated to reflect changes made to test projects." + LINE_SEPERATOR +  
+                        "# Please check these changes into GitHub" + LINE_SEPERATOR;
         
         externals.remove(""); //Remove any blank lines that made it into the list.
         
@@ -139,17 +145,17 @@ public class CacheFiles {
             
             projectWriter.append(header);
             for(String project : new TreeSet<String>(projects)) {
-                projectWriter.append(project + System.lineSeparator());
+                projectWriter.append(project + LINE_SEPERATOR);
             }
             
             imageWriter.append(header);
             for(String image : new TreeSet<String>(images)) {
-                imageWriter.append(image + System.lineSeparator());
+                imageWriter.append(image + LINE_SEPERATOR);
             }
             
             externalsWriter.append(header);
             for(String external : new TreeSet<String>(externals)) {
-                externalsWriter.append(external + System.lineSeparator());
+                externalsWriter.append(external + LINE_SEPERATOR);
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
