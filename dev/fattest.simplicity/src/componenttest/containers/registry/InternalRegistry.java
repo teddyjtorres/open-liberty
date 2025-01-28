@@ -31,9 +31,9 @@ public class InternalRegistry extends Registry {
      * Expect this to be set on remote build machines. Local build machines will
      * likely not be able to use this registry.
      */
-    private static final String REGISTRY = "docker_registry.server";
-    private static final String REGISTRY_USER = "docker_registry.user";
-    private static final String REGISTRY_PASSWORD = "docker_registry.password";
+    private static final String REGISTRY = "fat.test.docker.registry.server";
+    private static final String REGISTRY_USER = "fat.test.docker.registry.user";
+    private static final String REGISTRY_PASSWORD = "fat.test.docker.registry.password";
 
     private static final String DEFAULT_REGISTRY = ""; //Blank registry is the default setting
 

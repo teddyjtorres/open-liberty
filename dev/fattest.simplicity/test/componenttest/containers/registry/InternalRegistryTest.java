@@ -35,16 +35,16 @@ import org.testcontainers.utility.DockerImageName;
  * methods when using the Internal registry
  */
 public class InternalRegistryTest {
-    private static final String REGISTRY = "docker_registry.server";
-    private static final String REGISTRY_USER = "docker_registry.user";
-    private static final String REGISTRY_PASSWORD = "docker_registry.password";
+    private static final String REGISTRY = "fat.test.docker.registry.server";
+    private static final String REGISTRY_USER = "fat.test.docker.registry.user";
+    private static final String REGISTRY_PASSWORD = "fat.test.docker.registry.password";
 
     @BeforeClass
     public static void setupTests() throws Exception {
         // Avoid writing to the developers docker config
         File testdir = new File(System.getProperty("java.io.tmpdir"), ".docker");
 
-        Field configDir = ArtifactoryRegistry.class.getDeclaredField("configDir");
+        Field configDir = InternalRegistry.class.getDeclaredField("configDir");
         configDir.setAccessible(true);
         configDir.set(null, testdir);
     }

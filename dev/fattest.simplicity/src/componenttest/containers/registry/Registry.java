@@ -92,10 +92,10 @@ public abstract class Registry {
     // SETUP METHODS
 
     protected static String findRegistry(final String registryKey) {
-        Log.info(c, "findRegistry", "Searching system property " + registryKey + " for an internal registry.");
+        Log.info(c, "findRegistry", "Searching system property " + registryKey + " for a registry.");
         String registry = System.getProperty(registryKey);
         if (registry == null || registry.isEmpty() || registry.startsWith("${") || registry.equals("null")) {
-            throw new IllegalStateException("No internal registry configured. System property '" + registryKey + "' was: " + registry
+            throw new IllegalStateException("No registry configured. System property '" + registryKey + "' was: " + registry
                                             + " Ensure registry properties are set on system.");
         }
         return registry;
