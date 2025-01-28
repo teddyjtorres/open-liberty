@@ -1,5 +1,6 @@
 package io.openliberty.org.testcontainers.generate;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,10 +50,12 @@ public class Dockerfile {
 
         // io.openliberty.org.testcontainers/resources/openliberty/testcontainers/[repository]/[version]/Dockerfile
         final String fullPath = location.toString();
+        
+        System.out.println("Full path to dockerfile is: " + fullPath);
 
-        // Find version (between the last two backslash / characters)
-        int end = fullPath.lastIndexOf('/');
-        int start = fullPath.substring(0, end).lastIndexOf('/') + 1;
+        // Find version (between the last two seperator characters)
+        int end = fullPath.lastIndexOf(File.separator);
+        int start = fullPath.substring(0, end).lastIndexOf(File.separator) + 1;
         final String version = fullPath.substring(start, end);
 
         // Find repository (between "resources/" and version)
