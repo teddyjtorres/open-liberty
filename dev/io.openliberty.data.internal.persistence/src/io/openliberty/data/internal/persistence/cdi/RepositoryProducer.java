@@ -31,6 +31,7 @@ import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import io.openliberty.data.internal.persistence.DataProvider;
 import io.openliberty.data.internal.persistence.QueryInfo;
 import io.openliberty.data.internal.persistence.RepositoryImpl;
+import io.openliberty.data.internal.persistence.Util;
 import jakarta.data.exceptions.DataException;
 import jakarta.data.repository.Repository;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -149,6 +150,9 @@ public class RepositoryProducer<R> implements Producer<R>, ProducerFactory<R>, B
         writer.println(indent + "  primary entity: " +
                        (primaryEntityClass == null ? null : primaryEntityClass.getName()));
         writer.println(indent + "  intercepted: " + intercepted);
+
+        writer.println();
+        writer.println(Util.toString(repositoryInterface, indent + "  "));
 
         queriesPerEntityClass.forEach((entityClass, queries) -> {
             writer.println();

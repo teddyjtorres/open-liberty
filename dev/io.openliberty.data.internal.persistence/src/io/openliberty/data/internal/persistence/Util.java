@@ -10,6 +10,9 @@
 package io.openliberty.data.internal.persistence;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Executable;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.math.BigDecimal;
@@ -27,6 +30,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.SortedMap;
 import java.util.TreeMap;
+import java.util.function.Function;
 
 import com.ibm.websphere.ras.annotation.Trivial;
 
@@ -43,6 +47,11 @@ import jakarta.data.repository.Update;
  * A location for helper methods that do not require any state.
  */
 public class Util {
+    /**
+     * End of line character(s).
+     */
+    public static final String EOLN = String.format("%n");
+
     /**
      * Commonly used result types that are not entities.
      */
@@ -249,6 +258,102 @@ public class Util {
         }
 
         return validReturnTypes;
+    }
+
+    /**
+     * String representation of a class, for logging to trace or introspector output.
+     *
+     * @param c      generated entity class.
+     * @param indent indentation for lines.
+     * @return textual representation.
+     */
+    @Trivial
+    public static String toString(Class<?> c, String indent) {
+        final String className_ = c.getName() + '.';
+        final String packageName_ = c.getPackage().getName() + '.';
+
+        Function<String, String> shorten = str -> {
+            return str.replace(className_, "") // omit from every method
+                            .replace(packageName_, ""); // omit from type params
+        };
+
+        StringBuilder s = new StringBuilder(1000);
+        for (Annotation anno : c.getDeclaredAnnotations())
+            s.append(indent).append(anno).append(EOLN);
+        s.append(indent).append(c.toGenericString()).append(" {").append(EOLN);
+
+        // fields
+        TreeMap<String, Field> fields = new TreeMap<>();
+        for (Field f : c.getFields())
+            fields.put(f.getName(), f);
+        for (Field f : fields.values()) {
+            s.append(EOLN);
+            for (Annotation anno : f.getDeclaredAnnotations())
+                s.append(indent).append("  ").append(anno).append(EOLN);
+            s.append(indent).append("  ") //
+                            .append(shorten.apply(f.toGenericString())) //
+                            .append(';').append(EOLN);
+        }
+
+        // constructors
+        TreeMap<String, Constructor<?>> ctors = new TreeMap<>();
+        for (Constructor<?> ctor : c.getConstructors())
+            ctors.put(ctor.getName(), ctor);
+        for (Constructor<?> ctor : ctors.values()) {
+            s.append(EOLN);
+            toStringAppend(ctor, shorten, indent + "  ", s);
+        }
+
+        // methods
+        TreeMap<String, Method> methods = new TreeMap<>();
+        for (Method m : c.getMethods())
+            if (!Object.class.equals(m.getDeclaringClass()))
+                methods.put(m.getName(), m);
+        for (Method m : methods.values()) {
+            s.append(EOLN);
+            toStringAppend(m, shorten, indent + "  ", s);
+        }
+
+        s.append(indent).append('}');
+        return s.toString();
+    }
+
+    /**
+     * Append a textual representation of a method or constructor,
+     * including annotations. This method is intended for producing
+     * trace and introspector output.
+     *
+     * @param m       method or constructor.
+     * @param shorten shortens the representation of a method or constructor.
+     * @param indent  indentation for lines.
+     * @param b       string builder to which to append.
+     */
+    @Trivial
+    private static void toStringAppend(Executable m,
+                                       Function<String, String> shorten,
+                                       String indent,
+                                       StringBuilder b) {
+        // method or constructor annotations first:
+        for (Annotation anno : m.getDeclaredAnnotations())
+            b.append(indent).append(anno).append(EOLN);
+        String s = shorten.apply(m.toGenericString());
+        // insert parameter annotations because they are absent from the above
+        Annotation[][] paramAnnos = m.getParameterAnnotations();
+        if (paramAnnos.length == 0) {
+            b.append(indent).append(s).append(EOLN);
+        } else {
+            int paramStart = s.indexOf('(') + 1; // first method parameter
+            b.append(indent).append(s.substring(0, paramStart));
+            for (int a = 0; a < paramAnnos.length; a++) {
+                for (Annotation anno : paramAnnos[a])
+                    b.append(anno).append(' ');
+                int paramNext = s.indexOf(',', paramStart);
+                paramNext = paramNext == -1 ? s.length() : paramNext + 1;
+                b.append(s.substring(paramStart, paramNext)).append(' ');
+                paramStart = paramNext;
+            }
+            b.append(EOLN);
+        }
     }
 
     /**
