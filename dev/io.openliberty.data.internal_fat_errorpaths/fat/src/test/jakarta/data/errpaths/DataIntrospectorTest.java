@@ -81,4 +81,61 @@ public class DataIntrospectorTest extends FATServletClient {
                         "/module[DataErrPathsTestApp.war]" +
                         "/databaseStore[java:comp/jdbc/InvalidDatabase]");
     }
+
+    /**
+     * Verify that introspector output contains the dataStore value that is
+     * configured on the repository.
+     */
+    @Test
+    public void testOutputContainsDataStore() {
+        assertLineFound("        dataStore: AbsentFromConfig");
+        assertLineFound("        dataStore: java:app/env/WrongPersistenceUnitRef");
+        assertLineFound("        dataStore: java:app/jdbc/DerbyDataSource");
+        assertLineFound("        dataStore: java:comp/DefaultDataSource");
+        assertLineFound("        dataStore: java:comp/jdbc/InvalidDatabase");
+        assertLineFound("        dataStore: java:module/env/DoesNotExist");
+        assertLineFound("        dataStore: java:module/jdbc/DataSourceForInvalidEntity");
+    }
+
+    /**
+     * Verify that introspector output contains the name of the module or
+     * application that defines the repository.
+     */
+    @Test
+    public void testOutputContainsDefiningArtifact() {
+        assertLineFound("        defining artifact: DataErrPathsTestApp#DataErrPathsTestApp.war");
+    }
+
+    /**
+     * Verify that introspector output contains the entity class that is used
+     * by the repository.
+     */
+    @Test
+    public void testOutputContainsEntity() {
+        assertLineFound("        entity: test.jakarta.data.errpaths.web.Voter");
+    }
+
+    /**
+     * Verify that introspector output contains the name of the primary entity class.
+     */
+    @Test
+    public void testOutputContainsPrimaryEntity() {
+        assertLineFound("      primary entity: test.jakarta.data.errpaths.web.Invention");
+        assertLineFound("      primary entity: test.jakarta.data.errpaths.web.Volunteer");
+        assertLineFound("      primary entity: test.jakarta.data.errpaths.web.Voter");
+    }
+
+    /**
+     * Verify that introspector output contains the name of repository interfaces.
+     */
+    @Test
+    public void testOutputContainsRepository() {
+        assertLineFound("      repository: test.jakarta.data.errpaths.web.InvalidDatabaseRepo");
+        assertLineFound("      repository: test.jakarta.data.errpaths.web.InvalidJNDIRepo");
+        assertLineFound("      repository: test.jakarta.data.errpaths.web.InvalidNonJNDIRepo");
+        assertLineFound("      repository: test.jakarta.data.errpaths.web.Inventions");
+        assertLineFound("      repository: test.jakarta.data.errpaths.web.RepoWithoutDataStore");
+        assertLineFound("      repository: test.jakarta.data.errpaths.web.Voters");
+        assertLineFound("      repository: test.jakarta.data.errpaths.web.WrongPersistenceUnitRefRepo");
+    }
 }

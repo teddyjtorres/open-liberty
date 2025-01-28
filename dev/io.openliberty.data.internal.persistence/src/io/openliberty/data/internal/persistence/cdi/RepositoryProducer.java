@@ -20,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.ibm.websphere.ras.Tr;
@@ -138,10 +139,38 @@ public class RepositoryProducer<R> implements Producer<R>, ProducerFactory<R>, B
      *
      * @param writer writes to the introspection file.
      * @param indent indentation for lines.
+     * @return Map of entity class to list of QueryInfo for the caller to log
+     *         after eliminating duplicates.
      */
     @Trivial
-    public void introspect(PrintWriter writer, String indent) {
-        writer.println(indent + toString()); // TODO more information
+    public Map<Class<?>, List<QueryInfo>> introspect(PrintWriter writer, String indent) {
+        writer.println(indent + "RepositoryProducer@" + Integer.toHexString(hashCode()));
+        writer.println(indent + "  repository: " + repositoryInterface.getName());
+        writer.println(indent + "  primary entity: " +
+                       (primaryEntityClass == null ? null : primaryEntityClass.getName()));
+        writer.println(indent + "  intercepted: " + intercepted);
+
+        queriesPerEntityClass.forEach((entityClass, queries) -> {
+            writer.println();
+            if (QueryInfo.ENTITY_TBD.equals(entityClass))
+                writer.println(indent + "  Queries for entity determined from Query value:");
+            else
+                writer.println(indent + "  Queries for entity " + entityClass.getName() + ':');
+
+            TreeMap<String, QueryInfo> sorted = new TreeMap<>();
+            for (QueryInfo qi : queries)
+                sorted.put(qi.method.toString(), qi);
+
+            for (QueryInfo qi : sorted.values())
+                writer.println(indent + "    " + qi.toString() //
+                                .replace('\r', ' ') // print on single line
+                                .replace('\n', ' '));
+        });
+
+        writer.println();
+        futureEMBuilder.introspect(writer, "  " + indent);
+
+        return queriesPerEntityClass;
     }
 
     @Override

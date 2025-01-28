@@ -149,7 +149,7 @@ public class RepositoryImpl<R> implements InvocationHandler {
         for (Entry<Class<?>, List<QueryInfo>> entry : queriesPerEntityClass.entrySet()) {
             Class<?> entityClass = entry.getKey();
 
-            if (Query.class.equals(entityClass)) {
+            if (QueryInfo.ENTITY_TBD.equals(entityClass)) {
                 entitylessQueryInfos = entry.getValue();
             } else {
                 CompletableFuture<EntityInfo> entityInfoFuture = //

@@ -92,6 +92,12 @@ public class QueryInfo {
     }
 
     /**
+     * Placeholder that indicates the entity class needs to be determined
+     * based on the content of the Query value.
+     */
+    public static final Class<?> ENTITY_TBD = Query.class;
+
+    /**
      * Indicates the repository method has no Sort, Sort[], or Order parameters
      * for dynamic sort criteria and also does not define any static sort criteria.
      */

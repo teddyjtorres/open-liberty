@@ -535,19 +535,21 @@ public class DataProvider implements //
         writer.println("EntityManager builders for unstarted applications:");
         futureEMBuilders.forEach((appName, futureEMBuilders) -> {
             writer.println("  for application " + appName);
-            for (FutureEMBuilder futureEMBuilder : futureEMBuilders)
+            for (FutureEMBuilder futureEMBuilder : futureEMBuilders) {
                 futureEMBuilder.introspect(writer, "    ");
+                writer.println();
+            }
         });
 
         writer.println();
         writer.println("Repository Producers:");
         repositoryProducers.forEach((appName, producers) -> {
             writer.println("  for application " + appName);
-            for (RepositoryProducer<?> producer : producers)
+            for (RepositoryProducer<?> producer : producers) {
                 producer.introspect(writer, "    ");
+                writer.println();
+            }
         });
-
-        writer.println();
     }
 
     /**
