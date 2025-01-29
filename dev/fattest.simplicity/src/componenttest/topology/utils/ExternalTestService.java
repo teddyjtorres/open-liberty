@@ -205,6 +205,7 @@ public class ExternalTestService {
                                 + "this message can be ignored.");
         }
 
+	// Add all the servers to the list twice, effectively giving us a retry so double the chance of working if consul is slow
         List<String> servers = Arrays.asList((consulServerList+","+consulServerList).split(","));
         return consulServers = servers;
     }
