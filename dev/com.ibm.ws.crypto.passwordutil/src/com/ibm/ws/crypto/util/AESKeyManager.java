@@ -55,25 +55,17 @@ public class AESKeyManager {
             this.salt = salt;
         }
 
-        private KeyHolder get(char[] keyChars) {
+        private KeyHolder get(char[] keyChars) throws NoSuchAlgorithmException, InvalidKeySpecException {
             KeyHolder holder = _key.get();
             if (holder == null || !!!holder.matches(keyChars)) {
-                try {
-                    SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(alg);
-                    KeySpec aesKey = new PBEKeySpec(keyChars, salt, iterations, keyLength);
-                    byte[] data = keyFactory.generateSecret(aesKey).getEncoded();
-                    KeyHolder holder2 = new KeyHolder(keyChars, new SecretKeySpec(data, "AES"), new IvParameterSpec(data));
-                    _key.compareAndSet(holder, holder2);
-                    // Still use this holder for returns even if I do not end up caching it.
-                    holder = holder2;
-                } catch (InvalidKeySpecException e) {
-                    return null;
-                } catch (NoSuchAlgorithmException e) {
-                    return null;
-                }
-
+                SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(alg);
+                KeySpec aesKey = new PBEKeySpec(keyChars, salt, iterations, keyLength);
+                byte[] data = keyFactory.generateSecret(aesKey).getEncoded();
+                KeyHolder holder2 = new KeyHolder(keyChars, new SecretKeySpec(data, "AES"), new IvParameterSpec(data));
+                _key.compareAndSet(holder, holder2);
+                // Still use this holder for returns even if I do not end up caching it.
+                holder = holder2;
             }
-
             return holder;
         }
     }
@@ -108,15 +100,13 @@ public class AESKeyManager {
         setKeyStringResolver(null);
     }
 
-    public static Key getKey(KeyVersion version, String key) {
-
+    public static Key getKey(KeyVersion version, String key) throws NoSuchAlgorithmException, InvalidKeySpecException {
         KeyHolder holder = getHolder(version, key);
-
         return holder.getKey();
     }
 
     @Deprecated
-    public static Key getKey(String key) {
+    public static Key getKey(String key) throws NoSuchAlgorithmException, InvalidKeySpecException {
 
         KeyHolder holder = getHolder(KeyVersion.AES_V0, key);
 
@@ -128,9 +118,8 @@ public class AESKeyManager {
      * @param keyChars
      * @return
      */
-    private static KeyHolder getHolder(KeyVersion version, String key) {
+    private static KeyHolder getHolder(KeyVersion version, String key) throws NoSuchAlgorithmException, InvalidKeySpecException {
         char[] keyChars = _resolver.get().getKey(key == null ? "${wlp.password.encryption.key}" : key);
-
         return version.get(keyChars);
     }
 
@@ -154,7 +143,7 @@ public class AESKeyManager {
      * @param cryptoKey
      * @return
      */
-    public static IvParameterSpec getIV(KeyVersion version, String cryptoKey) {
+    public static IvParameterSpec getIV(KeyVersion version, String cryptoKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
         if (version == KeyVersion.AES_V0) {
             return getHolder(version, cryptoKey).getIv();
         } else {
@@ -167,7 +156,7 @@ public class AESKeyManager {
      * @return
      */
     @Deprecated
-    public static IvParameterSpec getIV(String cryptoKey) {
+    public static IvParameterSpec getIV(String cryptoKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
         return getHolder(KeyVersion.AES_V0, cryptoKey).getIv();
     }
 }
