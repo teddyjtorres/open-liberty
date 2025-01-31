@@ -11,6 +11,7 @@ package componenttest.containers.registry;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -20,6 +21,7 @@ import java.lang.reflect.Method;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Base64;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.AfterClass;
@@ -69,7 +71,7 @@ public class RegistryTest {
     @Test
     public void testNoExisingConfig() throws Exception {
         final String m = "testNoExisingConfig";
-        getGenerateDockerConfig().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
+        getPersistAuthToken().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
 
         //TODO convert this to a text block once we are building and running on Java 17!
         String expected = "{" + nl +
@@ -91,7 +93,7 @@ public class RegistryTest {
         final String m = "testExistingEmptyConfig";
         String existingConfig = "{" + nl + "}";
         Registry.writeFile(TESTFILE, "{" + nl + "}");
-        getGenerateDockerConfig().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
+        getPersistAuthToken().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
 
         //TODO convert this to a text block once we are building and running on Java 17!
         String expected = "{" + nl +
@@ -117,7 +119,7 @@ public class RegistryTest {
                                 tab + "\"currentContext\" : \"desktop-linux\"" + nl +
                                 "}";
         Registry.writeFile(TESTFILE, existingConfig);
-        getGenerateDockerConfig().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
+        getPersistAuthToken().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
 
         //TODO convert this to a text block once we are building and running on Java 17!
         String expected = "{" + nl +
@@ -150,7 +152,7 @@ public class RegistryTest {
                                 tab + "}" + nl +
                                 "}";
         Registry.writeFile(TESTFILE, existingConfig);
-        getGenerateDockerConfig().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
+        getPersistAuthToken().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
 
         //TODO convert this to a text block once we are building and running on Java 17!
         String expected = "{" + nl +
@@ -183,7 +185,7 @@ public class RegistryTest {
                                 tab + "}" + nl +
                                 "}";
         Registry.writeFile(TESTFILE, existingConfig);
-        getGenerateDockerConfig().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
+        getPersistAuthToken().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
 
         //TODO convert this to a text block once we are building and running on Java 17!
         String expected = "{" + nl +
@@ -222,7 +224,7 @@ public class RegistryTest {
                                 "}";
 
         Registry.writeFile(TESTFILE, existingConfig);
-        getGenerateDockerConfig().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
+        getPersistAuthToken().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
 
         //TODO convert this to a text block once we are building and running on Java 17!
         String expected = "{" + nl +
@@ -256,7 +258,7 @@ public class RegistryTest {
                           tab + "}" + nl +
                           "}";
         Registry.writeFile(TESTFILE, expected);
-        getGenerateDockerConfig().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
+        getPersistAuthToken().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
 
         String actual = Files.readAllLines(TESTFILE.toPath()).stream().collect(Collectors.joining(nl));
         assertJsonEquals(expected, expected, actual, m);
@@ -275,7 +277,7 @@ public class RegistryTest {
                                 "}";
 
         Registry.writeFile(TESTFILE, existingConfig);
-        getGenerateDockerConfig().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
+        getPersistAuthToken().invoke(null, TESTREGISTRY, TESTAUTHTOKEN, TESTDIR);
 
         //TODO convert this to a text block once we are building and running on Java 17!
         String expected = "{" + nl +
@@ -295,8 +297,8 @@ public class RegistryTest {
      * @throws Exception
      */
     @Test
-    public void testExistingConfigResults() throws Exception {
-        boolean result;
+    public void testFindExistingConfigResults() throws Exception {
+        Optional<String> result;
         String json;
         ObjectNode root;
 
@@ -309,62 +311,63 @@ public class RegistryTest {
         //root.has auths
         json = "{ \"name\" : \"kyle\" }";
         root = (ObjectNode) mapper.readTree(json);
-        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
-        assertFalse(result);
+        result = Registry.findExistingConfig(root, TESTREGISTRY);
+        assertFalse(result.isPresent());
 
         //root.nonNull auths
         json = "{ \"auths\" : null }";
         root = (ObjectNode) mapper.readTree(json);
-        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
-        assertFalse(result);
+        result = Registry.findExistingConfig(root, TESTREGISTRY);
+        assertFalse(result.isPresent());
 
         //root.auths.has registry
         json = "{ \"auths\" : { \"name\" : \"kyle\" } }";
         root = (ObjectNode) mapper.readTree(json);
-        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
-        assertFalse(result);
+        result = Registry.findExistingConfig(root, TESTREGISTRY);
+        assertFalse(result.isPresent());
 
         //root.auths.nonNull registry
         json = "{ \"auths\" : { \"" + TESTREGISTRY + "\" : null } }";
         root = (ObjectNode) mapper.readTree(json);
-        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
-        assertFalse(result);
+        result = Registry.findExistingConfig(root, TESTREGISTRY);
+        assertFalse(result.isPresent());
 
         //root.auths.registry.has auth
         json = "{ \"auths\" : { \"" + TESTREGISTRY + "\" : { \"name\" : \"kyle\" } } }";
         root = (ObjectNode) mapper.readTree(json);
-        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
-        assertFalse(result);
+        result = Registry.findExistingConfig(root, TESTREGISTRY);
+        assertTrue(result.isPresent());
+        assertTrue(result.get().isEmpty());
 
         //root.auths.registry.nonNull auth
         json = "{ \"auths\" : { \"" + TESTREGISTRY + "\" : { \"auth\" : null } } }";
         root = (ObjectNode) mapper.readTree(json);
-        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
-        assertFalse(result);
+        result = Registry.findExistingConfig(root, TESTREGISTRY);
+        assertTrue(result.isPresent());
+        assertTrue(result.get().isEmpty());
 
         //root.auths.registry.auth.isTextual
         json = "{ \"auths\" : { \"" + TESTREGISTRY + "\" : { \"auth\" : { \"name\" : \"kyle\" } } } }";
         root = (ObjectNode) mapper.readTree(json);
-        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
-        assertFalse(result);
-
-        //root.auths.registry.auth.isTextual
-        json = "{ \"auths\" : { \"" + TESTREGISTRY + "\" : { \"auth\" : { \"name\" : \"kyle\" } } } }";
-        root = (ObjectNode) mapper.readTree(json);
-        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
-        assertFalse(result);
+        result = Registry.findExistingConfig(root, TESTREGISTRY);
+        assertTrue(result.isPresent());
+        assertTrue(result.get().isEmpty());
 
         //root.auths.registry.auth equals - false
         json = "{ \"auths\" : { \"" + TESTREGISTRY + "\" : { \"auth\" : \"" + additionalToken + "\" } } }";
         root = (ObjectNode) mapper.readTree(json);
-        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
-        assertFalse(result);
+        result = Registry.findExistingConfig(root, TESTREGISTRY);
+        assertTrue(result.isPresent());
+        assertFalse(result.get().isEmpty());
+        assertNotSame(TESTAUTHTOKEN, result.get());
 
         //root.auths.registry.auth equals - true
         json = "{ \"auths\" : { \"" + TESTREGISTRY + "\" : { \"auth\" : \"" + TESTAUTHTOKEN + "\" } } }";
         root = (ObjectNode) mapper.readTree(json);
-        result = Registry.testExistingConfig(root, TESTREGISTRY, TESTAUTHTOKEN);
-        assertTrue(result);
+        result = Registry.findExistingConfig(root, TESTREGISTRY);
+        assertTrue(result.isPresent());
+        assertFalse(result.get().isEmpty());
+        assertEquals(TESTAUTHTOKEN, result.get());
     }
 
     private void assertJsonEquals(String initial, String expected, String actual, String testName) {
@@ -386,8 +389,8 @@ public class RegistryTest {
         }
     }
 
-    private static Method getGenerateDockerConfig() throws Exception {
-        Method method = Registry.class.getDeclaredMethod("generateDockerConfig", String.class, String.class, File.class);
+    private static Method getPersistAuthToken() throws Exception {
+        Method method = Registry.class.getDeclaredMethod("persistAuthToken", String.class, String.class, File.class);
         method.setAccessible(true);
         return method;
     }

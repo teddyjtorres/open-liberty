@@ -11,6 +11,7 @@ package componenttest.containers.registry;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.Objects;
 
 import org.testcontainers.utility.DockerImageName;
 
@@ -48,7 +49,6 @@ public class InternalRegistry extends Registry {
     private static File configDir = new File(System.getProperty("user.home"), ".docker");
 
     private String registry;
-    private String authToken;
     private boolean isRegistryAvailable;
     private Throwable setupException;
 
@@ -64,7 +64,7 @@ public class InternalRegistry extends Registry {
     }
 
     private InternalRegistry() {
-        // Priority 1: Is there a registry configured?
+        // Priority 1: Is there an Internal registry configured?
         try {
             registry = findRegistry(REGISTRY);
         } catch (Throwable t) {
@@ -74,24 +74,74 @@ public class InternalRegistry extends Registry {
             return;
         }
 
-        // Priority 2: Can we generate an auth token
+        // Priority 2: Can we authenticate to the Internal registry?
+        String generatedAuthToken = null;
+        String foundAuthToken = null;
+
         try {
-            authToken = generateAuthToken(REGISTRY_USER, REGISTRY_PASSWORD);
+            foundAuthToken = findAuthToken(registry);
         } catch (Throwable t) {
-            isRegistryAvailable = false;
             setupException = t;
+        }
+
+        try {
+            generatedAuthToken = generateAuthToken(REGISTRY_USER, REGISTRY_PASSWORD);
+        } catch (Throwable t) {
+            setupException = t.initCause(setupException);
+        }
+
+        // Could not generate auth token nor find auth token, give up all hope
+        if (Objects.isNull(generatedAuthToken) && Objects.isNull(foundAuthToken)) {
+            isRegistryAvailable = false;
             return;
         }
 
-        // Finally: Attempt to generate docker configuration for this registry
-        try {
-            generateDockerConfig(registry, authToken, configDir);
+        // We could not generate an auth token, but we found an auth token
+        // -- assume the found auth token will work.
+        if (Objects.isNull(generatedAuthToken) && !Objects.isNull(foundAuthToken)) {
             isRegistryAvailable = true;
-        } catch (Throwable t) {
-            isRegistryAvailable = false;
-            setupException = t;
+            return;
         }
 
+        // We generated an auth token
+        Objects.requireNonNull(generatedAuthToken);
+
+        // -- but did not find any auth token.
+        // -- Create it by persisting the generated auth token
+        if (Objects.isNull(foundAuthToken)) {
+            try {
+                persistAuthToken(registry, generatedAuthToken, configDir);
+                isRegistryAvailable = true;
+                return;
+            } catch (Throwable t) {
+                isRegistryAvailable = false;
+                setupException = t.initCause(setupException);
+                return;
+            }
+        }
+
+        // -- and found an auth token.
+        Objects.requireNonNull(foundAuthToken);
+
+        // Was the generated auth token the same as the found auth token?
+        boolean matchingTokens = generatedAuthToken.equals(foundAuthToken);
+
+        // -- Yes, leave the config alone.
+        if (matchingTokens) {
+            isRegistryAvailable = true;
+            return;
+        }
+
+        // -- No, update it by persisting the generated auth token.
+        try {
+            persistAuthToken(registry, generatedAuthToken, configDir);
+            isRegistryAvailable = true;
+            return;
+        } catch (Throwable t) {
+            isRegistryAvailable = false;
+            setupException = t.initCause(setupException);
+            return;
+        }
     }
 
     @Override

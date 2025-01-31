@@ -12,7 +12,6 @@ package componenttest.containers.registry;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -93,10 +92,10 @@ public class ArtifactoryRegistryTest {
 
         Throwable t = registry.getSetupException();
         assertNotNull(t);
-        assertTrue("Throwable should have beeen an IllegalStateException", t instanceof IllegalStateException);
+        assertTrue("Throwable should have been an IllegalStateException", t instanceof IllegalStateException);
         assertTrue("Throwable should have contained the force external property ", t.getMessage().contains(FORCE_EXTERNAL));
 
-        assertFalse("Registry should not have beeen available", registry.isRegistryAvailable());
+        assertFalse("Registry should not have been available", registry.isRegistryAvailable());
 
         // no registry
         System.setProperty(FORCE_EXTERNAL, "false");
@@ -104,10 +103,10 @@ public class ArtifactoryRegistryTest {
 
         t = registry.getSetupException();
         assertNotNull(t);
-        assertTrue("Throwable should have beeen an IllegalStateException", t instanceof IllegalStateException);
+        assertTrue("Throwable should have been an IllegalStateException", t instanceof IllegalStateException);
         assertTrue("Throwable should have contained the registry property ", t.getMessage().contains(REGISTRY));
 
-        assertFalse("Registry should not have beeen available", registry.isRegistryAvailable());
+        assertFalse("Registry should not have been available", registry.isRegistryAvailable());
 
         // no user
         System.setProperty(REGISTRY, "artifactory.swg-devops.com");
@@ -115,10 +114,10 @@ public class ArtifactoryRegistryTest {
 
         t = registry.getSetupException();
         assertNotNull(t);
-        assertTrue("Throwable should have beeen an IllegalStateException", t instanceof IllegalStateException);
-        assertTrue("Throwable should have contained the registry property ", t.getMessage().contains(REGISTRY_USER));
+        assertTrue("Throwable should have been an IllegalStateException", t instanceof IllegalStateException);
+        assertTrue("Throwable cause should have contained the user property ", t.getMessage().contains(REGISTRY_USER));
 
-        assertFalse("Registry should not have beeen available", registry.isRegistryAvailable());
+        assertFalse("Registry should not have been available", registry.isRegistryAvailable());
 
         // no password
         System.setProperty(REGISTRY_USER, "first.last@example.com");
@@ -126,19 +125,16 @@ public class ArtifactoryRegistryTest {
 
         t = registry.getSetupException();
         assertNotNull(t);
-        assertTrue("Throwable should have beeen an IllegalStateException", t instanceof IllegalStateException);
-        assertTrue("Throwable should have contained the registry property ", t.getMessage().contains(REGISTRY_PASSWORD));
+        assertTrue("Throwable should have been an IllegalStateException", t instanceof IllegalStateException);
+        assertTrue("Throwable cause should have contained the password property ", t.getMessage().contains(REGISTRY_PASSWORD));
 
-        assertFalse("Registry should not have beeen available", registry.isRegistryAvailable());
+        assertFalse("Registry should not have been available", registry.isRegistryAvailable());
 
         // Successful
         System.setProperty(REGISTRY_PASSWORD, "testPassword123");
         registry = getConstructor().newInstance();
 
-        t = registry.getSetupException();
-        assertNull(t);
-
-        assertTrue("Registry should not have beeen available", registry.isRegistryAvailable());
+        assertTrue("Registry should not have been available", registry.isRegistryAvailable());
     }
 
     @Test

@@ -11,10 +11,16 @@ package componenttest.containers.registry;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.util.Base64;
+import java.util.Objects;
+import java.util.Optional;
 
+import org.testcontainers.shaded.com.github.dockerjava.core.DefaultDockerClientConfig;
+import org.testcontainers.utility.AuthConfigUtil;
 import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.utility.RegistryAuthLocator;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.util.DefaultIndenter;
@@ -25,6 +31,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.node.TextNode;
+import com.github.dockerjava.api.model.AuthConfig;
 import com.ibm.websphere.simplicity.log.Log;
 
 /**
@@ -91,31 +98,47 @@ public abstract class Registry {
 
     // SETUP METHODS
 
-    protected static String findRegistry(final String registryKey) {
+    /**
+     * Searches system properties for the this registries location using the provided regsitryKey
+     *
+     * @param  registryKey           System property that holds the registry location
+     * @return                       The registry location
+     * @throws IllegalStateException If no system property was configured
+     */
+    protected static String findRegistry(final String registryKey) throws IllegalStateException {
         Log.info(c, "findRegistry", "Searching system property " + registryKey + " for a registry.");
         String registry = System.getProperty(registryKey);
         if (registry == null || registry.isEmpty() || registry.startsWith("${") || registry.equals("null")) {
-            throw new IllegalStateException("No registry configured. System property '" + registryKey + "' was: " + registry
-                                            + " Ensure registry properties are set on system.");
+            throw new IllegalStateException("No registry was configured. System property '" + registryKey + "' was: " + registry
+                                            + ". Ensure registry properties are set on system.");
         }
         return registry;
     }
 
-    protected static String generateAuthToken(final String registryUser, final String registryPassword) throws Exception {
+    /**
+     * Searches system properties for the this registries authentication data (user/password)
+     * using the provided keys, registryUserKey and registryPasswordKey.
+     *
+     * @param  registryUserKey       System property that holds the registry user
+     * @param  registryPasswordKey   System property that holds the registry password
+     * @return                       The authentication token for this registries user
+     * @throws IllegalStateException If one of the system properties was not configured
+     */
+    protected static String generateAuthToken(final String registryUserKey, final String registryPasswordKey) throws IllegalStateException {
         final String m = "generateAuthToken";
         Log.info(c, m, "Generating registry auth token from system properties:"
-                       + " [ " + registryUser + ", " + registryPassword + "]");
+                       + " [ " + registryUserKey + ", " + registryPasswordKey + "]");
 
-        String username = System.getProperty(registryUser);
-        String password = System.getProperty(registryPassword);
+        String username = System.getProperty(registryUserKey);
+        String password = System.getProperty(registryPasswordKey);
 
         if (username == null || username.isEmpty() || username.startsWith("${")) {
-            throw new IllegalStateException("No username configured. System property '" + registryUser + "' was: " + username
-                                            + " Ensure properties are set on system.");
+            throw new IllegalStateException("No username was configured. System property '" + registryUserKey + "' was: " + username
+                                            + ". Ensure properties are set on system.");
         }
 
         if (password == null || password.isEmpty() || password.startsWith("${")) {
-            throw new IllegalStateException("No password configured. System property '" + registryPassword
+            throw new IllegalStateException("No password was configured. System property '" + registryPasswordKey
                                             + " was not set. Ensure properties are set on system.");
         }
 
@@ -129,12 +152,27 @@ public abstract class Registry {
     }
 
     /**
-     * Generate a config file config.json in the provided config directory if a private docker registry will be used
-     * Or if a config.json already exists, make sure that the private registry is listed. If not, add
-     * the private registry to the existing config
+     * <pre>
+     * First, find or create a config file (config.json) in the provided configDir location.
+     *
+     * Then, search the config file, and perform one of the following actions for the provided registry:
+     * - Append: If no auth element existed for this registry,
+     *           then add a new auth element with this authToken
+     * - Replace: If an auth element existed for this registry but the auth tokens do not match,
+     *            then replace it with the one provided to this method.
+     * - Return: If an auth element existed for this registry and the auth tokens match,
+     *            then return without making any changes.
+     * </pre>
+     *
+     * @param  registry  The registry for which an auth element of the config file.
+     * @param  authToken The authentication token for an auth element of the config file.
+     * @param  configDir The directory where an config.json file should be located.
+     *
+     * @throws Exception For issues parsing the config file.
      */
-    protected static File generateDockerConfig(String registry, String authToken, File configDir) throws Exception {
-        final String m = "generateDockerConfig";
+    protected static File persistAuthToken(final String registry, final String authToken, final File configDir) throws Exception {
+
+        final String m = "persistAuthToken";
 
         File configFile = new File(configDir, "config.json");
 
@@ -157,9 +195,16 @@ public abstract class Registry {
                 Log.info(c, m, "Config already exists at: " + configFile.getAbsolutePath());
                 logConfigContents(m, "Original contents", serializeOutput(mapper, root));
 
-                //If existing config contains correct registry and auth token combination, return original file.
-                if (testExistingConfig(root, registry, authToken)) {
+                // If existing config contains correct registry and auth token combination, return original file.
+                Optional<String> found = findExistingConfig(root, registry);
+                if (found.isPresent() && found.get().equals(authToken)) {
                     Log.info(c, m, "Config already contains the correct auth token for registry: " + registry);
+                    return configFile;
+                }
+
+                // Config contained registry, but not auth data, therefore do not attempt to store auth data, return original file.
+                if (found.isPresent() && found.get().isEmpty()) {
+                    Log.info(c, m, "Config contains the registry with no auth data, cannot persist new auth data for registry: " + registry);
                     return configFile;
                 }
             } catch (Exception e) {
@@ -188,7 +233,54 @@ public abstract class Registry {
         String newContent = serializeOutput(mapper, root);
         logConfigContents(m, "New config.json contents are", newContent);
         writeFile(configFile, newContent);
+
         return configFile;
+    }
+
+    /**
+     * If an auth token for this registry exists, return it.
+     * Otherwise, throw an exception.
+     *
+     * @param  registry              The registry for which an auth element of the config file.
+     * @return                       The auth token
+     * @throws IllegalStateException If no auth element existed
+     */
+    protected static String findAuthToken(final String registry) throws Exception {
+
+        final String m = "findAuthToken";
+
+        DockerImageName tiny = DockerImageName.parse("alpine:3.17").withRegistry(registry);
+
+        //Bad practice here, but we need to lookup the auth config without caching it at the same time.
+        Method lookupUncachedAuthConfig = RegistryAuthLocator.class.getDeclaredMethod("lookupUncachedAuthConfig", String.class, DockerImageName.class);
+        lookupUncachedAuthConfig.setAccessible(true);
+
+        /**
+         * Utilize the RegistryAuthLocator with a bogus DockerImageName.
+         * This will attempt to locate the registry authentication in the following priority order:
+         * 1. credHelpers
+         * 2. credsStore
+         * 3. base64 encoded credentials
+         */
+        AuthConfig encodedCredentials = DefaultDockerClientConfig.createDefaultConfigBuilder().build().effectiveAuthConfig(tiny.asCanonicalNameString());
+        Optional<AuthConfig> credStoreOrHelper = (Optional<AuthConfig>) lookupUncachedAuthConfig.invoke(RegistryAuthLocator.instance(), tiny.getRegistry(), tiny);
+        AuthConfig config = credStoreOrHelper.orElse(encodedCredentials);
+
+        if (Objects.isNull(config)) {
+            throw new IllegalStateException("Could not find a pre-existing auth for the registry: " + registry);
+        } else {
+            Log.info(c, m, "Found pre-existing auth config for registry: " + AuthConfigUtil.toSafeString(config));
+        }
+
+        if (Objects.nonNull(config.getAuth())) {
+            return config.getAuth();
+        } else if (Objects.nonNull(config.getUsername()) && Objects.nonNull(config.getPassword())) {
+            String authData = config.getUsername() + ':' + config.getPassword();
+            return Base64.getEncoder().encodeToString(authData.getBytes());
+        } else {
+            throw new RuntimeException("The pre-existing auth config has not been implemented by this method. "
+                                       + AuthConfigUtil.toSafeString(config));
+        }
     }
 
     //   UTILITY METHODS
@@ -211,48 +303,50 @@ public abstract class Registry {
     }
 
     /**
-     * Tests to see if the existing JSON object contains the expected registry
+     * Searches the JSON object for the auth element for the provided registry,
+     * and returns the authToken if it exists.
      *
-     * @param  root      - The collected JSON object
-     * @param  registry  - The expected registry
-     * @param  authToken - The expected authToken
-     * @return           true, if the existing json object contains the registry and authToken, false otherwise.
+     * @param  root     The collected JSON object
+     * @param  registry The expected registry
+     * @return          An optional - ofEmpty if registry does not exist, ofBlank if auth data does not exist,
+     *                  of auth token if auth data does exist.
+     *
      */
-    protected static boolean testExistingConfig(final ObjectNode root, final String registry, final String authToken) {
-        final String m = "testExistingConfig";
+    protected static Optional<String> findExistingConfig(final ObjectNode root, final String registry) {
+        final String m = "findExistingConfig";
 
         try {
             if (root.isNull()) {
-                return false;
+                return Optional.empty();
             }
 
             if (!root.hasNonNull("auths")) {
-                Log.finer(c, m, "Config does not contain the auths element");
-                return false;
+                Log.info(c, m, "Config does not contain the auths element");
+                return Optional.empty();
             }
 
             if (!root.get("auths").hasNonNull(registry)) {
-                Log.finer(c, m, "Config does not contain the registry [ " + registry + " ] element under the auths element");
-                return false;
+                Log.info(c, m, "Config does not contain the registry [ " + registry + " ] element under the auths element");
+                return Optional.empty();
             }
 
             if (!root.get("auths").get(registry).hasNonNull("auth")) {
-                Log.finer(c, m, "Config does not contain the auth element under registry [ " + registry + " ] element");
-                return false;
+                Log.info(c, m, "Config does not contain the auth element under registry [ " + registry + " ] element");
+                return Optional.of("");
             }
 
             if (!root.get("auths").get(registry).get("auth").isTextual()) {
-                Log.finer(c, m, "Config contains an auth element that is not textual");
-                return false;
+                Log.info(c, m, "Config contains an auth element that is not textual");
+                return Optional.of("");
             }
 
-            return root.get("auths").get(registry).get("auth").textValue().equals(authToken);
+            return Optional.of(root.get("auths").get(registry).get("auth").textValue());
+
         } catch (Exception e) {
             //Unexpected exception log it and consider fixing the logic above to void it
             Log.error(c, m, e);
-            return false;
+            return Optional.empty();
         }
-
     }
 
     /**

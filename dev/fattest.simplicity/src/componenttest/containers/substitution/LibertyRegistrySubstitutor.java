@@ -58,15 +58,13 @@ public class LibertyRegistrySubstitutor extends ImageNameSubstitutor {
         // Artifactory registry supports the mirrored image, but was not available
         if (artifactory.supportsRepository(mirrored) && !artifactory.isRegistryAvailable()) {
             throw new IllegalStateException("Needed to append Artifactory registry to the docker image name: " + mirrored.asCanonicalNameString()
-                                            + System.lineSeparator() + "No Artfiactory registry was available because "
-                                            + artifactory.getSetupException().getMessage());
+                                            + System.lineSeparator() + "The Artfiactory registry was not available see causedBy for reason", artifactory.getSetupException());
         }
 
         // Internal registry supports the mirrored image, but was not available
         if (internal.supportsRepository(mirrored) && !internal.isRegistryAvailable()) {
             throw new IllegalStateException("Needed to append Internal registry to the docker image name: " + mirrored.asCanonicalNameString()
-                                            + System.lineSeparator() + "No Internal registry was available because "
-                                            + internal.getSetupException().getMessage());
+                                            + System.lineSeparator() + "The Internal registry was not available see causedBy for reason", internal.getSetupException());
         }
 
         // Mirrored image name already has a registry, this indicates that a developer
