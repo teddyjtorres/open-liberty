@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -455,9 +455,26 @@ public class ESAAdaptor extends ArchiveAdaptor {
     }
 
     // Determine there is another platform feature requires this resource
-    private static boolean requiredByPlatformFeature(ContentBasedLocalBundleRepository br, File baseDir, File b) {
+//    private static boolean requiredByPlatformFeature(ContentBasedLocalBundleRepository br, File baseDir, File b) {
+//        try {
+//            Map<String, ProvisioningFeatureDefinition> features = new Product(baseDir).getFeatureDefinitions();
+//            for (ProvisioningFeatureDefinition fd : features.values()) {
+//                if (fd.isKernel()) {
+//                    if (requiredByJar(br, fd, b))
+//                        return true;
+//                }
+//            }
+//        } catch (Exception e) {
+//        }
+//        return false;
+//    }
+
+    private static boolean requiredByPlatformFeature(ContentBasedLocalBundleRepository br, File baseDir, File b, Map<String, ProvisioningFeatureDefinition> features) {
         try {
-            Map<String, ProvisioningFeatureDefinition> features = new Product(baseDir).getFeatureDefinitions();
+            if (features == null) {
+                features = new Product(baseDir).getFeatureDefinitions();
+            }
+
             for (ProvisioningFeatureDefinition fd : features.values()) {
                 if (fd.isKernel()) {
                     if (requiredByJar(br, fd, b))
@@ -552,7 +569,7 @@ public class ESAAdaptor extends ArchiveAdaptor {
                                     resourceMap.put(fr.getSymbolicName(), b);
                                 }
                             } else {
-                                if (targetFd.isKernel() || !requiredByPlatformFeature(br, baseDir, b)) {
+                                if (targetFd.isKernel() || !requiredByPlatformFeature(br, baseDir, b, features)) {
                                     resourceMap.put(fr.getSymbolicName(), b);
                                 }
                             }
