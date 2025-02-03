@@ -575,11 +575,30 @@ public class DataProvider implements //
         builders.forEach(builder -> {
             builder.introspect(writer, "  ");
             writer.println();
-        });
 
-        // TODO log EntityInfo.introspect
-        // EntityInfo is available from queryInfoPerEntity.keySet,
-        // but obtaining from the EntityManagerBuilder might be more complete.
+            builder.entityInfoMap.forEach((userEntityClass, entityInfoFuture) -> {
+                writer.println("    entity: " + userEntityClass.getName());
+
+                EntityInfo entityInfo = null;
+                writer.print("      future: ");
+                if (entityInfoFuture.isCancelled())
+                    writer.println("cancelled");
+                else if (entityInfoFuture.isDone())
+                    try {
+                        entityInfo = entityInfoFuture.join();
+                        writer.println("completed");
+                    } catch (Throwable x) {
+                        writer.println("failed");
+                        Util.printStackTrace(x, writer, "    ", null);
+                    }
+                else
+                    writer.println("not completed");
+
+                if (entityInfo != null)
+                    entityInfo.introspect(writer, "      ");
+                writer.println();
+            });
+        });
 
         writer.println();
         writer.println("Query Information:");
