@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2011, 2024 IBM Corporation and others.
+ * Copyright (c) 2011, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -291,7 +291,7 @@ public class LibertyClient {
 
         // This is the only case where we will allow the messages.log name to  be changed
         // by the fat framework -- because we want to look at messasges.log for start/stop/blah
-        // messags, we shouldn't be pointing it all over everywhere else. For those FAT tests
+        // messages, we shouldn't be pointing it all over everywhere else. For those FAT tests
         // that need a messages file in an alternate location, they should set the corresponding
         // com.ibm.ws.logging.message.file.name property in bootstrap.properties
         String nonDefaultLogFile = b.getValue("NonDefaultConsoleLogFileName");
@@ -627,12 +627,6 @@ public class LibertyClient {
             if (clientNeedsToRunWithJava2Security()) {
                 addJava2SecurityPropertiesToBootstrapFile(f);
                 Log.info(c, "startClientWithArgs", "Java 2 Security enabled for client " + getClientName() + " because GLOBAL_JAVA2SECURITY=true");
-
-                // If we are running on Java 18+, then we need to explicitly enable the security manager
-                if (javaInfo.majorVersion() >= 18) {
-                    Log.info(c, "startClientWithArgs", "Java 18 + and java2security is global, setting -Djava.security.manager=allow");
-                    JVM_ARGS += " -Djava.security.manager=allow";
-                }
             } else {
                 LOG.warning("The build is configured to run FAT tests with Java 2 Security enabled, but the FAT client " + getClientName() +
                             " is exempt from Java 2 Security regression testing.");
@@ -661,7 +655,13 @@ public class LibertyClient {
             }
 
             if (bootstrapHasJava2SecProps) {
-                // If we are running on Java 18+, then we need to explicitly enable the security manager
+                if (javaInfo.majorVersion() >= 24) {
+                    // Security manager is permanently disabled starting in Java 24
+                    LOG.severe("The build is configured to run FAT tests with Java 2 security enabled, but the security manager is permanently disabled in Java versions 24 and later.  The security manager cannot be set!");
+                    throw new RuntimeException("The security manager is permanently disabled in Java versions 24 and later.  When running FATs, use @MaximumJavaLevel(javaLevel = 23) or disable Java 2 security to prevent this test from failing running in Java 24 or later.");
+                }
+
+                // If we are running on Java 18 through 23, then we need to explicitly enable the security manager
                 Log.info(c, "startClientWithArgs", "Java 18 + Java2Sec requested, setting -Djava.security.manager=allow");
                 JVM_ARGS += " -Djava.security.manager=allow";
             }
@@ -2138,7 +2138,7 @@ public class LibertyClient {
      * Method used by exposed installApp methods that calls into the ApplicationManager
      * to actually install the required application
      *
-     * @param  appPath   Absoulte path to application (includes app name)
+     * @param  appPath   Absolute path to application (includes app name)
      * @throws Exception
      */
     protected void finalInstallApp(String appPath) throws Exception {

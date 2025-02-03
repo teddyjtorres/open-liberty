@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, 2024 IBM Corporation and others.
+ * Copyright (c) 2022, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -13,18 +13,24 @@
 package io.openliberty.data.internal.persistence;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 
 import javax.sql.DataSource;
@@ -60,6 +66,7 @@ import com.ibm.ws.runtime.metadata.ApplicationMetaData;
 import com.ibm.ws.runtime.metadata.ComponentMetaData;
 import com.ibm.ws.runtime.metadata.ModuleMetaData;
 import com.ibm.ws.tx.embeddable.EmbeddableWebSphereTransactionManager;
+import com.ibm.wsspi.logging.Introspector;
 import com.ibm.wsspi.persistence.DDLGenerationParticipant;
 import com.ibm.wsspi.resource.ResourceConfigFactory;
 import com.ibm.wsspi.resource.ResourceFactory;
@@ -68,6 +75,7 @@ import io.openliberty.cdi.spi.CDIExtensionMetadata;
 import io.openliberty.checkpoint.spi.CheckpointPhase;
 import io.openliberty.data.internal.persistence.cdi.DataExtension;
 import io.openliberty.data.internal.persistence.cdi.FutureEMBuilder;
+import io.openliberty.data.internal.persistence.cdi.RepositoryProducer;
 import io.openliberty.data.internal.persistence.metadata.DataComponentMetaData;
 import io.openliberty.data.internal.persistence.metadata.DataModuleMetaData;
 import io.openliberty.data.internal.version.DataVersionCompatibility;
@@ -88,7 +96,8 @@ import jakarta.persistence.EntityManagerFactory;
            service = { CDIExtensionMetadata.class,
                        DataProvider.class,
                        DeferredMetaDataFactory.class,
-                       ApplicationStateListener.class },
+                       ApplicationStateListener.class,
+                       Introspector.class },
            property = { "deferredMetaData=DATA" })
 public class DataProvider implements //
                 CDIExtensionMetadata, //
@@ -97,7 +106,8 @@ public class DataProvider implements //
                 // be visible to our extension (and override the value to true),
                 // CDIExtensionMetadataInternal, //
                 DeferredMetaDataFactory, //
-                ApplicationStateListener {
+                ApplicationStateListener, //
+                Introspector {
     private static final TraceComponent tc = Tr.register(DataProvider.class);
 
     private static final Set<Class<?>> beanClasses = //
@@ -205,6 +215,13 @@ public class DataProvider implements //
                     new ConcurrentHashMap<>();
 
     /**
+     * Map of application name to list of producers of repository beans.
+     * Entries are removed when the application stops.
+     */
+    final Map<String, Queue<RepositoryProducer<?>>> repositoryProducers = //
+                    new ConcurrentHashMap<>();
+
+    /**
      * For creating resource references.
      */
     public final ResourceConfigFactory resourceConfigFactory;
@@ -305,6 +322,8 @@ public class DataProvider implements //
         // Try to order removals based on dependencies, so that we remove first
         // what might depend on the others.
 
+        repositoryProducers.remove(appName);
+
         Queue<ServiceRegistration<DDLGenerationParticipant>> ddlgenRegistrations = //
                         ddlgeneratorsAllApps.remove(appName);
         if (ddlgenRegistrations != null)
@@ -382,6 +401,8 @@ public class DataProvider implements //
         // Try to order removals based on dependencies, so that we remove first
         // what might depend on the others.
 
+        repositoryProducers.clear();
+
         // Remove and unregister ddl generation services that our extension generated.
         for (Iterator<Queue<ServiceRegistration<DDLGenerationParticipant>>> it = //
                         ddlgeneratorsAllApps.values().iterator(); it.hasNext();) {
@@ -445,6 +466,22 @@ public class DataProvider implements //
     }
 
     /**
+     * Introspector description that is included within the introspection file.
+     */
+    @Override
+    public String getIntrospectorDescription() {
+        return "Jakarta Data repository diagnostics";
+    }
+
+    /**
+     * Name for the introspector that is used within the introspection file name.
+     */
+    @Override
+    public String getIntrospectorName() {
+        return "JakartaDataIntrospector";
+    }
+
+    /**
      * Create an identifier for metadata that is constructed by this
      * DeferredMetaDataFactory.
      *
@@ -472,6 +509,77 @@ public class DataProvider implements //
     @Override
     @Trivial
     public void initialize(ComponentMetaData metadata) throws IllegalStateException {
+    }
+
+    /**
+     * Write to the introspection file for Jakarta Data.
+     *
+     * @param writer writes to the introspection file.
+     */
+    @Override
+    public void introspect(PrintWriter writer) {
+        Set<QueryInfo> queryInfos = new LinkedHashSet<QueryInfo>();
+
+        writer.println("compatibility: " + compat.getClass().getSimpleName());
+        writer.println("createTables? " + createTables);
+        writer.println("dropTables? " + dropTables);
+        writer.println("logValues for " + logValues);
+
+        writer.println();
+        writer.println("databaseStore config:");
+        dbStoreConfigAllApps.forEach((appName, dbStoreToConfig) -> {
+            writer.println("  for application " + appName);
+            dbStoreToConfig.forEach((dbStore, config) -> {
+                writer.println("    for databaseStore " + dbStore);
+                Util.alphabetize(config.getProperties()).forEach((name, value) -> {
+                    writer.println("      " + name + "=" + value);
+                });
+            });
+        });
+
+        writer.println();
+        writer.println("EntityManager builders for unstarted applications:");
+        futureEMBuilders.forEach((appName, futureEMBuilders) -> {
+            writer.println("  for application " + appName);
+            for (FutureEMBuilder futureEMBuilder : futureEMBuilders) {
+                futureEMBuilder.introspect(writer, "    ");
+                writer.println();
+            }
+        });
+
+        writer.println();
+        writer.println("Repository Producers:");
+        repositoryProducers.forEach((appName, producers) -> {
+            writer.println("  for application " + appName);
+            for (RepositoryProducer<?> producer : producers) {
+                queryInfos.addAll(producer.introspect(writer, "    "));
+                writer.println();
+            }
+        });
+
+        // The null key in this map indicates unknown EntityInfo
+        HashMap<EntityInfo, List<QueryInfo>> queryInfoPerEntity = new HashMap<>();
+        for (QueryInfo queryInfo : queryInfos) {
+            EntityInfo entityInfo = queryInfo.getEntityInfo();
+            List<QueryInfo> list = queryInfoPerEntity.get(entityInfo);
+            if (list == null)
+                queryInfoPerEntity.put(entityInfo, list = new ArrayList<>());
+            list.add(queryInfo);
+        }
+
+        // TODO log EntityInfo.introspect
+        // EntityInfo is available from queryInfoPerEntity.keySet,
+        // but obtaining from the EntityManagerBuilder might be more complete.
+
+        writer.println();
+        writer.println("Query Information:");
+        queryInfoPerEntity.forEach((entityInfo, queryInfoList) -> {
+            writer.println("  for entity " + entityInfo);
+            for (QueryInfo queryInfo : queryInfoList) {
+                queryInfo.introspect(writer, "    ");
+                writer.println();
+            }
+        });
     }
 
     /**
@@ -675,6 +783,25 @@ public class DataProvider implements //
         Collection<FutureEMBuilder> previous = futureEMBuilders.putIfAbsent(appName, builders);
         if (previous != null)
             previous.addAll(builders);
+    }
+
+    /**
+     * Receives notification that a RepositoryProducer was created.
+     * DataProvider keeps track of RepositoryProducer instances in order to log
+     * information to the introspector output.
+     *
+     * @param appName  application name.
+     * @param producer RepositoryProducer instance.
+     */
+    @Trivial
+    public void producerCreated(String appName, RepositoryProducer<?> producer) {
+        Queue<RepositoryProducer<?>> producers = repositoryProducers.get(appName);
+        if (producers == null) {
+            Queue<RepositoryProducer<?>> empty = new ConcurrentLinkedQueue<>();
+            if ((producers = repositoryProducers.putIfAbsent(appName, empty)) == null)
+                producers = empty;
+        }
+        producers.add(producer);
     }
 
     @Reference(service = ModuleMetaDataListener.class,

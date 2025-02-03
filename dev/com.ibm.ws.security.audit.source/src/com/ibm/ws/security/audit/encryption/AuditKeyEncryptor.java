@@ -38,14 +38,15 @@ public class AuditKeyEncryptor {
             desKey = new byte[len];
             byte[] digest = md.digest(this.password);
             ByteArray.copy(digest, 0, digest.length, desKey, 0);
-            desKey[20] = (byte) 0x00;
-            desKey[21] = (byte) 0x00;
-            desKey[22] = (byte) 0x00;
-            desKey[23] = (byte) 0x00;
+            if (!CryptoUtils.isFips140_3Enabled()) {
+                desKey[20] = (byte) 0x00;
+                desKey[21] = (byte) 0x00;
+                desKey[22] = (byte) 0x00;
+                desKey[23] = (byte) 0x00;
+            }
         } catch (java.security.NoSuchAlgorithmException e) {
             com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.ltpa.KeyEncryptor.KeyEncryptor", "21", this);
         }
-        String provider = null;
         des = new AuditCrypto();
 
     }

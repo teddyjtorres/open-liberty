@@ -114,7 +114,7 @@ public abstract class AbstractJSSEProvider implements JSSEProvider {
         this.keyStoreProvider = keyProvider;
         this.socketFactory = factory;
         this.defaultProtocol = protocolType;
-        if (tc.isDebugEnabled()) {
+        if (tc.isEntryEnabled()) {
             Tr.entry(tc, "initialize ", keyMgr, trustMgr, cxtProvider, keyProvider);
         }
 
@@ -132,6 +132,7 @@ public abstract class AbstractJSSEProvider implements JSSEProvider {
                 Tr.debug(tc, "Provider[" + i + "]: " + provider_list[i].getName() + ", info: " + provider_list[i].getInfo());
             }
         }
+
         if (CryptoUtils.isFips140_2Enabled() || CryptoUtils.isFips140_3Enabled()) {
             try {
                 com.ibm.ws.ssl.JSSEProviderFactory.initializeFips();

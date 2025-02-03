@@ -315,7 +315,7 @@ public class JSSEProviderFactory {
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())
             Tr.entry(tc, "initializeFips");
 
-//        if (!fipsInitialized) {
+//        if (!fipsInitialized && !CryptoUtils.isFips140_3Enabled()) {
 //            int ibmjcefips_position = 0;
 //            int ibmjceplusfips_position = 0;
 //            Provider[] provider_list = null;
@@ -411,8 +411,15 @@ public class JSSEProviderFactory {
 //                    Tr.debug(tc, "Exception caught adding IBMJCEFIPS provider.", new Object[] { e });
 //                throw e;
 //            }
+//        } else if (!fipsInitialized) {
+//                fipsInitialized = true;
+//                Provider[] provider_list = Security.getProviders();
+//                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+//                    for (int i = 0; i < provider_list.length; i++) {
+//                        Tr.debug(tc, "Provider[" + i + "]: " + provider_list[i].getName() + ", info: " + provider_list[i].getInfo());
+//                    }
+//                }
 //        }
-
         if (!fipsInitialized) {
             fipsInitialized = true;
             Provider[] provider_list = Security.getProviders();
@@ -422,7 +429,6 @@ public class JSSEProviderFactory {
                 }
             }
         }
-
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled())
             Tr.exit(tc, "initializeFips");
     }

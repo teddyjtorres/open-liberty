@@ -12,36 +12,33 @@ package io.openliberty.microprofile.telemetry.logging.internal_fat;
 import static org.junit.Assert.assertNotNull;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.function.Consumer;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import com.ibm.websphere.simplicity.RemoteFile;
-
 import componenttest.annotation.Server;
 import componenttest.custom.junit.runner.FATRunner;
+import componenttest.rules.repeater.RepeatTests;
 import componenttest.topology.impl.LibertyServer;
 import componenttest.topology.utils.FATServletClient;
+import io.openliberty.microprofile.telemetry.internal_fat.shared.TelemetryActions;
 
 @RunWith(FATRunner.class)
 public class TelemetryAuditTest extends FATServletClient {
-
-    private static Class<?> c = TelemetryAuditTest.class;
 
     public static final String SERVER_NAME = "TelemetryAudit";
 
     //This test will run on all mp 2.0 repeats to ensure we have some test coverage on all versions.
     //I chose this one because TelemetryMessages is core to this bucket
     // Will re-enable in follow-on issue.
-    //@ClassRule
-    //public static RepeatTests rt = TelemetryActions.telemetry20Repeats();
+    @ClassRule
+    public static RepeatTests rt = TelemetryActions.telemetry20Repeats();
 
     @Server(SERVER_NAME)
     public static LibertyServer server;
@@ -69,22 +66,9 @@ public class TelemetryAuditTest extends FATServletClient {
      */
     @Test
     public void testTelemetryAuditLogs() throws Exception {
-        testTelemetryAuditLogs(server, null);
-    }
-
-    static void testTelemetryAuditLogs(LibertyServer s, Consumer<List<String>> consoleConsumer) throws Exception {
-        String line = s.waitForStringInLog("AuditService", s.getConsoleLogFile());
+        String line = server.waitForStringInLog("AuditService", server.getConsoleLogFile());
 
         assertNotNull("The AuditService audit event was not not found.", line);
-
-        RemoteFile consoleLog = s.getConsoleLogFile();
-        s.setMarkToEndOfLog(consoleLog);
-
-        List<String> linesConsoleLog = s.findStringsInLogsUsingMark(".*scopeInfo.*", consoleLog);
-
-        if (consoleConsumer != null) {
-            consoleConsumer.accept(linesConsoleLog);
-        }
 
         Map<String, String> expectedAuditFieldsMap = new HashMap<String, String>() {
             {
