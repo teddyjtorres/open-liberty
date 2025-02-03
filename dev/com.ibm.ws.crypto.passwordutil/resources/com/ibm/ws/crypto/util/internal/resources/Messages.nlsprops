@@ -50,10 +50,10 @@ PASSWORDUTIL_UNSUPPORTEDENCODING_EXCEPTION.useraction=Check the server log and i
 PASSWORDUTIL_INVALID_BASE64_STRING=CWWKS1859E: The password was not decrypted because a decoding error was reported.
 PASSWORDUTIL_INVALID_BASE64_STRING.explanation=The encrypted password was not encoded properly.
 PASSWORDUTIL_INVALID_BASE64_STRING.useraction=Make sure that the encrypted password is not truncated and encoded by using Base64 encoding.
-PASSWORDUTIL_EXCEPTION_FIPS130_AES128_UNAVAILABLE_ALGORITHM=CWWKS1860E: AES-128 encrypted passwords cannot be used when FIPS 140-3 is enabled. Remove the password or regenerate it with latest aes encoding to use AES-256.
-PASSWORDUTIL_EXCEPTION_FIPS130_AES128_UNAVAILABLE_ALGORITHM.explanation=FIPS-130 is enabled and the password being used is encrypted with AES-128 when AES-256 must be used.
+PASSWORDUTIL_EXCEPTION_FIPS130_AES128_UNAVAILABLE_ALGORITHM=CWWKS1860E: AES-128 encrypted passwords cannot be used when FIPS 140-3 is enabled. Regenerate the password with AES-256 using the securityUtility command.
+PASSWORDUTIL_EXCEPTION_FIPS130_AES128_UNAVAILABLE_ALGORITHM.explanation=FIPS-130 is enabled and does not support AES-128. Use the securityUtility command to encrypt the password using AES-256.
 PASSWORDUTIL_EXCEPTION_FIPS130_AES128_UNAVAILABLE_ALGORITHM.useraction=Make sure the password is encrypted with AES-256.
-PASSWORDUTIL_EXCEPTION_UNAVAILABLE_ALGORITHM=CWWKS1861E: AES password decryption failed. Check your java.security settings.
+PASSWORDUTIL_EXCEPTION_UNAVAILABLE_ALGORITHM=CWWKS1861E: AES password decryption failed. Check your java.security settings and add the missing algorithm.
 PASSWORDUTIL_EXCEPTION_UNAVAILABLE_ALGORITHM.explanation=An encryption algorithm is being used that is not defined in your java.security.
 PASSWORDUTIL_EXCEPTION_UNAVAILABLE_ALGORITHM.useraction=Make sure that the algorithm is added to your java.security file.
 
