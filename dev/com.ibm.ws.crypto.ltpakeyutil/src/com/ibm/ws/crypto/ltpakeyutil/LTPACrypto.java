@@ -595,8 +595,8 @@ final class LTPACrypto {
             throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
         SecretKey sKey = null;
         if (cipher.indexOf("AES") != -1) {
-            // 16 bytes = 128 bit key
-            sKey = new SecretKeySpec(key, 0, 16, "AES");
+            int keyLength = fipsEnabled ? CryptoUtils.AES_256_KEY_LENGTH_BYTES : CryptoUtils.AES_128_KEY_LENGTH_BYTES;
+            sKey = new SecretKeySpec(key, 0, keyLength, "AES");
         } else {
             DESedeKeySpec kSpec = new DESedeKeySpec(key);
             SecretKeyFactory kFact = null;
