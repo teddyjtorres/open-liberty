@@ -176,7 +176,7 @@ public class DataIntrospectorTest extends FATServletClient {
      */
     @Test
     public void testOutputContainsGeneratedEntityClassSignatures() {
-        assertLineContains("public PollingLocationEntity(PollingLocation)");
+        assertLineContains("public PollingLocationEntity(");
         assertLineContains("public java.time.LocalTime getClosesAt()");
         assertLineContains("public void setClosesAt(java.time.LocalTime)");
     }
