@@ -13,8 +13,12 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Objects;
 
+import org.testcontainers.shaded.com.github.dockerjava.core.DefaultDockerClientConfig;
+import org.testcontainers.utility.AuthConfigUtil;
 import org.testcontainers.utility.DockerImageName;
+import org.testcontainers.utility.RegistryAuthLocator;
 
+import com.github.dockerjava.api.model.AuthConfig;
 import com.ibm.websphere.simplicity.log.Log;
 
 /**
@@ -51,10 +55,8 @@ public class ArtifactoryRegistry extends Registry {
 //        MIRRORS.put("quay.io", "wasliberty-quay-docker-remote"); TODO
     }
 
-    private static File configDir = new File(System.getProperty("user.home"), ".docker");
-
     private String registry = ""; //Blank registry is the default setting
-    private String authToken;
+    private AuthConfig authConfig;
     private boolean isArtifactoryAvailable;
     private Throwable setupException;
 
@@ -91,78 +93,39 @@ public class ArtifactoryRegistry extends Registry {
         }
 
         // Priority 2: Can we authenticate to the Artifactory registry?
-        String generatedAuthToken = null;
-        String foundAuthToken = null;
 
+        // Bogus image we can use to test if registry auth data exists
+        DockerImageName tiny = DockerImageName.parse("alpine:3.17").withRegistry(registry);
+
+        AuthConfig fallback;
         try {
-            foundAuthToken = findAuthToken(registry);
-        } catch (Throwable t) {
+            // Generate an auth config based off system properties
+            // prefer this over the unencrypted alternative from ~/.docker/config.json
+            // assuming that developers are more likely to keep their properties up to date vs docker config.
+            fallback = new AuthConfig()
+                            .withRegistryAddress(registry)
+                            .withUsername(findRegistryUser(REGISTRY_USER))
+                            .withPassword(findRegistryPassword(REGISTRY_PASSWORD));
+        } catch (Exception t) {
+            // Could not find auth config based off system properties
+            // instead look for an auth config that is unencrypted in ~/.docker/config.json
+            fallback = DefaultDockerClientConfig.createDefaultConfigBuilder().build().effectiveAuthConfig(tiny.asCanonicalNameString());
             setupException = t;
         }
 
-        try {
-            generatedAuthToken = generateAuthToken(REGISTRY_USER, REGISTRY_PASSWORD);
-        } catch (Throwable t) {
-            setupException = t.initCause(setupException);
-        }
+        // Use the RegistryAuthLocator which will prioritize credsStore and credHelpers
+        // otherwise it will fallback to an unecrypted alternative (if it exists)
+        // Note: this will cache the auth data for all future pulls
+        authConfig = RegistryAuthLocator.instance().lookupAuthConfig(tiny, fallback);
+        Log.info(c, "<init>", AuthConfigUtil.toSafeString(authConfig));
 
-        // Could not generate auth token nor find auth token, give up all hope
-        if (Objects.isNull(generatedAuthToken) && Objects.isNull(foundAuthToken)) {
+        if (Objects.isNull(authConfig) || Objects.isNull(authConfig.getUsername()) || Objects.isNull(authConfig.getPassword())) {
             isArtifactoryAvailable = false;
+            setupException = new IllegalStateException("Could not find or generate an authentication configuration for " + registry, setupException);
             return;
         }
 
-        // We could not generate an auth token, but we found an auth token
-        // -- assume the found auth token will work.
-        if (Objects.isNull(generatedAuthToken) && !Objects.isNull(foundAuthToken)) {
-            authToken = foundAuthToken;
-            isArtifactoryAvailable = true;
-            return;
-        }
-
-        // We generated an auth token
-        Objects.requireNonNull(generatedAuthToken);
-
-        // -- but did not find any auth token.
-        // -- Create it by persisting the generated auth token
-        if (Objects.isNull(foundAuthToken)) {
-            try {
-                persistAuthToken(registry, generatedAuthToken, configDir);
-                authToken = generatedAuthToken;
-                isArtifactoryAvailable = true;
-                return;
-            } catch (Throwable t) {
-                isArtifactoryAvailable = false;
-                setupException = t.initCause(setupException);
-                return;
-            }
-        }
-
-        // -- and found an auth token.
-        Objects.requireNonNull(foundAuthToken);
-
-        // Was the generated auth token the same as the found auth token?
-        boolean matchingTokens = generatedAuthToken.equals(foundAuthToken);
-
-        // -- Yes, leave the config alone.
-        if (matchingTokens) {
-            authToken = generatedAuthToken;
-            isArtifactoryAvailable = true;
-            return;
-        }
-
-        // -- No, update it by persisting the generated auth token.
-        try {
-            persistAuthToken(registry, generatedAuthToken, configDir);
-            authToken = generatedAuthToken;
-            isArtifactoryAvailable = true;
-            return;
-        } catch (Throwable t) {
-            isArtifactoryAvailable = false;
-            setupException = t.initCause(setupException);
-            return;
-        }
-
+        isArtifactoryAvailable = true;
     }
 
     @Override
@@ -209,12 +172,13 @@ public class ArtifactoryRegistry extends Registry {
      */
     @Deprecated
     public File generateTempDockerConfig(String registry) throws Exception {
-        if (authToken == null) {
-            throw new IllegalStateException("Auth token was not available", setupException);
+        if (authConfig == null) {
+            throw new IllegalStateException("Auth config was not available", setupException);
         }
 
         File configDir = new File(System.getProperty("java.io.tmpdir"), ".docker");
-        File configFile = persistAuthToken(registry, authToken, configDir);
+        String authData = authConfig.getUsername() + ':' + authConfig.getPassword();
+        File configFile = persistAuthToken(registry, authData, configDir);
 
         Log.info(c, "generateTempDockerConfig", "Creating a temporary docker configuration file at: " + configFile.getAbsolutePath());
 

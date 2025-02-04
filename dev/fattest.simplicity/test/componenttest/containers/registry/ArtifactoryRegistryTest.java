@@ -15,9 +15,7 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
-import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -25,7 +23,6 @@ import java.util.Map;
 
 import org.junit.AfterClass;
 import org.junit.Before;
-import org.junit.BeforeClass;
 import org.junit.Test;
 import org.testcontainers.utility.DockerImageName;
 
@@ -39,16 +36,6 @@ public class ArtifactoryRegistryTest {
     private static final String REGISTRY = "fat.test.artifactory.docker.server";
     private static final String REGISTRY_USER = "fat.test.artifactory.download.user";
     private static final String REGISTRY_PASSWORD = "fat.test.artifactory.download.token";
-
-    @BeforeClass
-    public static void setupTests() throws Exception {
-        // Avoid writing to the developers docker config
-        File testdir = new File(System.getProperty("java.io.tmpdir"), ".docker");
-
-        Field configDir = ArtifactoryRegistry.class.getDeclaredField("configDir");
-        configDir.setAccessible(true);
-        configDir.set(null, testdir);
-    }
 
     @Before
     public void setupTest() {
@@ -115,7 +102,8 @@ public class ArtifactoryRegistryTest {
         t = registry.getSetupException();
         assertNotNull(t);
         assertTrue("Throwable should have been an IllegalStateException", t instanceof IllegalStateException);
-        assertTrue("Throwable cause should have contained the user property ", t.getMessage().contains(REGISTRY_USER));
+        assertNotNull("Throable should have had cause", t.getCause());
+        assertTrue("Throwable cause should have contained the user property ", t.getCause().getMessage().contains(REGISTRY_USER));
 
         assertFalse("Registry should not have been available", registry.isRegistryAvailable());
 
@@ -126,7 +114,8 @@ public class ArtifactoryRegistryTest {
         t = registry.getSetupException();
         assertNotNull(t);
         assertTrue("Throwable should have been an IllegalStateException", t instanceof IllegalStateException);
-        assertTrue("Throwable cause should have contained the password property ", t.getMessage().contains(REGISTRY_PASSWORD));
+        assertNotNull("Throable should have had cause", t.getCause());
+        assertTrue("Throwable cause should have contained the password property ", t.getCause().getMessage().contains(REGISTRY_PASSWORD));
 
         assertFalse("Registry should not have been available", registry.isRegistryAvailable());
 

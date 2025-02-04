@@ -18,9 +18,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
-import java.util.Base64;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -456,50 +454,8 @@ public class RegistryTest {
         assertEquals(expected, actual);
     }
 
-    @Test
-    public void testGenerateAuthToken() throws Exception {
-        String testUsername = "test.email@example.com";
-        String testToken = "aToTallyFakeTokenThaTWouldNeverBeUsed";
-        String expectedAuthToken = "dGVzdC5lbWFpbEBleGFtcGxlLmNvbTphVG9UYWxseUZha2VUb2tlblRoYVRXb3VsZE5ldmVyQmVVc2Vk";
-
-        Method generateAuthToken = getGenerateAuthToken();
-
-        // Ensure failure path
-        System.clearProperty(REGISTRY_USER);
-        System.clearProperty(REGISTRY_PASSWORD);
-
-        try {
-            generateAuthToken.invoke(null, REGISTRY_USER, REGISTRY_PASSWORD);
-            fail("Should not have generated authToken when property "
-                 + REGISTRY_USER + " and " + REGISTRY_PASSWORD + " were unset");
-        } catch (InvocationTargetException e) {
-            assertTrue(e.getCause() instanceof IllegalStateException);
-        }
-
-        // Ensure successful path
-        System.setProperty(REGISTRY_USER, testUsername);
-        System.setProperty(REGISTRY_PASSWORD, testToken);
-
-        String actualAuthToken = (String) generateAuthToken.invoke(null, REGISTRY_USER, REGISTRY_PASSWORD);
-
-        assertEquals(expectedAuthToken, actualAuthToken);
-
-        String actualAuthData = new String(Base64.getDecoder().decode(actualAuthToken.getBytes()), StandardCharsets.UTF_8);
-        String actualUsername = actualAuthData.split(":")[0];
-        String actualToken = actualAuthData.split(":")[1];
-
-        assertEquals(testUsername, actualUsername);
-        assertEquals(testToken, actualToken);
-    }
-
     private static Method getFindRegistry() throws Exception {
         Method method = Registry.class.getDeclaredMethod("findRegistry", String.class);
-        method.setAccessible(true);
-        return method;
-    }
-
-    private static Method getGenerateAuthToken() throws Exception {
-        Method method = Registry.class.getDeclaredMethod("generateAuthToken", String.class, String.class);
         method.setAccessible(true);
         return method;
     }
