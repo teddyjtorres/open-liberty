@@ -8049,7 +8049,7 @@ public class LibertyServer implements LogMonitorClient {
         return envVars.get(var);
     }
 
-    private void configureLTPAKeys(JavaInfo info) throws IOException, InterruptedException {
+    public void configureLTPAKeys(JavaInfo info) throws IOException, InterruptedException {
 
         if (isFIPS140_3EnabledAndSupported(info)) {
             String serverSecurityDir = serverRoot + File.separator + "resources" + File.separator + "security";
