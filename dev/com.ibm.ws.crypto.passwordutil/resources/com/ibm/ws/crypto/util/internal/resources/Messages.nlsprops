@@ -49,16 +49,13 @@ PASSWORDUTIL_UNSUPPORTEDENCODING_EXCEPTION.explanation=The password was not encr
 PASSWORDUTIL_UNSUPPORTEDENCODING_EXCEPTION.useraction=Check the server log and if the custom password encryption is used check the custom password encryption logs for further information.
 PASSWORDUTIL_INVALID_BASE64_STRING=CWWKS1859E: The password was not decrypted because a decoding error was reported.
 PASSWORDUTIL_INVALID_BASE64_STRING.explanation=The encrypted password was not encoded properly.
-PASSWORDUTIL_INVALID_BASE64_STRING.useraction=Make sure that the encrypted password is not truncated and encoded by using Base64 encoding.
+PASSWORDUTIL_INVALID_BASE64_STRING.useraction=Make sure that the encrypted password is not truncated and encoded with Base64 encoding.
 PASSWORDUTIL_EXCEPTION_FIPS130_AES128_UNAVAILABLE_ALGORITHM=CWWKS1860E: AES-128 encrypted passwords cannot be used when FIPS 140-3 is enabled. Regenerate the password with AES-256 using the securityUtility command.
 PASSWORDUTIL_EXCEPTION_FIPS130_AES128_UNAVAILABLE_ALGORITHM.explanation=FIPS-130 is enabled and does not support AES-128. Use the securityUtility command to encrypt the password using AES-256.
 PASSWORDUTIL_EXCEPTION_FIPS130_AES128_UNAVAILABLE_ALGORITHM.useraction=Make sure the password is encrypted with AES-256.
 PASSWORDUTIL_EXCEPTION_UNAVAILABLE_ALGORITHM=CWWKS1861E: AES password decryption failed. Check your java.security settings and add the missing algorithm.
-PASSWORDUTIL_EXCEPTION_UNAVAILABLE_ALGORITHM.explanation=An encryption algorithm is being used that is not defined in your java.security.
+PASSWORDUTIL_EXCEPTION_UNAVAILABLE_ALGORITHM.explanation=An encryption algorithm is missing from your java.security file.
 PASSWORDUTIL_EXCEPTION_UNAVAILABLE_ALGORITHM.useraction=Make sure that the algorithm is added to your java.security file.
-
-
-
 
 # ---------------- This is an exception message ------------
 PASSWORDUTIL_DUPLICATE_CUSTOM_ENCRYPTION=More than one CustomPasswordEncryption implementation is detected. Only one CustomPasswordEncryption implementation is supported. The list of detected CustomPasswordEncryption implementation is as follows:
