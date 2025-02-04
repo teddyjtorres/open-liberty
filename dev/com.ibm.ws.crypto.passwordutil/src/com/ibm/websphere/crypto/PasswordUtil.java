@@ -651,7 +651,7 @@ public class PasswordUtil {
                         logger.logp(Level.SEVERE, PasswordUtil.class.getName(), "decode_password", "PASSWORDUTIL_UNKNOWN_ALGORITHM_EXCEPTION", e);
                         return null;
                     } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
-                        logger.logp(Level.SEVERE, PasswordUtil.class.getName(), "decode_password", MessageUtils.getMessage("PASSWORDUTIL_EXCEPTION_UNAVAILABLE_ALGORITHM"), e);
+                        logger.logp(Level.SEVERE, PasswordUtil.class.getName(), "decode_password", MessageUtils.getMessage("PASSWORDUTIL_UNAVAILABLE_DECRYPTION_ALGORITHM_EXCEPTION"), e);
                         return null;
                     }
                     if ((decrypted_bytes != null) && (decrypted_bytes.length > 0)) {
@@ -725,7 +725,7 @@ public class PasswordUtil {
                             logger.logp(Level.SEVERE, PasswordUtil.class.getName(), "encode_password", "PASSWORDUTIL_UNKNOWN_ALGORITHM_EXCEPTION", e);
                             return null;
                         } catch (InvalidKeySpecException | NoSuchAlgorithmException e) {
-                            logger.logp(Level.SEVERE, PasswordUtil.class.getName(), "decode_password", MessageUtils.getMessage("PASSWORDUTIL_EXCEPTION_UNAVAILABLE_ALGORITHM"), e);
+                            logger.logp(Level.SEVERE, PasswordUtil.class.getName(), "decode_password", MessageUtils.getMessage("PASSWORDUTIL_UNAVAILABLE_ENCRYPTION_ALGORITHM_EXCEPTION"), e);
                             return null;
                         }
                     }
