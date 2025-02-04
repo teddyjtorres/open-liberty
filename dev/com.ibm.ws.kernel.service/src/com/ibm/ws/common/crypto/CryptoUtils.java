@@ -73,6 +73,7 @@ public class CryptoUtils {
 
     public static final String SIGNATURE_ALGORITHM_SHA1WITHRSA = "SHA1withRSA";
     public static final String SIGNATURE_ALGORITHM_SHA256WITHRSA = "SHA256withRSA";
+    public static final String SIGNATURE_ALGORITHM_SHA512WITHRSA = "SHA512withRSA";
 
     public static final String CRYPTO_ALGORITHM_RSA = "RSA";
 
@@ -116,7 +117,7 @@ public class CryptoUtils {
 
     public static String getSignatureAlgorithm() {
         if (fipsEnabled && (isOpenJCEPlusFIPSAvailable() || isIBMJCEPlusFIPSAvailable()))
-            return SIGNATURE_ALGORITHM_SHA256WITHRSA;
+            return SIGNATURE_ALGORITHM_SHA512WITHRSA;
         else
             return SIGNATURE_ALGORITHM_SHA1WITHRSA;
     }
@@ -316,10 +317,10 @@ public class CryptoUtils {
         try {
             if (fipsEnabled) {
                 if (isSemeruFips()) {
-                    md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
+                    md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA512,
                                                     OPENJCE_PLUS_FIPS_NAME);
                 } else {
-                    md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
+                    md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA512,
                                                     IBMJCE_PLUS_FIPS_NAME);
                 }
             } else if (CryptoUtils.isIBMJCEAvailable()) {
