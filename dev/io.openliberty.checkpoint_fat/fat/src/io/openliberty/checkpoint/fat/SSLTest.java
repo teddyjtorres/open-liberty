@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, 2024 IBM Corporation and others.
+ * Copyright (c) 2022, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -28,7 +28,6 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.KeyStore;
-import java.util.Map;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
@@ -146,9 +145,6 @@ public class SSLTest {
                             "{aes}ARATaq8k5SQc6VBaw+IB9LmGg5R3ZvpsriWJTKOF7ty3F6mKcfCasPndBRD07yGyrJ7hJaCRD/NiibtkzqcPOxwudqsqLV3/q1Ucjjfh4XpeaEw3xOhY99JGlMxtFoPDDa7i/YHva5bU"); // keystore password = secret
                 addKeystore("serverTrustStore", "server-truststore.jks", "JKS",
                             "{aes}ARATaq8k5SQc6VBaw+IB9LmGg5R3ZvpsriWJTKOF7ty3F6mKcfCasPndBRD07yGyrJ7hJaCRD/NiibtkzqcPOxwudqsqLV3/q1Ucjjfh4XpeaEw3xOhY99JGlMxtFoPDDa7i/YHva5bU"); //truststore password = secret
-                Map<String, String> options = server.getJvmOptionsAsMap();
-                options.put("-Dcom.ibm.ws.beta.edition", "true");
-                server.setJvmOptions(options);
                 configureSSL();
                 break;
             default:
@@ -472,13 +468,11 @@ public class SSLTest {
 
             @Override
             public void checkClientTrusted(
-                                           java.security.cert.X509Certificate[] certs, String authType) {
-            }
+                                           java.security.cert.X509Certificate[] certs, String authType) {}
 
             @Override
             public void checkServerTrusted(
-                                           java.security.cert.X509Certificate[] certs, String authType) {
-            }
+                                           java.security.cert.X509Certificate[] certs, String authType) {}
         } };
 
         return trustAllCerts;
