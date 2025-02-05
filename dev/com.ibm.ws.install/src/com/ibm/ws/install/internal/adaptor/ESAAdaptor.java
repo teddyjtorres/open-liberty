@@ -31,6 +31,7 @@ import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 import java.util.zip.ZipFile;
@@ -103,6 +104,7 @@ public class ESAAdaptor extends ArchiveAdaptor {
 
     private static final String EBCDIC = "ebcdic";
     private static final String ASCII = "ascii";
+    private static ArrayList<ProvisioningFeatureDefinition> kernelFeatures = new ArrayList<>();
 
     public static void install(Product product, ESAAsset featureAsset, List<File> filesInstalled, Collection<String> featuresToBeInstalled, ExistsAction existsAction,
                                Set<String> executableFiles, Map<String, Set<String>> extattrFiles, ChecksumsManager checksumsManager) throws IOException, InstallException {
@@ -454,20 +456,24 @@ public class ESAAdaptor extends ArchiveAdaptor {
         return false;
     }
 
-    // Determine there is another platform feature requires this resource
-//    private static boolean requiredByPlatformFeature(ContentBasedLocalBundleRepository br, File baseDir, File b) {
-//        try {
-//            Map<String, ProvisioningFeatureDefinition> features = new Product(baseDir).getFeatureDefinitions();
-//            for (ProvisioningFeatureDefinition fd : features.values()) {
-//                if (fd.isKernel()) {
-//                    if (requiredByJar(br, fd, b))
-//                        return true;
-//                }
-//            }
-//        } catch (Exception e) {
-//        }
-//        return false;
-//    }
+    /**
+     * Get list of kernel features from all features map
+     *
+     * @param baseDir
+     * @param features
+     */
+    private static ArrayList<ProvisioningFeatureDefinition> getKernelFeatures(File baseDir, Map<String, ProvisioningFeatureDefinition> features) {
+        if (features == null) {
+            features = new Product(baseDir).getFeatureDefinitions();
+        }
+
+        if (kernelFeatures == null) {
+            kernelFeatures = (ArrayList<ProvisioningFeatureDefinition>) features.values().stream().filter(ProvisioningFeatureDefinition::isKernel).collect(Collectors.toList());
+        }
+
+        return kernelFeatures;
+
+    }
 
     private static boolean requiredByPlatformFeature(ContentBasedLocalBundleRepository br, File baseDir, File b, Map<String, ProvisioningFeatureDefinition> features) {
         try {
@@ -475,11 +481,9 @@ public class ESAAdaptor extends ArchiveAdaptor {
                 features = new Product(baseDir).getFeatureDefinitions();
             }
 
-            for (ProvisioningFeatureDefinition fd : features.values()) {
-                if (fd.isKernel()) {
-                    if (requiredByJar(br, fd, b))
-                        return true;
-                }
+            for (ProvisioningFeatureDefinition fd : kernelFeatures) {
+                if (requiredByJar(br, fd, b))
+                    return true;
             }
         } catch (Exception e) {
         }
@@ -525,11 +529,9 @@ public class ESAAdaptor extends ArchiveAdaptor {
                 features = new Product(baseDir).getFeatureDefinitions();
             }
 
-            for (ProvisioningFeatureDefinition fd : features.values()) {
-                if (fd.isKernel()) {
-                    if (requiredByFile(fd, baseDir, testFile))
-                        return true;
-                }
+            for (ProvisioningFeatureDefinition fd : kernelFeatures) {
+                if (requiredByFile(fd, baseDir, testFile))
+                    return true;
             }
         } catch (Exception e) {
         }
