@@ -9,15 +9,12 @@
  *******************************************************************************/
 package componenttest.containers.registry;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Objects;
 
-import org.testcontainers.shaded.com.github.dockerjava.core.DefaultDockerClientConfig;
-import org.testcontainers.utility.AuthConfigUtil;
 import org.testcontainers.utility.DockerImageName;
-import org.testcontainers.utility.RegistryAuthLocator;
 
-import com.github.dockerjava.api.model.AuthConfig;
 import com.ibm.websphere.simplicity.log.Log;
 
 import componenttest.containers.ImageHelper;
@@ -49,6 +46,8 @@ public class InternalRegistry extends Registry {
         REGISTRY_MIRRORS.put("localhost", "wasliberty-internal-docker-local"); // images we build
     }
 
+    private static File configDir = new File(System.getProperty("user.home"), ".docker");
+
     private String registry;
     private boolean isRegistryAvailable;
     private Throwable setupException;
@@ -76,39 +75,73 @@ public class InternalRegistry extends Registry {
         }
 
         // Priority 2: Can we authenticate to the Internal registry?
+        String generatedAuthToken = null;
+        String foundAuthToken = null;
 
-        // Bogus image we can use to test if registry auth data exists
-        DockerImageName tiny = DockerImageName.parse("alpine:3.17").withRegistry(registry);
-
-        AuthConfig fallback;
         try {
-            // Generate an auth config based off system properties
-            // prefer this over the unencrypted alternative from ~/.docker/config.json
-            // assuming that developers are more likely to keep their properties up to date vs docker config.
-            fallback = new AuthConfig()
-                            .withRegistryAddress(registry)
-                            .withUsername(findRegistryUser(REGISTRY_USER))
-                            .withPassword(findRegistryPassword(REGISTRY_PASSWORD));
-        } catch (Exception t) {
-            // Could not find auth config based off system properties
-            // instead look for an auth config that is unencrypted in ~/.docker/config.json
-            fallback = DefaultDockerClientConfig.createDefaultConfigBuilder().build().effectiveAuthConfig(tiny.asCanonicalNameString());
+            foundAuthToken = findAuthToken(registry);
+        } catch (Throwable t) {
             setupException = t;
         }
 
-        // Use the RegistryAuthLocator which will prioritize credsStore and credHelpers
-        // otherwise it will fallback to an unecrypted alternative (if it exists)
-        // Note: this will cache the auth data for all future pulls
-        AuthConfig authConfig = RegistryAuthLocator.instance().lookupAuthConfig(tiny, fallback);
-        Log.info(c, "<init>", AuthConfigUtil.toSafeString(authConfig));
+        try {
+            generatedAuthToken = generateAuthToken(REGISTRY_USER, REGISTRY_PASSWORD);
+        } catch (Throwable t) {
+            setupException = t.initCause(setupException);
+        }
 
-        if (Objects.isNull(authConfig) || Objects.isNull(authConfig.getUsername()) || Objects.isNull(authConfig.getPassword())) {
+        // Could not generate auth token nor find auth token, give up all hope
+        if (Objects.isNull(generatedAuthToken) && Objects.isNull(foundAuthToken)) {
             isRegistryAvailable = false;
-            setupException = new IllegalStateException("Could not find or generate an authentication configuration for " + registry, setupException);
             return;
         }
 
-        isRegistryAvailable = true;
+        // We could not generate an auth token, but we found an auth token
+        // -- assume the found auth token will work.
+        if (Objects.isNull(generatedAuthToken) && !Objects.isNull(foundAuthToken)) {
+            isRegistryAvailable = true;
+            return;
+        }
+
+        // We generated an auth token
+        Objects.requireNonNull(generatedAuthToken);
+
+        // -- but did not find any auth token.
+        // -- Create it by persisting the generated auth token
+        if (Objects.isNull(foundAuthToken)) {
+            try {
+                persistAuthToken(registry, generatedAuthToken, configDir);
+                isRegistryAvailable = true;
+                return;
+            } catch (Throwable t) {
+                isRegistryAvailable = false;
+                setupException = t.initCause(setupException);
+                return;
+            }
+        }
+
+        // -- and found an auth token.
+        Objects.requireNonNull(foundAuthToken);
+
+        // Was the generated auth token the same as the found auth token?
+        boolean matchingTokens = generatedAuthToken.equals(foundAuthToken);
+
+        // -- Yes, leave the config alone.
+        if (matchingTokens) {
+            isRegistryAvailable = true;
+            return;
+        }
+
+        // -- No, update it by persisting the generated auth token.
+        try {
+            persistAuthToken(registry, generatedAuthToken, configDir);
+            isRegistryAvailable = true;
+            return;
+        } catch (Throwable t) {
+            isRegistryAvailable = false;
+            setupException = t.initCause(setupException);
+            return;
+        }
     }
 
     @Override
