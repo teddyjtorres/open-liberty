@@ -137,6 +137,7 @@ public class LibertyServer implements LogMonitorClient {
 
     /** How frequently we poll the logs when waiting for something to happen */
     protected static final int WAIT_INCREMENT = 300;
+    private static final String SPECIAL_CHARS = "\\`$\"'!&|;()<>*?[]{} ";
 
     boolean runAsAWindowService = false;
 
@@ -1995,12 +1996,23 @@ public class LibertyServer implements LogMonitorClient {
         for (String key : fipsOpts.keySet()) {
             String value = fipsOpts.get(key);
             if (value != null && !value.isEmpty()) {
-                joiner.add(String.format("%s=%s", key, value));
+                joiner.add(String.format("%s=%s", key, escapeCharacters(value)));
             } else {
                 joiner.add(key);
             }
         }
         return joiner.toString();
+    }
+
+    private String escapeCharacters(String input) {
+        StringBuilder builder = new StringBuilder();
+        for (char c : input.toCharArray()) {
+            if (SPECIAL_CHARS.indexOf(c) > -1) {
+                builder.append("\\");
+            }
+            builder.append(c);
+        }
+        return builder.toString();
     }
 
     private String[] checkpointAdjustParams(List<String> parametersList) {
