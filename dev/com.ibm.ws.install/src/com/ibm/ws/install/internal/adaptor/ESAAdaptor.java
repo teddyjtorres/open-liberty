@@ -359,6 +359,8 @@ public class ESAAdaptor extends ArchiveAdaptor {
     public static List<File> determineFilesToBeDeleted(ProvisioningFeatureDefinition targetFd, Map<String, ProvisioningFeatureDefinition> features, File baseDir,
                                                        String featurePath,
                                                        boolean checkDependency, Set<IFixInfo> uninstallFixInfo) {
+        // Set kernel features
+        initKernelFeatures(baseDir, features);
         // Determine the feature contents
         Map<String, File> featureContents = getUninstallFeatureContents(targetFd, features, baseDir, checkDependency);
         // Determine the bundles to remove according to the symbolic names of the uninstalling feature resources
@@ -457,12 +459,12 @@ public class ESAAdaptor extends ArchiveAdaptor {
     }
 
     /**
-     * Get list of kernel features from all features map
+     * Set list of kernel features from all features map
      *
      * @param baseDir
      * @param features
      */
-    private static ArrayList<ProvisioningFeatureDefinition> getKernelFeatures(File baseDir, Map<String, ProvisioningFeatureDefinition> features) {
+    private static void initKernelFeatures(File baseDir, Map<String, ProvisioningFeatureDefinition> features) {
         if (features == null) {
             features = new Product(baseDir).getFeatureDefinitions();
         }
@@ -471,7 +473,7 @@ public class ESAAdaptor extends ArchiveAdaptor {
             kernelFeatures = (ArrayList<ProvisioningFeatureDefinition>) features.values().stream().filter(ProvisioningFeatureDefinition::isKernel).collect(Collectors.toList());
         }
 
-        return kernelFeatures;
+        return;
 
     }
 
