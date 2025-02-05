@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2023,2024 IBM Corporation and others.
+ * Copyright (c) 2023,2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.zip.DataFormatException;
 
 import jakarta.enterprise.concurrent.Asynchronous;
 import jakarta.enterprise.concurrent.Schedule;
@@ -72,6 +73,79 @@ public class SchedAsyncAppScopedBean {
             Asynchronous.Result.complete(null);
 
         System.out.println("< everyFourSecondsVirtual executed on " + Thread.currentThread());
+    }
+
+    /**
+     * Run every 7 seconds on seconds that have a remainder of 4 when divided by 7:
+     * 4 11 18 25 32 39 46 53
+     * Complete the future exceptionally upon the countdown reaching 0.
+     *
+     * @param countdown executions remaining
+     */
+    @Asynchronous(executor = "java:module/concurrent/max-2-executor",
+                  runAt = @Schedule(cron = "4/7 * * * * *"))
+    CompletableFuture<String> everySevenSecondsUntilExceptionalCompletion(AtomicInteger countdown) {
+        System.out.println("> everySevenSecondsUntilExceptionalCompletion " + countdown);
+
+        if (countdown.decrementAndGet() == 0) {
+            Exception x = new DataFormatException("Cannot find anything else to do.");
+            Asynchronous.Result.getFuture().completeExceptionally(x);
+        }
+
+        System.out.println("< everySevenSecondsUntilExceptionalCompletion executed on " +
+                           Thread.currentThread());
+        return null;
+    }
+
+    /**
+     * Run every 7 seconds on seconds that have a remainder of 6 when divided by 7:
+     * 6 13 27 34 41 48 55
+     * Raise an exception upon the countdown reaching 0.
+     *
+     * @param countdown executions remaining
+     */
+    @Asynchronous(executor = "java:module/concurrent/max-2-executor",
+                  runAt = @Schedule(cron = "6/7 * * * * *"))
+    CompletableFuture<String> everySevenSecondsUntilThrowsError(AtomicInteger countdown) {
+        System.out.println("> everySevenSecondsUntilThrowsError " + countdown);
+
+        if (countdown.decrementAndGet() == 0) {
+            Error e = new Error("Countdown reached 0, so this won't run again.");
+            System.out.println("< everySevenSecondsUntilThrowsError intentionally" +
+                               " raised error on " + Thread.currentThread() + ": " +
+                               e);
+            throw e;
+        } else {
+            System.out.println("< everySevenSecondsUntilThrowsError executed on " +
+                               Thread.currentThread());
+            return null;
+        }
+    }
+
+    /**
+     * Run every 7 seconds on seconds that are divisible by 7:
+     * 0 7 14 28 35 42 49 56
+     * Raise an exception upon the countdown reaching 0.
+     *
+     * @param countdown executions remaining
+     */
+    @Asynchronous(executor = "java:module/concurrent/max-2-executor",
+                  runAt = @Schedule(cron = "0/7 * * * * *"))
+    CompletableFuture<String> everySevenSecondsUntilThrowsException(AtomicInteger countdown) {
+        System.out.println("> everySevenSecondsUntilThrowsException " + countdown);
+
+        if (countdown.decrementAndGet() == 0) {
+            ArrayIndexOutOfBoundsException x;
+            x = new ArrayIndexOutOfBoundsException("Countdown has reached 0.");
+            System.out.println("< everySevenSecondsUntilThrowsException intentionally" +
+                               " raised exception on " + Thread.currentThread() + ": " +
+                               x);
+            throw x;
+        } else {
+            System.out.println("< everySevenSecondsUntilThrowsException executed on " +
+                               Thread.currentThread());
+            return null;
+        }
     }
 
     /**
