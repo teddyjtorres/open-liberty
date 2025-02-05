@@ -3925,6 +3925,8 @@ public class QueryInfo {
     @Trivial
     public void introspect(PrintWriter writer, String indent) {
         writer.println(indent + "QueryInfo@" + Integer.toHexString(hashCode()));
+        indent = indent + "  ";
+        writer.println(indent + "entity: " + entityInfo);
         writer.println(indent + "repository: " + repositoryInterface.getName());
 
         // method signature information
