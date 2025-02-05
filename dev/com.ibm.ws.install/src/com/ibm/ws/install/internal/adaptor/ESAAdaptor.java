@@ -469,7 +469,7 @@ public class ESAAdaptor extends ArchiveAdaptor {
             features = new Product(baseDir).getFeatureDefinitions();
         }
 
-        if (kernelFeatures == null) {
+        if (kernelFeatures == null || kernelFeatures.isEmpty()) {
             kernelFeatures = (ArrayList<ProvisioningFeatureDefinition>) features.values().stream().filter(ProvisioningFeatureDefinition::isKernel).collect(Collectors.toList());
         }
 
