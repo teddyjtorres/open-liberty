@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2024 IBM Corporation and others.
+ * Copyright (c) 2007, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -55,7 +55,7 @@ import com.ibm.ws.common.encoder.Base64Coder;
 import com.ibm.ws.crypto.util.custom.CustomManifest;
 import com.ibm.ws.crypto.util.custom.CustomUtils;
 import com.ibm.ws.common.crypto.CryptoUtils;
-import com.ibm.ws.kernel.productinfo.ProductInfo;
+
 import com.ibm.wsspi.kernel.service.utils.AtomicServiceReference;
 import com.ibm.wsspi.security.crypto.CustomPasswordEncryption;
 import com.ibm.wsspi.security.crypto.EncryptedInfo;
@@ -266,8 +266,7 @@ public class PasswordCipherUtil {
            throw new InvalidPasswordCipherException("FIPS 140-3 cannot use AES-128");
         } else if (encrypted_bytes[0] == 0) { // we only process if we understand the encoding scheme.
             return aesDecipherV0(encrypted_bytes);
-        } else if (ProductInfo.getBetaEdition() && encrypted_bytes[0] == 1) {
-            //TODO BETA CODE guarded
+        } else if (encrypted_bytes[0] == 1) {
             return aesDecipherV1(encrypted_bytes);
         } else {
             throw new InvalidPasswordCipherException();
@@ -365,14 +364,7 @@ public class PasswordCipherUtil {
             if (properties != null) {
                 cryptoKey = properties.get(PasswordUtil.PROPERTY_CRYPTO_KEY);
             }
-            //TODO: remove beta
-            if (ProductInfo.getBetaEdition()) {
-                // Use AES-256(V1) if beta edition is enabled
-                info = aesEncipherV1(decrypted_bytes, cryptoKey);
-            } else {
-                // Use AES-128(V0)otherwise
-                info = aesEncipherV0(decrypted_bytes, cryptoKey, info, encrypted_bytes);
-            }
+            info = aesEncipherV1(decrypted_bytes, cryptoKey);
 
         } else if (XOR.equalsIgnoreCase(crypto_algorithm)) {
             encrypted_bytes = xor(decrypted_bytes);
