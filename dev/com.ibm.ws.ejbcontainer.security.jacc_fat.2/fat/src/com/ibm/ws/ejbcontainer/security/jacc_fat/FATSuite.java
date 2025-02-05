@@ -53,7 +53,6 @@ import componenttest.rules.repeater.RepeatTests;
 public class FATSuite {
     public static final Set<String> EE8_FEATURES;
     private static final String[] EE8_FEATURES_ARRAY = {
-                                                          "appSecurity-3.0",
                                                           "usr:jaccTestProvider-1.0"
     };
 
