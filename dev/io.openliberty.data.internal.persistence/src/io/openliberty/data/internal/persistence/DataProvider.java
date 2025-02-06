@@ -16,16 +16,21 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutorService;
 
 import javax.sql.DataSource;
@@ -70,6 +75,7 @@ import io.openliberty.cdi.spi.CDIExtensionMetadata;
 import io.openliberty.checkpoint.spi.CheckpointPhase;
 import io.openliberty.data.internal.persistence.cdi.DataExtension;
 import io.openliberty.data.internal.persistence.cdi.FutureEMBuilder;
+import io.openliberty.data.internal.persistence.cdi.RepositoryProducer;
 import io.openliberty.data.internal.persistence.metadata.DataComponentMetaData;
 import io.openliberty.data.internal.persistence.metadata.DataModuleMetaData;
 import io.openliberty.data.internal.version.DataVersionCompatibility;
@@ -174,7 +180,9 @@ public class DataProvider implements //
     public volatile boolean dropTables;
 
     /**
-     * EntityManagerBuilder futures per application, to complete once the application starts.
+     * EntityManagerBuilder futures per application, to complete once the
+     * application starts. After the application starts, these are kept around
+     * for the introspector. The map is cleared on application stop.
      */
     private final ConcurrentHashMap<String, Collection<FutureEMBuilder>> futureEMBuilders = //
                     new ConcurrentHashMap<>();
@@ -206,6 +214,13 @@ public class DataProvider implements //
      * rather than a web or ejb component.
      */
     private final ConcurrentHashMap<String, DataComponentMetaData> metadatas = //
+                    new ConcurrentHashMap<>();
+
+    /**
+     * Map of application name to list of producers of repository beans.
+     * Entries are removed when the application stops.
+     */
+    final Map<String, Queue<RepositoryProducer<?>>> repositoryProducers = //
                     new ConcurrentHashMap<>();
 
     /**
@@ -278,7 +293,7 @@ public class DataProvider implements //
     @Override
     public void applicationStarted(ApplicationInfo appInfo) throws StateChangeException {
         String appName = appInfo.getName();
-        Collection<FutureEMBuilder> futures = futureEMBuilders.remove(appName);
+        Collection<FutureEMBuilder> futures = futureEMBuilders.get(appName);
         if (futures != null) {
             for (FutureEMBuilder futureEMBuilder : futures) {
                 // This delays createEMBuilder until restore.
@@ -297,7 +312,6 @@ public class DataProvider implements //
 
     @Override
     public void applicationStopping(ApplicationInfo appInfo) {
-        futureEMBuilders.remove(appInfo.getName());
     }
 
     @Override
@@ -308,6 +322,8 @@ public class DataProvider implements //
 
         // Try to order removals based on dependencies, so that we remove first
         // what might depend on the others.
+
+        repositoryProducers.remove(appName);
 
         Queue<ServiceRegistration<DDLGenerationParticipant>> ddlgenRegistrations = //
                         ddlgeneratorsAllApps.remove(appName);
@@ -385,6 +401,8 @@ public class DataProvider implements //
     protected void deactivate(ComponentContext cc) {
         // Try to order removals based on dependencies, so that we remove first
         // what might depend on the others.
+
+        repositoryProducers.clear();
 
         // Remove and unregister ddl generation services that our extension generated.
         for (Iterator<Queue<ServiceRegistration<DDLGenerationParticipant>>> it = //
@@ -496,12 +514,19 @@ public class DataProvider implements //
 
     /**
      * Write to the introspection file for Jakarta Data.
+     *
+     * @param writer writes to the introspection file.
      */
     @Override
-    public void introspect(PrintWriter writer) throws Exception {
+    public void introspect(PrintWriter writer) {
+        Set<QueryInfo> queryInfos = new LinkedHashSet<>();
+        Set<EntityManagerBuilder> builders = new LinkedHashSet<>();
+
+        writer.println("compatibility: " + compat.getClass().getSimpleName());
         writer.println("createTables? " + createTables);
         writer.println("dropTables? " + dropTables);
         writer.println("logValues for " + logValues);
+
         writer.println();
         writer.println("databaseStore config:");
         dbStoreConfigAllApps.forEach((appName, dbStoreToConfig) -> {
@@ -514,7 +539,74 @@ public class DataProvider implements //
             });
         });
 
-        // TODO more information
+        writer.println();
+        writer.println("EntityManager builder futures:");
+        futureEMBuilders.forEach((appName, futureEMBuilders) -> {
+            writer.println("  for application " + appName);
+            for (FutureEMBuilder futureEMBuilder : futureEMBuilders) {
+                futureEMBuilder.introspect(writer, "    ") //
+                                .ifPresent(builders::add);
+                writer.println();
+            }
+        });
+
+        writer.println();
+        writer.println("Repository Producers:");
+        repositoryProducers.forEach((appName, producers) -> {
+            writer.println("  for application " + appName);
+            for (RepositoryProducer<?> producer : producers) {
+                queryInfos.addAll(producer.introspect(writer, "    "));
+                writer.println();
+            }
+        });
+
+        // The null key in this map indicates unknown EntityInfo
+        HashMap<EntityInfo, List<QueryInfo>> queryInfoPerEntity = new HashMap<>();
+        for (QueryInfo queryInfo : queryInfos) {
+            EntityInfo entityInfo = queryInfo.getEntityInfo();
+            List<QueryInfo> list = queryInfoPerEntity.get(entityInfo);
+            if (list == null)
+                queryInfoPerEntity.put(entityInfo, list = new ArrayList<>());
+            list.add(queryInfo);
+        }
+
+        writer.println();
+        writer.println("EntityManager builders:");
+        builders.forEach(builder -> {
+            builder.introspect(writer, "  ");
+            writer.println();
+
+            builder.entityInfoMap.forEach((userEntityClass, entityInfoFuture) -> {
+                writer.println("    entity: " + userEntityClass.getName());
+
+                EntityInfo entityInfo = null;
+                writer.print("      future: ");
+                if (entityInfoFuture.isCancelled())
+                    writer.println("cancelled");
+                else if (entityInfoFuture.isDone())
+                    try {
+                        entityInfo = entityInfoFuture.join();
+                        writer.println("completed");
+                    } catch (Throwable x) {
+                        writer.println("failed");
+                        Util.printStackTrace(x, writer, "    ", null);
+                    }
+                else
+                    writer.println("not completed");
+
+                if (entityInfo != null)
+                    entityInfo.introspect(writer, "      ");
+                writer.println();
+            });
+        });
+
+        writer.println();
+        writer.println("Query Information:");
+        for (List<QueryInfo> queryInfoList : queryInfoPerEntity.values())
+            for (QueryInfo queryInfo : queryInfoList) {
+                queryInfo.introspect(writer, "  ");
+                writer.println();
+            }
     }
 
     /**
@@ -718,6 +810,25 @@ public class DataProvider implements //
         Collection<FutureEMBuilder> previous = futureEMBuilders.putIfAbsent(appName, builders);
         if (previous != null)
             previous.addAll(builders);
+    }
+
+    /**
+     * Receives notification that a RepositoryProducer was created.
+     * DataProvider keeps track of RepositoryProducer instances in order to log
+     * information to the introspector output.
+     *
+     * @param appName  application name.
+     * @param producer RepositoryProducer instance.
+     */
+    @Trivial
+    public void producerCreated(String appName, RepositoryProducer<?> producer) {
+        Queue<RepositoryProducer<?>> producers = repositoryProducers.get(appName);
+        if (producers == null) {
+            Queue<RepositoryProducer<?>> empty = new ConcurrentLinkedQueue<>();
+            if ((producers = repositoryProducers.putIfAbsent(appName, empty)) == null)
+                producers = empty;
+        }
+        producers.add(producer);
     }
 
     @Reference(service = ModuleMetaDataListener.class,
