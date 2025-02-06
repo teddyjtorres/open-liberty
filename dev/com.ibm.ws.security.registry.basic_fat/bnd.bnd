@@ -19,6 +19,8 @@ src: \
 
 fat.project: true
 
+tested.features: checkpoint
+
 # Dependencies may be local bundles (e.g. com.ibm.websphere.javaee.servlet.3.1)
 #      or binaries from Artifactory (e.g. commons-logging:commons-logging)
 # For all project names that match the pattern "*_fat*", dependencies for junit,
@@ -30,4 +32,5 @@ fat.project: true
 	com.ibm.ws.security.registry.basic;version=latest,\
 	com.ibm.ws.webcontainer.security_test.servlets;version=latest,\
 	com.ibm.ws.security.registry;version=latest,\
+	com.ibm.ws.security.fat.common;version=latest,\
 	com.ibm.ws.security.registry_test.servlet;version=latest
