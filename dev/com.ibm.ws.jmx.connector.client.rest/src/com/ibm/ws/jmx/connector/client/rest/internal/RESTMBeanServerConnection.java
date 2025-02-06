@@ -2330,6 +2330,16 @@ class RESTMBeanServerConnection implements MBeanServerConnection {
                         continue mainLoop;
                     } catch (IOException io) {
                         logger.logp(Level.FINE, logger.getName(), sourceMethod, io.getMessage(), io);
+                        connection.disconnect();
+                        try {
+                            synchronized (waitFlag) {
+                                waitFlag.wait(connector.getServerStatusPollingInterval());
+                            }
+                        } catch (InterruptedException e) {
+                            if (logger.isLoggable(Level.FINE)) {
+                                logger.logp(Level.FINE, logger.getName(), sourceMethod, "Interrupted sleep in thread: " + getCustomId());
+                            }
+                        }
                         continue mainLoop;
                     }
 
