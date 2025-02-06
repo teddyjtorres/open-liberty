@@ -272,6 +272,7 @@ jakarta.ejb:jakarta.ejb-api:4.0.1
 jakarta.enterprise.concurrent:jakarta.enterprise.concurrent-api:2.0.0
 jakarta.enterprise.concurrent:jakarta.enterprise.concurrent-api:3.0.4
 jakarta.enterprise.concurrent:jakarta.enterprise.concurrent-api:3.1.1
+jakarta.enterprise:cdi-tck-api:4.1.0
 jakarta.enterprise:jakarta.enterprise.cdi-api:3.0.1
 jakarta.enterprise:jakarta.enterprise.cdi-api:4.0.1
 jakarta.enterprise:jakarta.enterprise.cdi-api:4.1.0
@@ -791,6 +792,7 @@ org.jboss.weld:weld-osgi-bundle:3.1.9.Final
 org.jboss.weld:weld-osgi-bundle:4.0.3.Final
 org.jboss.weld:weld-osgi-bundle:5.1.1.SP2
 org.jboss.weld:weld-osgi-bundle:6.0.0.CR1
+org.jboss.weld:weld-porting-package-tck:6.0.0.Final
 org.jetbrains.kotlin:kotlin-stdlib-common:1.9.0
 org.jetbrains.kotlin:kotlin-stdlib:1.9.0
 org.jetbrains:annotations:13.0
