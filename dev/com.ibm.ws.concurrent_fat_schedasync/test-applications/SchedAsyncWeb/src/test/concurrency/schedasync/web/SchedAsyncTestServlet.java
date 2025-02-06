@@ -128,6 +128,29 @@ public class SchedAsyncTestServlet extends FATServlet {
         // 00            07            14            21            28            35            42            49            56
         //         04            11            18            25            32            39            46            53
         //             06            13            20            27            34            41            48            55
+
+        // Seconds at which automatically scheduled asynchronous methods run:
+        // 00              08              16              24              32              40              48              56
+        //       03                  13                  23                  33                  43                  53
+    }
+
+    /**
+     * Verify whether a scheduled asynchronous method that uses CDI Observes Startup
+     * to automatically schedule itself executes multiple times successfully.
+     */
+    @Test
+    public void testAutoScheduleObservesStartup() throws Exception {
+        bean.awaitAutoScheduleCompletion(TIMEOUT_NS, TimeUnit.NANOSECONDS);
+    }
+
+    /**
+     * Verify that a method can use CDI Observes Startup to schedule the invocation
+     * of a scheduled asynchronous method to happen after a delay, and that the
+     * scheduled asynchronous method executes multiple times successfully.
+     */
+    @Test
+    public void testDelayedAutoScheduleObservesStartup() throws Exception {
+        bean.awaitDelayedScheduleCompletion(TIMEOUT_NS, TimeUnit.NANOSECONDS);
     }
 
     /**
