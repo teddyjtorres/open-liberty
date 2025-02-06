@@ -3509,14 +3509,6 @@ public class LibertyServer implements LogMonitorClient {
     private static final String[] EXEMPT_SERVERS = {
                                                      "cdi20EEServer", //com.ibm.ws.cdi.1.0_fat_EE
 
-                                                     "com.ibm.ws.security.authorization.jacc.dynamic_fat", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
-                                                     "com.ibm.ws.ejbcontainer.security.jacc_fat.ejbjar.mergebindings", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
-                                                     "com.ibm.ws.ejbcontainer.security.jacc_fat.ejbjar.inwar", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
-                                                     "com.ibm.ws.ejbcontainer.security.jacc_fat.ejbjar.mc", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
-                                                     "com.ibm.ws.ejbcontainer.security.jacc_fat", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
-                                                     "com.ibm.ws.ejbcontainer.security.jacc_fat.bindings", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
-                                                     "com.ibm.ws.ejbcontainer.security.jacc_fat.mergebindings", //com.ibm.ws.ejbcontainer.security.jacc_fat.2
-
                                                      "EclipseLinkServer", //com.ibm.ws.jpa.tests.eclipselink_jpa_2.1_fat
 
                                                      "com.ibm.ws.jpa.el.defaultds.fat.server", //com.ibm.ws.jpa.tests.jpa_fat
@@ -3575,8 +3567,6 @@ public class LibertyServer implements LogMonitorClient {
                                                      "com.ibm.ws.scaling.member.fat.controller1", //com.ibm.ws.scaling.member_fat
 
                                                      "com.ibm.ws.ui.fat", //com.ibm.ws.ui_rest_fat
-
-                                                     "com.ibm.ws.webcontainer.security.fat.basicauth.audit", //com.ibm.ws.webcontainer.security.jacc.1.5_fat
 
                                                      "com.ibm.ws.jaxrs.fat.exceptionMappingWithOT", //com.ibm.ws.jaxrs.2.0_fat
 
