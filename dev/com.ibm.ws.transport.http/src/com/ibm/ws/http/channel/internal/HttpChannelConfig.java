@@ -212,6 +212,8 @@ public class HttpChannelConfig {
     /** Tracks headers that have been configured erroneously **/
     private HashSet<String> configuredHeadersErrorSet = null;
 
+    private boolean forcePersist = false;
+
     /**
      * Constructor for an HTTP channel config object.
      *
@@ -527,6 +529,10 @@ public class HttpChannelConfig {
                 props.put(HttpConfigConstants.PROPNAME_RESPONSE_HEADERS_REMOVE, value);
             }
 
+            if (key.equalsIgnoreCase(HttpConfigConstants.PROPNAME_FORCE_PERSIST)){
+                props.put(HttpConfigConstants.PROPNAME_FORCE_PERSIST, value);
+            }
+
             props.put(key, value);
         }
 
@@ -592,6 +598,7 @@ public class HttpChannelConfig {
         parseCookiesSameSitePartitioned(props);
         initSameSiteCookiesPatterns();
         parseHeaders(props);
+        parseForcePersist(props);
 
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
             Tr.exit(tc, "parseConfig");
@@ -611,6 +618,16 @@ public class HttpChannelConfig {
             value = (String) props.get(key.toLowerCase());
         }
         return (null != value) ? value.trim() : null;
+    }
+
+    private void parseForcePersist(Map<Object, Object> props){
+        Object value = props.get("forcePersist");
+        if(null != value){
+            forcePersist = convertBoolean(value);
+            if (TraceComponent.isAnyTracingEnabled() && tc.isEventEnabled()) {
+                Tr.event(tc, "Config: forcePersist is " + forcePersist());
+            }
+        }     
     }
 
     /**
@@ -3100,6 +3117,10 @@ public class HttpChannelConfig {
      */
     public Map<Integer, String> getConfiguredHeadersToRemove() {
         return this.configuredHeadersToRemove;
+    }
+
+    public boolean forcePersist(){
+        return this.forcePersist;
     }
 
 }

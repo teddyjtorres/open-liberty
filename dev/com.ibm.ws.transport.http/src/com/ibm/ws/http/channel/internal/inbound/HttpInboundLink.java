@@ -765,8 +765,8 @@ public class HttpInboundLink extends InboundProtocolLink implements InterChannel
         // now check to see if the connection should be kept open (unless
         // we are in an error state). Perform one last check against a channel
         // stop, close the socket if not running.
-
-        if (!errorState && sc.isPersistent() && getChannel().isRunning()) {
+        boolean forcePersist = (config.forcePersist() || !errorState);
+        if (forcePersist && sc.isPersistent() && getChannel().isRunning()) {
 
             if (config.getDebugLog().isEnabled(DebugLog.Level.DEBUG)) {
                 config.getDebugLog().log(DebugLog.Level.DEBUG, HttpMessages.MSG_READ_PERSISTENT, sc);

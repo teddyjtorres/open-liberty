@@ -454,6 +454,8 @@ public class HttpConfigConstants {
 
     public static final String PROPNAME_RESPONSE_HEADERS_SET_IF_MISSING = "headersSetIfMissingInternal";
 
+    public static final String PROPNAME_FORCE_PERSIST = "forcePersist";
+
     public static enum SameSite {
         LAX("Lax"),
         NONE("None"),
