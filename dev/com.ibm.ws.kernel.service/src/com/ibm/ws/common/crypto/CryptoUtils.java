@@ -79,6 +79,7 @@ public class CryptoUtils {
 
     public static final String ENCRYPT_ALGORITHM_DESEDE = "DESede";
     public static final String ENCRYPT_ALGORITHM_RSA = "RSA";
+    public static final String ENCRYPT_ALGORITHM_AES = "AES";
 
     public static final String AES_GCM_CIPHER = "AES/GCM/NoPadding";
     public static final String DES_ECB_CIPHER = "DESede/ECB/PKCS5Padding"; //Audit

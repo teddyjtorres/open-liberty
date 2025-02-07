@@ -63,7 +63,8 @@ final class AuditCrypto {
     /**
      * @param provider
      */
-    public AuditCrypto() {}
+    public AuditCrypto() {
+    }
 
     static final boolean cmp(byte[] b1, int off1, byte[] b2, int off2, int n) {
         while (--n >= 0)
@@ -2087,8 +2088,7 @@ final class AuditCrypto {
     private static SecretKey constructSecretKey(byte[] key, String cipher) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
         SecretKey sKey = null;
         if (cipher.indexOf("AES") != -1) { //This code for FIPS 140-3
-            // 16 bytes = 128 bit key
-            sKey = new SecretKeySpec(key, 0, 16, "AES");
+            sKey = new SecretKeySpec(key, 0, CryptoUtils.AES_256_KEY_LENGTH_BYTES, "AES");
         } else {
             DESedeKeySpec kSpec = new DESedeKeySpec(key);
             SecretKeyFactory kFact = null;
