@@ -56,7 +56,7 @@ final class AuditCrypto {
     private static IvParameterSpec ivs8 = null;
     private static IvParameterSpec ivs16 = null;
     private static boolean fips140_3Enabled = CryptoUtils.isFips140_3Enabled();
-    private static final String encryptAlgorithm = CryptoUtils.getEncryptionAlgorithm();
+    private static final String encryptAlgorithm = CryptoUtils.getEncryptionAlgorithmForAudit();
 
     private static final String provider = CryptoUtils.getProvider();
 

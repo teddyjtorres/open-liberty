@@ -137,6 +137,13 @@ public class CryptoUtils {
             return ENCRYPT_ALGORITHM_DESEDE;
     }
 
+    public static String getEncryptionAlgorithmForAudit() {
+        if (fipsEnabled && (isOpenJCEPlusFIPSAvailable() || isIBMJCEPlusFIPSAvailable()))
+            return ENCRYPT_ALGORITHM_AES;
+        else
+            return ENCRYPT_ALGORITHM_DESEDE;
+    }
+
     public static String getCipher() {
         return fipsEnabled ? AES_CBC_CIPHER : DES_ECB_CIPHER;
     }
