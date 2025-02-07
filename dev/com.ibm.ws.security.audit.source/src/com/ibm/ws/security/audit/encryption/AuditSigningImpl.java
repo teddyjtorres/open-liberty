@@ -51,7 +51,6 @@ public class AuditSigningImpl implements AuditSigning {
     private static String subjectDN = "CN=auditsigner, OU=SWG, O=IBM, C=US";
     private static String keyStoreName = "auditSignerKeyStore_";
     private static String certLabelPrefix = "auditcert";
-    private static String CRYPTO_ALGORITHM = "SHA256withRSA";
 
     private static boolean fips140_3Enabled = CryptoUtils.isFips140_3Enabled();
 
@@ -99,7 +98,7 @@ public class AuditSigningImpl implements AuditSigning {
         crypto = new AuditCrypto();
 
         try {
-            signature = fips140_3Enabled ? Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA256WITHRSA,
+            signature = fips140_3Enabled ? Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA512WITHRSA,
                                                                  CryptoUtils.getProvider()) : Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA256WITHRSA);
         } catch (Exception e) {
             Tr.error(tc, "security.audit.signing.init.error", new Object[] { e });
@@ -440,7 +439,7 @@ public class AuditSigningImpl implements AuditSigning {
         byte[] signedData = null;
         MessageDigest md = null;
         try {
-            md = MessageDigest.getInstance("SHA-256");
+            md = MessageDigest.getInstance(fips140_3Enabled ? CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA512 : CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA256);
         } catch (java.security.NoSuchAlgorithmException e) {
             throw new AuditSigningException(e);
         }

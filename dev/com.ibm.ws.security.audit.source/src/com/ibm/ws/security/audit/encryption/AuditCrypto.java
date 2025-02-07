@@ -1228,7 +1228,7 @@ final class AuditCrypto {
                 PrivateKey privKey = kFact.generatePrivate(privKeySpec);
                 Signature rsaSig = null;
                 if (fips140_3Enabled)
-                    rsaSig = Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA256WITHRSA, provider);
+                    rsaSig = Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA512WITHRSA, provider);
                 else
                     rsaSig = Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA256WITHRSA);
 
@@ -1559,7 +1559,7 @@ final class AuditCrypto {
                 PublicKey pubKey = kFact.generatePublic(pubKeySpec);
                 Signature rsaSig = null;
                 if (fips140_3Enabled)
-                    rsaSig = Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA256WITHRSA, provider);
+                    rsaSig = Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA512WITHRSA, provider);
                 else
                     rsaSig = Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA256WITHRSA);
 

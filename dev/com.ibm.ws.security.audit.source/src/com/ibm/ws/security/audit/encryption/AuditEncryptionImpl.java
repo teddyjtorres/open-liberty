@@ -52,7 +52,6 @@ public class AuditEncryptionImpl implements AuditEncrypting {
     private static String subjectDN = "CN=auditsigner, OU=SWG, O=IBM, C=US";
     private static String keyStoreName = "auditSignerKeyStore_";
     private static String certLabelPrefix = "auditcert";
-    private static String CRYPTO_ALGORITHM = "SHA256withRSA";
     private final int signerKeyStoreIncrement = 1;
     private final ObjectName mgmScopeObjName = null;
     AuditKeyEncryptor encryptor = null;
