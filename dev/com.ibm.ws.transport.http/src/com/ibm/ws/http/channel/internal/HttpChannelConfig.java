@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2004, 2024 IBM Corporation and others.
+ * Copyright (c) 2004, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -211,8 +211,8 @@ public class HttpChannelConfig {
 
     /** Tracks headers that have been configured erroneously **/
     private HashSet<String> configuredHeadersErrorSet = null;
-
-    private boolean forcePersist = false;
+    /** Identifies if a persist enabled connection should remain open even if there are errors at closure */
+    private boolean persistOnError = false;
 
     /**
      * Constructor for an HTTP channel config object.
@@ -529,8 +529,8 @@ public class HttpChannelConfig {
                 props.put(HttpConfigConstants.PROPNAME_RESPONSE_HEADERS_REMOVE, value);
             }
 
-            if (key.equalsIgnoreCase(HttpConfigConstants.PROPNAME_FORCE_PERSIST)){
-                props.put(HttpConfigConstants.PROPNAME_FORCE_PERSIST, value);
+            if (key.equalsIgnoreCase(HttpConfigConstants.PROPNAME_PERSIST_ON_ERROR)){
+                props.put(HttpConfigConstants.PROPNAME_PERSIST_ON_ERROR, value);
             }
 
             props.put(key, value);
@@ -598,7 +598,6 @@ public class HttpChannelConfig {
         parseCookiesSameSitePartitioned(props);
         initSameSiteCookiesPatterns();
         parseHeaders(props);
-        parseForcePersist(props);
 
         if (TraceComponent.isAnyTracingEnabled() && tc.isEntryEnabled()) {
             Tr.exit(tc, "parseConfig");
@@ -620,15 +619,7 @@ public class HttpChannelConfig {
         return (null != value) ? value.trim() : null;
     }
 
-    private void parseForcePersist(Map<Object, Object> props){
-        Object value = props.get("forcePersist");
-        if(null != value){
-            forcePersist = convertBoolean(value);
-            if (TraceComponent.isAnyTracingEnabled() && tc.isEventEnabled()) {
-                Tr.event(tc, "Config: forcePersist is " + forcePersist());
-            }
-        }     
-    }
+    
 
     /**
      * Method to handle parsing all of the persistence related configuration
@@ -640,6 +631,21 @@ public class HttpChannelConfig {
         parseKeepAliveEnabled(props);
         if (isKeepAliveEnabled()) {
             parseMaxPersist(props);
+            parsePersistOnError(props);
+        }
+    }
+
+    /**
+     * Method to determine if a keep-alive connection should be kept open even if
+     * an error is found during closure.
+     */
+    private void parsePersistOnError(Map<Object, Object> props) {
+        Object value = props.get(HttpConfigConstants.PROPNAME_PERSIST_ON_ERROR);
+        if (null != value) {
+            persistOnError = convertBoolean(value);
+            if (TraceComponent.isAnyTracingEnabled() && tc.isEventEnabled()) {
+                Tr.event(tc, "Config: persistOnError is " + persistOnError());
+            }
         }
     }
 
@@ -3119,8 +3125,12 @@ public class HttpChannelConfig {
         return this.configuredHeadersToRemove;
     }
 
-    public boolean forcePersist(){
-        return this.forcePersist;
+    /**
+     * Returns whether a connection should remain active even if an error occurs during 
+     * closure.
+     */
+    public boolean persistOnError(){
+        return this.persistOnError;
     }
 
 }
