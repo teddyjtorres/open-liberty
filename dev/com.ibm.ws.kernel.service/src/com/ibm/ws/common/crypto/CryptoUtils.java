@@ -81,12 +81,16 @@ public class CryptoUtils {
     public static final String ENCRYPT_ALGORITHM_RSA = "RSA";
     public static final String ENCRYPT_ALGORITHM_AES = "AES";
 
+    public static final String ENCRYPT_MODE_ECB = "ECB";
+
     public static final String AES_GCM_CIPHER = "AES/GCM/NoPadding";
     public static final String DES_ECB_CIPHER = "DESede/ECB/PKCS5Padding"; //Audit
     public static final String AES_CBC_CIPHER = "AES/CBC/PKCS5Padding"; //LTPA
 
     public static final int AES_128_KEY_LENGTH_BYTES = 16;
     public static final int AES_256_KEY_LENGTH_BYTES = 32;
+
+    public static final int DESEDE_KEY_LENGTH_BYTES = 24;
 
     private static boolean fipsEnabled = isFIPSEnabled();
 

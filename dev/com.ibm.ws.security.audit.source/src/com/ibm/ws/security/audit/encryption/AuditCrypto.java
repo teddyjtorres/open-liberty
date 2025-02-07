@@ -1932,7 +1932,7 @@ final class AuditCrypto {
         byte[] rndSeed = null;
         try {
             if (fips140_3Enabled) {
-                int len = 32;
+                int len = CryptoUtils.AES_256_KEY_LENGTH_BYTES;
                 rndSeed = new byte[len];
                 random(rndSeed, 0, len);
             } else {
@@ -2087,8 +2087,8 @@ final class AuditCrypto {
      */
     private static SecretKey constructSecretKey(byte[] key, String cipher) throws InvalidKeyException, NoSuchAlgorithmException, InvalidKeySpecException, NoSuchProviderException {
         SecretKey sKey = null;
-        if (cipher.indexOf("AES") != -1) { //This code for FIPS 140-3
-            sKey = new SecretKeySpec(key, 0, CryptoUtils.AES_256_KEY_LENGTH_BYTES, "AES");
+        if (cipher.indexOf(CryptoUtils.ENCRYPT_ALGORITHM_AES) != -1) { //This code for FIPS 140-3
+            sKey = new SecretKeySpec(key, 0, CryptoUtils.AES_256_KEY_LENGTH_BYTES, CryptoUtils.ENCRYPT_ALGORITHM_AES);
         } else {
             DESedeKeySpec kSpec = new DESedeKeySpec(key);
             SecretKeyFactory kFact = null;
@@ -2116,8 +2116,8 @@ final class AuditCrypto {
         Cipher ci = null;
         ci = (provider == null) ? Cipher.getInstance(cipher) : Cipher.getInstance(cipher, provider);
 
-        if (cipher.indexOf("ECB") == -1) {
-            if (cipher.indexOf("AES") != -1) {
+        if (cipher.indexOf(CryptoUtils.ENCRYPT_MODE_ECB) == -1) {
+            if (cipher.indexOf(CryptoUtils.ENCRYPT_ALGORITHM_AES) != -1) {
                 if (ivs16 == null) {
                     setIVS16(key);
                 }
