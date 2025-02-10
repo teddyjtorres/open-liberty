@@ -212,7 +212,7 @@ public class HttpChannelConfig {
     /** Tracks headers that have been configured erroneously **/
     private HashSet<String> configuredHeadersErrorSet = null;
     /** Identifies if a persist enabled connection should remain open even if there are errors at closure */
-    private boolean persistOnError = false;
+    private boolean persistOnError = true;
 
     /**
      * Constructor for an HTTP channel config object.
