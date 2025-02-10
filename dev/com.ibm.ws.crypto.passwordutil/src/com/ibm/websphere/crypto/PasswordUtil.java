@@ -266,7 +266,6 @@ public class PasswordUtil {
             decoded_string = decoded_string.trim();
         }
         String encoded_string = encode_password(decoded_string, crypto_algorithm.trim(), properties);
-
         if (encoded_string == null) {
             throw new InvalidPasswordEncodingException();
         }
