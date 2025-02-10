@@ -283,11 +283,11 @@ public class SharedLibraryImpl implements Library, SpiLibrary {
         FOLDER("Folders", "dir", "cls.library.folder.invalid", true, false),
         FILE("Files", "name", "cls.library.file.invalid", false, true),
         PATH("Paths", "name", "cls.library.path.invalid", true, true);
-        final String name;
+        final String debugLabel;
         final String attrKey;
+        private final String messageId;
         private final boolean allowFolders;
         private final boolean allowFiles;
-        private final String messageId;
         boolean accept(File f) {
             if (!f.exists()) {
                 return false;
@@ -305,8 +305,8 @@ public class SharedLibraryImpl implements Library, SpiLibrary {
                 Tr.warning(tc, messageId, displayId, fileName);
             }
         }
-        private ClasspathType(String name, String attrKey, String messageId, boolean allowFolders, boolean allowFiles) {
-            this.name = name;
+        private ClasspathType(String debugLabel, String attrKey, String messageId, boolean allowFolders, boolean allowFiles) {
+            this.debugLabel = debugLabel;
             this.attrKey = attrKey;
             this.messageId = messageId;
             this.allowFolders = allowFolders;
@@ -325,22 +325,25 @@ public class SharedLibraryImpl implements Library, SpiLibrary {
                 Dictionary<String, Object> configProps = config.getProperties();
                 if (configProps == null) {
                     if (tc.isDebugEnabled()) {
-                        Tr.debug(tc, "set" + type.name + ": Configuration not found for " + pid);
+                        Tr.debug(tc, type.debugLabel + ": configuration not found for " + pid);
                     }
                     config.delete();
                 } else {
                     String name = (String) configProps.get(type.attrKey);
-                    File f = null;
                     if (name != null && !!!name.isEmpty()) {
                         if (tc.isDebugEnabled()) {
-                            Tr.debug(tc, "set" + type.name + ": found" + name);
+                            Tr.debug(tc, type.debugLabel + ": configuration found" + name);
                         }
 
-                        f = new File(normalizePath(name));
+                        String path = normalizePath(name);
+                        File f = new File(path);
                         if (type.accept(f)) {
+                            if (tc.isDebugEnabled()) {
+                                Tr.debug(tc, type.debugLabel + ": added path" + path);
+                            }
                             result.add(f);
                         } else {
-                            type.warn(displayId, libraryId, name);
+                            type.warn(displayId, libraryId, path);
                         }
                     } else {
                         type.warn(displayId, libraryId, name);

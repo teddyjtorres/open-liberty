@@ -79,7 +79,7 @@ public class SharedLibraryFactory implements ManagedServiceFactory, ModuleDelega
                                 @Reference ClassLoadingService cls, //
                                 @Reference ConfigurationAdmin configAdmin, //
                                 @Reference WsLocationAdmin locationService, //
-                                @Reference RegionDigraph region
+                                @Reference RegionDigraph digraph
                                 ) {
         this.ctx = ctx;
         this.artifactContainerFactory = acf;
@@ -98,7 +98,7 @@ public class SharedLibraryFactory implements ManagedServiceFactory, ModuleDelega
             }
         }
 
-        packageExporter = new LibraryPackageExporter(ctx, region);
+        packageExporter = new LibraryPackageExporter(ctx, digraph);
     }
 
     /**
