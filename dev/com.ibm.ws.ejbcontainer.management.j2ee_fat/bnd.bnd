@@ -29,5 +29,7 @@ tested.features: \
 	com.ibm.websphere.javaee.ejb.3.2;version=latest,\
 	com.ibm.ws.jmx.connector.client.rest;version=latest,\
 	com.ibm.ws.jmx.connector.client.restConnector;version=latest,\
-	com.ibm.ws.security.fat.common;version=latest,\
 	com.ibm.ws.jmx
+
+# Copy in FIPS keys
+ltpa.fips.enabled: true
