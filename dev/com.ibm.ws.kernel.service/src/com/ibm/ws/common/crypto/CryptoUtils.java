@@ -156,7 +156,7 @@ public class CryptoUtils {
         // TODO remove beta check
         // TODO disabling CRYPTO_INSECURE warnings until full FIPS 140-3 support on Semeru is complete
         if (false && isRunningBetaMode()) {
-            Tr.warning(tc, "CRYPTO_INSECURE", configProperty, insecureAlgorithm);
+            Tr.warning(tc, "CRYPTO_INSECURE", configProperty, insecureAlgorithm, getSecureAlternative(insecureAlgorithm));
         }
     }
 
