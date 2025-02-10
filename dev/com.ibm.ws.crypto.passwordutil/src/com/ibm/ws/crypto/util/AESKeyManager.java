@@ -31,7 +31,6 @@ import com.ibm.wsspi.security.crypto.KeyStringResolver;
  */
 public class AESKeyManager {
     private static final AtomicReference<KeyStringResolver> _resolver = new AtomicReference<KeyStringResolver>();
-    private static final boolean DEBUG = Boolean.getBoolean("enableDebug"); // Used exclusively for debugging securityUtility
 
     public static enum KeyVersion {
         AES_V0("PBKDF2WithHmacSHA1", 84756, 128, new byte[] { -89, -94, -125, 57, 76, 90, -77, 79, 50, 21, 10, -98, 47, 23, 17, 56, -61, 46, 125, -128 }),
@@ -56,39 +55,19 @@ public class AESKeyManager {
             this.salt = salt;
         }
 
-        private KeyHolder get(char[] keyChars) {
+        private KeyHolder get(char[] keyChars) throws NoSuchAlgorithmException, InvalidKeySpecException {
             KeyHolder holder = _key.get();
             if (holder == null || !!!holder.matches(keyChars)) {
-                try {
-                    SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(alg);
-                    KeySpec aesKey = new PBEKeySpec(keyChars, salt, iterations, keyLength);
-                    byte[] data = keyFactory.generateSecret(aesKey).getEncoded();
-                    KeyHolder holder2 = new KeyHolder(keyChars, new SecretKeySpec(data, "AES"), new IvParameterSpec(data));
-                    _key.compareAndSet(holder, holder2);
-                    // Still use this holder for returns even if I do not end up caching it.
-                    holder = holder2;
-                } catch (InvalidKeySpecException e) {
-                    if (DEBUG) {
-                        securityUtilDebug("InvalidKeySpecException received. Returning null", e);
-                    }
-                    return null;
-                } catch (NoSuchAlgorithmException e) {
-                    if (DEBUG) {
-                        securityUtilDebug("InvalidKeySpecException received. Returning null", e);
-                    }
-                    return null;
-                }
-
+                SecretKeyFactory keyFactory = SecretKeyFactory.getInstance(alg);
+                KeySpec aesKey = new PBEKeySpec(keyChars, salt, iterations, keyLength);
+                byte[] data = keyFactory.generateSecret(aesKey).getEncoded();
+                KeyHolder holder2 = new KeyHolder(keyChars, new SecretKeySpec(data, "AES"), new IvParameterSpec(data));
+                _key.compareAndSet(holder, holder2);
+                // Still use this holder for returns even if I do not end up caching it.
+                holder = holder2;
             }
-
             return holder;
         }
-    }
-
-    // Used exclusively for debugging securityUtility
-    private static void securityUtilDebug(String message, Throwable throwable) {
-        System.out.println("[DEBUG] " + message);
-        throwable.printStackTrace(System.out); // Prints the exception stack trace
     }
 
     private static class KeyHolder {
@@ -121,15 +100,13 @@ public class AESKeyManager {
         setKeyStringResolver(null);
     }
 
-    public static Key getKey(KeyVersion version, String key) {
-
+    public static Key getKey(KeyVersion version, String key) throws NoSuchAlgorithmException, InvalidKeySpecException {
         KeyHolder holder = getHolder(version, key);
-
         return holder.getKey();
     }
 
     @Deprecated
-    public static Key getKey(String key) {
+    public static Key getKey(String key) throws NoSuchAlgorithmException, InvalidKeySpecException {
 
         KeyHolder holder = getHolder(KeyVersion.AES_V0, key);
 
@@ -141,9 +118,8 @@ public class AESKeyManager {
      * @param keyChars
      * @return
      */
-    private static KeyHolder getHolder(KeyVersion version, String key) {
+    private static KeyHolder getHolder(KeyVersion version, String key) throws NoSuchAlgorithmException, InvalidKeySpecException {
         char[] keyChars = _resolver.get().getKey(key == null ? "${wlp.password.encryption.key}" : key);
-
         return version.get(keyChars);
     }
 
@@ -167,7 +143,7 @@ public class AESKeyManager {
      * @param cryptoKey
      * @return
      */
-    public static IvParameterSpec getIV(KeyVersion version, String cryptoKey) {
+    public static IvParameterSpec getIV(KeyVersion version, String cryptoKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
         if (version == KeyVersion.AES_V0) {
             return getHolder(version, cryptoKey).getIv();
         } else {
@@ -180,7 +156,7 @@ public class AESKeyManager {
      * @return
      */
     @Deprecated
-    public static IvParameterSpec getIV(String cryptoKey) {
+    public static IvParameterSpec getIV(String cryptoKey) throws NoSuchAlgorithmException, InvalidKeySpecException {
         return getHolder(KeyVersion.AES_V0, cryptoKey).getIv();
     }
 }
