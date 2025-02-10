@@ -34,6 +34,9 @@ public class Prime {
 
     public ArrayList<String> romanNumeralSymbols;
 
+    //For recreating issue 30501, kindly uncomment the following line.
+    // public String romanNumeralSymbols;
+
     public int sumOfBits;
 
     public static Prime of(long number, String romanNumeral, String name) {
@@ -50,7 +53,12 @@ public class Prime {
             for (int i = 0; i < romanNumeral.length(); i++)
                 inst.romanNumeralSymbols.add(romanNumeral.substring(i, i + 1));
         }
-
+        //To recreate issue 30501, replace the above if statement with the commented one below
+        /* 
+          if (romanNumeral != null) {
+            inst.romanNumeralSymbols = romanNumeral; // Assign as a String
+        }
+        */
         return inst;
     }
 }
