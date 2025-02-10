@@ -2196,7 +2196,7 @@ public class LTPAKeyRotationTests {
         String logLine = server.waitForStringInLogUsingMark("CWWKG001[7-8]I");
 
         // Wait for feature update to be completed or LTPA configuration to get ready
-        Thread.sleep(1000);
+        Thread.sleep(2000);
     }
 
     /**
