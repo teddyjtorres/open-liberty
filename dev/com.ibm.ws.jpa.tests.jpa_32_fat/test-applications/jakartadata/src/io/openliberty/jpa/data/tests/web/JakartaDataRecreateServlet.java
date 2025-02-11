@@ -1761,10 +1761,12 @@ public class JakartaDataRecreateServlet extends FATServlet {
         em.persist(seven);
         tx.commit();
 
-  result = em.createQuery("SELECT NEW io.openliberty.jpa.data.tests.models.RomanNumeral( "
-                    + " o.name, o.romanNumeral, o.romanNumeralSymbols) "
-                    + "FROM Prime o WHERE o.numberId <= :id", RomanNumeral.class).setParameter("id", 7)
-                    .getResultList();
+        result = em.createQuery("SELECT NEW io.openliberty.jpa.data.tests.models.RomanNumeral( "
+        + " name, romanNumeral, romanNumeralSymbols) "
+        + "FROM Prime WHERE numberId <= ?1 "
+        + "ORDER BY name", RomanNumeral.class)
+        .setParameter(1, 7) // Positional parameter starts at 1
+        .getResultList();
 
 
     }   
