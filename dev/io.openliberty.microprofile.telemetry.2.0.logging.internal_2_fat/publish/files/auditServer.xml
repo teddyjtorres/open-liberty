@@ -12,7 +12,7 @@
  -->
 <server description="Telemetry Server to test Message logs">
 	<featureManager>
-		<feature>audit-2.0</feature>
+		<feature>audit-1.0</feature>
 		<feature>mpTelemetry-2.0</feature>
 		<feature>componentTest-2.0</feature>
 		<feature>servlet-6.1</feature>

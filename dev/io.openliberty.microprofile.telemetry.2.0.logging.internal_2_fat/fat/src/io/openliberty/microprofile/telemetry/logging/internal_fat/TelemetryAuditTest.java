@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024, 2025 IBM Corporation and others.
+ * Copyright (c) 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -13,6 +13,7 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertNull;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -201,6 +202,7 @@ public class TelemetryAuditTest extends FATServletClient {
      * Tests when the audit source is dynamically removed to the server.xml, with the audit feature already present.
      */
     @Test
+    @Mode(TestMode.FULL)
     public void testDynamicAuditSourceRemoval() throws Exception {
         RemoteFile messageLogFile = server.getDefaultLogFile();
         RemoteFile consoleLogFile = server.getConsoleLogFile();
@@ -403,15 +405,7 @@ public class TelemetryAuditTest extends FATServletClient {
     private static void setConfig(LibertyServer server, RemoteFile logFile, String fileName) throws Exception {
         server.setMarkToEndOfLog(logFile);
         server.setServerConfigurationFile(fileName);
-
-        String configUpdate = server.waitForStringInLogUsingMark("CWWKG0017I"); // wait for server config update
-        Log.info(c, "setConfig", "Config Update Message Found : " + configUpdate);
-
-        String featureUpdate = server.waitForStringInLogUsingMark("CWWKF0008I"); // wait for feature config update
-        Log.info(c, "setConfig", "Feature Update Message Found : " + featureUpdate);
-
-        String appStartedUpdate = server.waitForStringInLogUsingMark("CWWKZ0003I"); // wait for app started update
-        Log.info(c, "setConfig", "App Started Updated Message Found :  " + appStartedUpdate);
+        server.waitForConfigUpdateInLogUsingMark(Collections.singleton(APP_NAME), new String[] {});
     }
 
     private static void checkAuditOTelAttributeMapping(String auditLine) {

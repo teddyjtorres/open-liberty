@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024 IBM Corporation and others.
+ * Copyright (c) 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -27,15 +27,8 @@ import componenttest.topology.utils.HttpUtils;
 
 @RunWith(Suite.class)
 @SuiteClasses({
-                TelemetryMessagesTest.class,
-                TelemetryMessagesCheckpointTest.class,
-                TelemetryFFDCTest.class,
-                TelemetryFFDCCheckpointTest.class,
-                TelemetryTraceTest.class,
-                TelemetryTraceCheckpointTest.class,
-                TelemetrySourcesTest.class,
-                TelemetryApplicationConfigTest.class,
-                TelemetryDropinsTest.class
+                TelemetryAuditTest.class,
+                TelemetryAuditCheckpointTest.class
 })
 
 public class FATSuite {
