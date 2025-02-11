@@ -18,7 +18,7 @@ configurations {
 }
 
 dependencies {
-  db2 'com.ibm.db2:jcc:11.1.4.4'
+  db2 'com.ibm.db2:jcc:12.1.0.0'
   derbyClient 'org.apache.derby:derbyclient:10.11.1.1'
   requiredLibs 'org.apache.derby:derbynet:10.11.1.1'
   postgres 'org.postgresql:postgresql:42.7.2'

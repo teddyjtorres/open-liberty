@@ -19,7 +19,7 @@ configurations {
 }
 
 dependencies {
-  db2 'com.ibm.db2:jcc:11.1.4.4'
+  db2 'com.ibm.db2:jcc:12.1.0.0'
 }
 
 task copyDB2(type: Copy) {
