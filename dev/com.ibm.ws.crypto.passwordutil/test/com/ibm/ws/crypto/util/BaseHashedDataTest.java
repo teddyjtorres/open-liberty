@@ -25,7 +25,6 @@ public class BaseHashedDataTest {
     public void testConstructorDefault(char[] plain, byte salt[], String algorithm, int iteration, int length, byte[] expectedOutput) {
         try {
             HashedData hd = new HashedData(plain, algorithm, salt, iteration, length, null);
-            System.out.println("Adrian Kalafut -- testConstructorDefault " + formatToBytes(hd.toBytes()));
             assertTrue(Arrays.equals(hd.getPlain(), plain));
             assertTrue(Arrays.equals(hd.getSalt(), salt));
             assertEquals(algorithm, hd.getAlgorithm());
@@ -65,24 +64,5 @@ public class BaseHashedDataTest {
         } catch (Exception e) {
             fail("Unexpected exception : " + e.getMessage());
         }
-    }
-
-    public String formatToBytes(byte[] byteArray) {
-        StringBuilder sb = new StringBuilder("{ ");
-
-        for (int i = 0; i < byteArray.length; i++) {
-            byte b = byteArray[i];
-            if (b >= 0) {
-                sb.append(String.format("0x%02X", b)); // Format positive byte as 0xHH
-            } else {
-                sb.append(String.format("(byte) (0x%02X & 0xFF)", b)); // Format negative byte explicitly
-            }
-            if (i < byteArray.length - 1) {
-                sb.append(", ");
-            }
-        }
-
-        sb.append(" }");
-        return sb.toString();
     }
 }
