@@ -38,7 +38,7 @@ import componenttest.containers.substitution.ImageBuilderSubstitutor;
  *
  * TODO make builder public once build pipeline is finalized
  */
-class ImageBuilder {
+public class ImageBuilder {
 
     private static final Class<?> c = ImageBuilder.class;
 
