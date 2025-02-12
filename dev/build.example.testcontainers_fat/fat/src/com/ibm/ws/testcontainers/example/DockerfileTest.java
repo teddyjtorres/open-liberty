@@ -78,7 +78,7 @@ public class DockerfileTest {
                     .withEnv("POSTGRES_DB", POSTGRES_DB)
                     .withEnv("POSTGRES_USER", POSTGRES_USER)
                     .withEnv("POSTGRES_PASSWORD", POSTGRES_PASSWORD)
-                    .withLogConsumer(new SimpleLogConsumer(ContainersTest.class, "postgres"))
+                    .withLogConsumer(new SimpleLogConsumer(ContainersTest.class, "postgres-init"))
                     .waitingFor(new LogMessageWaitStrategy()
                                     .withRegEx(".*database system is ready to accept connections.*\\s")
                                     .withTimes(2)

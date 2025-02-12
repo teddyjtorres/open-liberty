@@ -35,8 +35,6 @@ import componenttest.containers.substitution.ImageBuilderSubstitutor;
  * - If the image is cached on the docker host, use it.
  * - Otherwise, if the image is cached in the registry, pull it, and use it.
  * - Otherwise, build the image and cache it on the docker host.
- *
- * TODO make builder public once build pipeline is finalized
  */
 public class ImageBuilder {
 
