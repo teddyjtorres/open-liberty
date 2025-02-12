@@ -49,6 +49,9 @@ public class LdapContainer extends GenericContainer<LdapContainer> {
 
     protected static String bindPrincipalName = LdapKerberosUtils.BIND_PRINCIPAL_NAME; // default, override in extending class
 
+    //TODO Start using ImageBuilder
+//  private static final RemoteDockerImage LDAP_SERVER = ImageBuilder.build("ldap-server:3.17").get();
+
     // NOTE: If this is ever updated, don't forget to push to docker hub, but DO NOT overwrite existing versions
     private static final String IMAGE = "zachhein/ldap-server:0.5";
 

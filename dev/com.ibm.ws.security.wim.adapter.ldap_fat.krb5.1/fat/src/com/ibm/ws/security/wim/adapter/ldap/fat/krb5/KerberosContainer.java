@@ -44,6 +44,9 @@ public class KerberosContainer extends GenericContainer<KerberosContainer> {
     public static final String KRB5_PWD = "pwd";
     public static String DOCKERHOST_DOMAIN = "fyre.ibm.com";
 
+    //TODO Start using ImageBuilder
+//  private static final RemoteDockerImage KRB5_SERVER = ImageBuilder.build("kdc-security-server:3.17").get();
+
     // NOTE: If this is ever updated, don't forget to push to docker hub, but DO NOT overwrite existing versions
     private static final String IMAGE = "zachhein/krb5-server:0.2";
 
