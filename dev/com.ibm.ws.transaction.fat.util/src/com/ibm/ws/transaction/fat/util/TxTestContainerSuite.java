@@ -36,6 +36,9 @@ public class TxTestContainerSuite extends TestContainerSuite {
     public static final String POSTGRES_DB = "testdb";
     public static final String POSTGRES_USER = "postgresUser";
     public static final String POSTGRES_PASS = "superSecret";
+    
+    //TODO Start using ImageBuilder
+//  private static final RemoteDockerImage POSTGRES_SSL = ImageBuilder.build("postgres-ssl:17.0-alpine").get();
 
     /*
      * The image here is generated using the Dockerfile in com.ibm.ws.jdbc_fat_postgresql/publish/files/postgresql-ssl
