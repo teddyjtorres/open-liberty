@@ -54,6 +54,9 @@ public class SQLServerSSLTest extends FATServletClient {
     @TestServlet(servlet = SQLServerTestSSLServlet.class, path = APP_NAME + '/' + SERVLET_NAME)
     public static LibertyServer server;
 
+    //TODO Start using ImageBuilder
+//  private static final RemoteDockerImage SQLSERVER_SSL = ImageBuilder.build("sqlserver-init:2019-CU28-ubuntu-20.04").get();
+
     private static final DockerImageName sqlserverImage = DockerImageName.parse("kyleaure/sqlserver-ssl:2019-CU18-ubuntu-20.04")//
                     .asCompatibleSubstituteFor("mcr.microsoft.com/mssql/server");
 

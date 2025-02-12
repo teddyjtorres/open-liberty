@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -48,6 +48,9 @@ public class KerberosContainer extends GenericContainer<KerberosContainer> {
     public static final String KRB5_REALM = "EXAMPLE.COM";
     public static final String KRB5_KDC = "kerberos";
     public static final String KRB5_PASS = "password";
+
+    //TODO Start using ImageBuilder
+//  private static final RemoteDockerImage KDC_JDBC_SERVER = ImageBuilder.build("kdc-jdbc-server:3.17").get();
 
     // NOTE: If this is ever updated, don't forget to push to docker hub, but DO NOT overwrite existing versions
     private static final String IMAGE = "kyleaure/krb5-server:1.0";

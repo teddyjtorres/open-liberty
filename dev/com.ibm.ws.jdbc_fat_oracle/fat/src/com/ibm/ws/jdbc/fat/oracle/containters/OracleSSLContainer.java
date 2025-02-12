@@ -31,6 +31,9 @@ public class OracleSSLContainer extends OracleXEContainer {
     private static final int TCPS_PORT = 1522;
     private static final String WALLET_PASS = "WalletPasswd123";
 
+    //TODO Start using ImageBuilder
+//  private static final RemoteDockerImage ORACLE_KRB5 = ImageBuilder.build("oracle-krb5:23.5-full-faststart").get();
+
     private static final String IMAGE_NAME_STRING = "kyleaure/oracle-21.3.0-faststart:1.0.full.ssl";
     private static final DockerImageName IMAGE_NAME = DockerImageName.parse(IMAGE_NAME_STRING).asCompatibleSubstituteFor("gvenzl/oracle-xe");
 

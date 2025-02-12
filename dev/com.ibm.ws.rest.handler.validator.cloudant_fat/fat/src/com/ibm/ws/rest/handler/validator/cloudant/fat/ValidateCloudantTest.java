@@ -62,6 +62,9 @@ public class ValidateCloudantTest extends FATServletClient {
     private static String CLOUDANT_URL;
     private static String databaseURI;
 
+    //TODO Start using ImageBuilder
+//  private static final RemoteDockerImage POSTGRES_INIT = ImageBuilder.build("cloudant-dev:2.0.1").get();
+
     @ClassRule //FIXME the cloudant-developer image is deprecated consider using CouchDB
     public static GenericContainer<?> cloudant = new GenericContainer<>("kyleaure/cloudant-developer:1.0")
                     .withExposedPorts(5984)

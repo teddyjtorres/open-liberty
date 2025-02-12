@@ -32,6 +32,9 @@ public class OracleKerberosContainer extends OracleXEContainer {
 
     private static final Class<?> c = OracleKerberosContainer.class;
 
+    //TODO Start using ImageBuilder
+//  private static final RemoteDockerImage ORACLE_KRB5 = ImageBuilder.build("oracle-krb5:23.5-full-faststart").get();
+
     // NOTE: If this is ever updated, don't forget to push to docker hub, but DO NOT overwrite existing versions
     private static final String IMAGE_NAME_STRING = "kyleaure/oracle-21.3.0-faststart:1.0.full.krb5";
     private static final DockerImageName IMAGE_NAME = DockerImageName.parse(IMAGE_NAME_STRING).asCompatibleSubstituteFor("gvenzl/oracle-xe");

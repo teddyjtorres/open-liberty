@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -26,7 +26,10 @@ import componenttest.containers.TestContainerSuite;
 @RunWith(Suite.class)
 @SuiteClasses({ TestCouchDbWar.class })
 public class FATSuite extends TestContainerSuite {
-    // The Dockerfile for 'kyleaure/couchdb-ssl:1.0' can be found/rebuilt in the cloudant_fat project
+
+    //TODO Start using ImageBuilder
+//  private static final RemoteDockerImage COUCHDB_SSL = ImageBuilder.build("couchdb-ssl:3.2.0").get();
+
     @ClassRule
     public static CouchDBContainer couchdb = new CouchDBContainer("kyleaure/couchdb-ssl:1.0")
                     .withLogConsumer(new SimpleLogConsumer(FATSuite.class, "couchdb"));

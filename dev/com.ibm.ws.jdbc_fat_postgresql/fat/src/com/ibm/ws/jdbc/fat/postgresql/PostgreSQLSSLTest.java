@@ -53,6 +53,9 @@ public class PostgreSQLSSLTest extends FATServletClient {
     @TestServlet(servlet = PostgreSQLNativeSSLTestServlet.class, contextRoot = APP_NAME)
     public static LibertyServer serverNativeSSL;
 
+    //TODO Start using ImageBuilder
+//  private static final RemoteDockerImage POSTGRES_SSL = ImageBuilder.build("postgres-ssl:17.0-alpine").get();
+
     public static PostgreSQLContainer postgre = new PostgreSQLContainer("kyleaure/postgres-ssl:1.0")
                     .withDatabaseName(POSTGRES_DB)
                     .withUsername(POSTGRES_USER)

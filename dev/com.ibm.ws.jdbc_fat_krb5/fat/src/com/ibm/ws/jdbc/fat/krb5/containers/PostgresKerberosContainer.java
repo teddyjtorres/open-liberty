@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -30,6 +30,9 @@ import componenttest.containers.SimpleLogConsumer;
 public class PostgresKerberosContainer extends PostgreSQLContainer<PostgresKerberosContainer> {
 
     private static final Class<?> c = PostgresKerberosContainer.class;
+
+    //TODO Start using ImageBuilder
+//  private static final RemoteDockerImage POSTGRES_KRB5 = ImageBuilder.build("postgres-krb5:17.0").get();
 
     // NOTE: If this is ever updated, don't forget to push to docker hub, but DO NOT overwrite existing versions
     private static final String IMAGE = "kyleaure/postgres-krb5:1.0";

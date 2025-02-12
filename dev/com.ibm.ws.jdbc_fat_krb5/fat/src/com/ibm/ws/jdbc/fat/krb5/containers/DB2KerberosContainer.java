@@ -28,6 +28,10 @@ import componenttest.custom.junit.runner.FATRunner;
 public class DB2KerberosContainer extends Db2Container {
 
     private static final Class<?> c = DB2KerberosContainer.class;
+
+    //TODO Start using ImageBuilder
+//  private static final RemoteDockerImage DB2_KRB5 = ImageBuilder.build("db2-krb5:12.1.0.0").get();
+
     // NOTE: If this is ever updated, don't forget to push to docker hub, but DO NOT overwrite existing versions
     private static final String IMAGE = "kyleaure/db2-krb5:2.0";
     private static final DockerImageName db2Image = DockerImageName.parse(IMAGE)
