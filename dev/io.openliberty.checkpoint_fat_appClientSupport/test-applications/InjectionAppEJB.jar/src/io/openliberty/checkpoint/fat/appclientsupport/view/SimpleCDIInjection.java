@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024 IBM Corporation and others.
+ * Copyright (c) 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -11,19 +11,9 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-package io.openliberty.checkpoint.fat.appclientsupport;
+package io.openliberty.checkpoint.fat.appclientsupport.view;
 
-import javax.ejb.Remote;
-import javax.ejb.Singleton;
+public interface SimpleCDIInjection {
 
-import io.openliberty.checkpoint.fat.appclientsupport.view.SimpleInjectionBeanRemote;
-
-@Singleton
-@Remote(SimpleInjectionBeanRemote.class)
-public class SimpleInjectionBean implements SimpleInjectionBeanRemote {
-
-    @Override
-    public int add(int x, int y) {
-        return x + y;
-    }
+    public int multiply(int x, int y);
 }
