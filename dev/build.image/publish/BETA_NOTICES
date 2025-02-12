@@ -29,7 +29,7 @@ Apache License, Version 2.0
 The Program includes some or all of the following that IBM obtained
 under the Apache License, Version 2.0:
 
-@carbon/telemetry [telemetry-0.1.0.tgz], @scarf/scarf [scarf-1.4.0.tgz],
+@carbon/telemetry [telemetry-0.1.0.tgz],
 @swagger-api/apidom-ast [apidom-ast-1.0.0-beta.3.tgz],
 @swagger-api/apidom-core [apidom-core-1.0.0-beta.3.tgz],
 @swagger-api/apidom-error [apidom-error-1.0.0-beta.3.tgz],
