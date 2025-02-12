@@ -59,6 +59,9 @@ public class InstallFeatureTest extends FeatureUtilityToolTest {
 //        .waitingFor(Wait.forLogMessage("Started Sonatype Nexus.*", 1))
 //        .withNetwork(network)
 //        .withNetworkAliases("nexus");
+	
+	//TODO Start using ImageBuilder
+	//  private static final RemoteDockerImage KEYSERVER_SIMPLE = ImageBuilder.build("keyserver-simple:3.11.6").get();
 
 	@ClassRule
 	public static GenericContainer<?> container = new GenericContainer<>("jiwoo/simple-keyserver:1.0")
