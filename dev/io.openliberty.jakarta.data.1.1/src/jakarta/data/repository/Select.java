@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024,2025 IBM Corporation and others.
+ * Copyright (c) 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -23,7 +23,8 @@ import java.lang.annotation.Target;
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
-public @interface Find {
-    Class<?> value = void.class;
+@Target({ ElementType.METHOD, ElementType.RECORD_COMPONENT })
+public @interface Select {
+
+    String[] value();
 }
