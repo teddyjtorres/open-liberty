@@ -3921,11 +3921,12 @@ public class QueryInfo {
      *
      * @param writer writes to the introspection file.
      * @param indent indentation for lines.
-     * @return list of QueryInfo for the caller to log.
      */
     @Trivial
     public void introspect(PrintWriter writer, String indent) {
         writer.println(indent + "QueryInfo@" + Integer.toHexString(hashCode()));
+        indent = indent + "  ";
+        writer.println(indent + "entity: " + entityInfo);
         writer.println(indent + "repository: " + repositoryInterface.getName());
 
         // method signature information
@@ -4836,12 +4837,20 @@ public class QueryInfo {
      *              or an entity that is already an entity and does not
      *              need conversion.
      * @return entity.
+     * @throws NullPointerException if the record is null, with a CWWKD1015 message
+     *                                  that is appropriate for life cycle operations
      */
     @Trivial
     final Object toEntity(Object o) {
+        if (o == null)
+            throw exc(NullPointerException.class,
+                      "CWWKD1015.null.entity.param",
+                      method.getName(),
+                      repositoryInterface.getName());
+
         Object entity = o;
-        Class<?> oClass = o == null ? null : o.getClass();
-        if (o != null && oClass.isRecord())
+        Class<?> oClass = o.getClass();
+        if (oClass.isRecord())
             try {
                 Class<?> entityClass = oClass.getClassLoader() //
                                 .loadClass(oClass.getName() + "Entity");

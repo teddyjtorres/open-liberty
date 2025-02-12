@@ -157,6 +157,31 @@ public class DataIntrospectorTest extends FATServletClient {
     }
 
     /**
+     * Verify that introspector output contains entity information.
+     */
+    @Test
+    public void testOutputContainsEntityInfo() {
+        assertLineFound("        name: Voter");
+        assertLineFound("          id(this) -> ssn");
+        assertLineFound("        name: PollingLocationEntity");
+        assertLineFound("          opensAt: java.time.LocalTime");
+        assertLineFound("        attributes for entity update:" +
+                        " [address, closesAt, opensAt, precinct, ward]");
+    }
+
+    /**
+     * Verify that introspector output contains method signatures from a
+     * generated entity class that is automatically created for an
+     * application-supplied record entity.
+     */
+    @Test
+    public void testOutputContainsGeneratedEntityClassSignatures() {
+        assertLineContains("public PollingLocationEntity(");
+        assertLineContains("public java.time.LocalTime getClosesAt()");
+        assertLineContains("public void setClosesAt(java.time.LocalTime)");
+    }
+
+    /**
      * Verify that the introspector output contains the names of JPQL named parameters.
      */
     @Test
@@ -172,6 +197,17 @@ public class DataIntrospectorTest extends FATServletClient {
         assertLineFound("      primary entity: test.jakarta.data.errpaths.web.Invention");
         assertLineFound("      primary entity: test.jakarta.data.errpaths.web.Volunteer");
         assertLineFound("      primary entity: test.jakarta.data.errpaths.web.Voter");
+    }
+
+    /**
+     * Verify that introspector output contains method signatures from an
+     * application-supplied record entity.
+     */
+    @Test
+    public void testOutputContainsRecordClassSignatures() {
+        assertLineContains("public PollingLocation(long, java.lang.String," +
+                           " java.time.LocalTime, java.time.LocalTime, int, int)");
+        assertLineContains("public java.time.LocalTime closesAt()");
     }
 
     /**

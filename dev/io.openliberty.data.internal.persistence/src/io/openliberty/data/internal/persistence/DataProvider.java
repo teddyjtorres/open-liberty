@@ -180,7 +180,9 @@ public class DataProvider implements //
     public volatile boolean dropTables;
 
     /**
-     * EntityManagerBuilder futures per application, to complete once the application starts.
+     * EntityManagerBuilder futures per application, to complete once the
+     * application starts. After the application starts, these are kept around
+     * for the introspector. The map is cleared on application stop.
      */
     private final ConcurrentHashMap<String, Collection<FutureEMBuilder>> futureEMBuilders = //
                     new ConcurrentHashMap<>();
@@ -291,7 +293,7 @@ public class DataProvider implements //
     @Override
     public void applicationStarted(ApplicationInfo appInfo) throws StateChangeException {
         String appName = appInfo.getName();
-        Collection<FutureEMBuilder> futures = futureEMBuilders.remove(appName);
+        Collection<FutureEMBuilder> futures = futureEMBuilders.get(appName);
         if (futures != null) {
             for (FutureEMBuilder futureEMBuilder : futures) {
                 // This delays createEMBuilder until restore.
@@ -310,7 +312,6 @@ public class DataProvider implements //
 
     @Override
     public void applicationStopping(ApplicationInfo appInfo) {
-        futureEMBuilders.remove(appInfo.getName());
     }
 
     @Override
@@ -518,7 +519,8 @@ public class DataProvider implements //
      */
     @Override
     public void introspect(PrintWriter writer) {
-        Set<QueryInfo> queryInfos = new LinkedHashSet<QueryInfo>();
+        Set<QueryInfo> queryInfos = new LinkedHashSet<>();
+        Set<EntityManagerBuilder> builders = new LinkedHashSet<>();
 
         writer.println("compatibility: " + compat.getClass().getSimpleName());
         writer.println("createTables? " + createTables);
@@ -538,11 +540,12 @@ public class DataProvider implements //
         });
 
         writer.println();
-        writer.println("EntityManager builders for unstarted applications:");
+        writer.println("EntityManager builder futures:");
         futureEMBuilders.forEach((appName, futureEMBuilders) -> {
             writer.println("  for application " + appName);
             for (FutureEMBuilder futureEMBuilder : futureEMBuilders) {
-                futureEMBuilder.introspect(writer, "    ");
+                futureEMBuilder.introspect(writer, "    ") //
+                                .ifPresent(builders::add);
                 writer.println();
             }
         });
@@ -567,19 +570,43 @@ public class DataProvider implements //
             list.add(queryInfo);
         }
 
-        // TODO log EntityInfo.introspect
-        // EntityInfo is available from queryInfoPerEntity.keySet,
-        // but obtaining from the EntityManagerBuilder might be more complete.
+        writer.println();
+        writer.println("EntityManager builders:");
+        builders.forEach(builder -> {
+            builder.introspect(writer, "  ");
+            writer.println();
+
+            builder.entityInfoMap.forEach((userEntityClass, entityInfoFuture) -> {
+                writer.println("    entity: " + userEntityClass.getName());
+
+                EntityInfo entityInfo = null;
+                writer.print("      future: ");
+                if (entityInfoFuture.isCancelled())
+                    writer.println("cancelled");
+                else if (entityInfoFuture.isDone())
+                    try {
+                        entityInfo = entityInfoFuture.join();
+                        writer.println("completed");
+                    } catch (Throwable x) {
+                        writer.println("failed");
+                        Util.printStackTrace(x, writer, "    ", null);
+                    }
+                else
+                    writer.println("not completed");
+
+                if (entityInfo != null)
+                    entityInfo.introspect(writer, "      ");
+                writer.println();
+            });
+        });
 
         writer.println();
         writer.println("Query Information:");
-        queryInfoPerEntity.forEach((entityInfo, queryInfoList) -> {
-            writer.println("  for entity " + entityInfo);
+        for (List<QueryInfo> queryInfoList : queryInfoPerEntity.values())
             for (QueryInfo queryInfo : queryInfoList) {
-                queryInfo.introspect(writer, "    ");
+                queryInfo.introspect(writer, "  ");
                 writer.println();
             }
-        });
     }
 
     /**
