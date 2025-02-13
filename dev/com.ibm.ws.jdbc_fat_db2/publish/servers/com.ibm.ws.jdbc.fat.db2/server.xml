@@ -60,7 +60,7 @@
       databaseName="${DB2_DBNAME}" serverName="${DB2_HOSTNAME}" portNumber="${DB2_PORT_SECURE}"
       user="${DB2_USER}" password="${DB2_PASS}"
       sslTrustStoreLocation="${server.config.dir}/security/db2-keystore.p12" sslTrustStorePassword="db2test" sslTrustStoreType="PKCS12"
-      sslConnection="true" sslVersion="TLSv1.2"/>
+      sslConnection="true" sslVersion="TLSv1.2" sslClientHostnameValidation="OFF"/>
   </dataSource>
   
   <dataSource jndiName="jdbc/db2-using-driver">
@@ -131,7 +131,8 @@
       user="${DB2_USER}" password="${DB2_PASS}" databaseName="${DB2_DBNAME}"
       clientRerouteAlternateServerName="${DB2_HOSTNAME}" clientRerouteAlternatePortNumber="${DB2_PORT_SECURE}"
       maxRetriesForClientReroute="1" retryIntervalForClientReroute="15"
-      sslConnection="true" sslVersion="TLSv1.2" sslCertLocation="${server.config.dir}/security/server.crt"/>
+      sslConnection="true" sslVersion="TLSv1.2" sslCertLocation="${server.config.dir}/security/server.crt"
+      sslClientHostnameValidation="OFF"/>
   </dataSource>
   
   <!--
@@ -143,7 +144,8 @@
       user="${DB2_USER}" password="${DB2_PASS}" databaseName="${DB2_DBNAME}"
       clientRerouteAlternateServerName="${DB2_HOSTNAME}" clientRerouteAlternatePortNumber="${DB2_PORT_SECURE}"
       maxRetriesForClientReroute="1" retryIntervalForClientReroute="15"
-      sslConnection="true" sslVersion="TLSv1.2" sslCertLocation="${server.config.dir}/security/wrong.crt"/>
+      sslConnection="true" sslVersion="TLSv1.2" sslCertLocation="${server.config.dir}/security/wrong.crt"
+      sslClientHostnameValidation="OFF"/>
   </dataSource>
   
   <!-- 
