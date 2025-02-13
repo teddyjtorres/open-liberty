@@ -674,10 +674,10 @@ public class JSF22MiscellaneousTests {
 
         ShrinkHelper.defaultDropinApp(jsf22MiscellaneousServer, APP_NAME_XML_VALIDATION_GOOD + ".war");
 
-        assertTrue("XML Validation Error found erronously.",
+        assertTrue("XML Validation Error found erroneously.",
                    jsf22MiscellaneousServer.findStringsInLogsAndTraceUsingMark(".*cvc-complex-type.2.4.a: Invalid content was found starting with element.*").isEmpty());
 
-        assertTrue("XML Validation Error found erronously.", jsf22MiscellaneousServer.findStringsInLogsAndTraceUsingMark(".*org.xml.sax.SAXParseException.*").isEmpty());
+        assertTrue("XML Validation Error found erroneously.", jsf22MiscellaneousServer.findStringsInLogsAndTraceUsingMark(".*org.xml.sax.SAXParseException.*").isEmpty());
 
         jsf22MiscellaneousServer.resetLogMarks();
 
