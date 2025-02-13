@@ -63,8 +63,7 @@ final class AuditCrypto {
     /**
      * @param provider
      */
-    public AuditCrypto() {
-    }
+    public AuditCrypto() {}
 
     static final boolean cmp(byte[] b1, int off1, byte[] b2, int off2, int n) {
         while (--n >= 0)
@@ -2116,16 +2115,12 @@ final class AuditCrypto {
         Cipher ci = null;
         ci = (provider == null) ? Cipher.getInstance(cipher) : Cipher.getInstance(cipher, provider);
 
-        if (cipher.indexOf(CryptoUtils.ENCRYPT_MODE_ECB) == -1) {
-            if (cipher.indexOf(CryptoUtils.ENCRYPT_ALGORITHM_AES) != -1) {
-                if (ivs16 == null) {
-                    setIVS16(key);
-                }
+        if (cipher.indexOf("ECB") == -1) {
+            if (cipher.indexOf("AES") != -1) {
+                setIVS16(key);
                 ci.init(cipherMode, sKey, ivs16);
             } else {
-                if (ivs8 == null) {
-                    setIVS8(key);
-                }
+                setIVS8(key);
                 ci.init(cipherMode, sKey, ivs8);
             }
         } else {
@@ -2225,21 +2220,18 @@ final class AuditCrypto {
         if (tc.isEntryEnabled())
             Tr.entry(tc, "setIVS8");
 
-        if (ivs8 == null) // only set it once
-        {
-            try {
-                byte[] iv8 = new byte[8];
-                for (int i = 0; i < 8; i++) {
-                    iv8[i] = key[i];
-                }
-                ivs8 = new IvParameterSpec(iv8);
-                if (tc.isDebugEnabled())
-                    Tr.debug(tc, "setIVS8: ivs8 successfully set");
-            } catch (Exception e) {
-                if (tc.isDebugEnabled())
-                    Tr.debug(tc, "setIVS8 unxepected exception setting initialization vector", new Object[] { e });
-                com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.ltpa.LTPAToken2Factory.initialize", "2539");
+        try {
+            byte[] iv8 = new byte[8];
+            for (int i = 0; i < 8; i++) {
+                iv8[i] = key[i];
             }
+            ivs8 = new IvParameterSpec(iv8);
+            if (tc.isDebugEnabled())
+                Tr.debug(tc, "setIVS8: ivs8 successfully set");
+        } catch (Exception e) {
+            if (tc.isDebugEnabled())
+                Tr.debug(tc, "setIVS8 unxepected exception setting initialization vector", new Object[] { e });
+            com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.ltpa.LTPAToken2Factory.initialize", "2539");
         }
     }
 
@@ -2250,21 +2242,18 @@ final class AuditCrypto {
         if (tc.isEntryEnabled())
             Tr.entry(tc, "setIVS16");
 
-        if (ivs16 == null) // only set it once
-        {
-            try {
-                byte[] iv16 = new byte[16];
-                for (int i = 0; i < 16; i++) {
-                    iv16[i] = key[i];
-                }
-                ivs16 = new IvParameterSpec(iv16);
-                if (tc.isDebugEnabled())
-                    Tr.debug(tc, "setIVS16: ivs16 successfully set");
-            } catch (Exception e) {
-                if (tc.isDebugEnabled())
-                    Tr.debug(tc, "setIVS16 unxepected exception setting initialization vector", new Object[] { e });
-                com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.ltpa.LTPAToken2Factory.initialize", "2568");
+        try {
+            byte[] iv16 = new byte[16];
+            for (int i = 0; i < 16; i++) {
+                iv16[i] = key[i];
             }
+            ivs16 = new IvParameterSpec(iv16);
+            if (tc.isDebugEnabled())
+                Tr.debug(tc, "setIVS16: ivs16 successfully set");
+        } catch (Exception e) {
+            if (tc.isDebugEnabled())
+                Tr.debug(tc, "setIVS16 unxepected exception setting initialization vector", new Object[] { e });
+            com.ibm.ws.ffdc.FFDCFilter.processException(e, "com.ibm.ws.security.ltpa.LTPAToken2Factory.initialize", "2568");
         }
     }
 }
