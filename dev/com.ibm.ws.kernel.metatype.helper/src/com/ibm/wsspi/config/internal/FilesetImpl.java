@@ -4,7 +4,7 @@
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-2.0/
- * 
+ *
  * SPDX-License-Identifier: EPL-2.0
  *
  * Contributors:
@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
@@ -43,6 +44,7 @@ import org.osgi.service.component.annotations.ReferencePolicy;
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
 import com.ibm.websphere.ras.annotation.Trivial;
+import com.ibm.ws.ffdc.annotation.FFDCIgnore;
 import com.ibm.ws.kernel.service.util.ServiceRegistrationModifier;
 import com.ibm.ws.kernel.service.util.ServiceRegistrationModifier.ServicePropertySupplier;
 import com.ibm.wsspi.config.Fileset;
@@ -351,6 +353,36 @@ public class FilesetImpl implements Fileset, FileMonitor, ServicePropertySupplie
             return accept(fullname);
         }
 
+        @Trivial
+        public boolean hasFilters() {
+            return !includes.isEmpty() && excludes.isEmpty();
+        }
+
+        @Trivial
+        public String getHumanReadableSummary() {
+            StringBuilder sb = new StringBuilder();
+
+            if (!includes.isEmpty()) {
+                sb.append("With include filters: ");
+                for (Pattern p : includes) {
+                    sb.append(System.lineSeparator());
+                    sb.append(p.toString());
+                }
+                sb.append(System.lineSeparator());
+            }
+
+            if (!excludes.isEmpty()) {
+                sb.append("With exclude filters: ");
+                for (Pattern p : excludes) {
+                    sb.append(System.lineSeparator());
+                    sb.append(p.toString());
+                }
+                sb.append(System.lineSeparator());
+            }
+
+            return sb.toString();
+        }
+
         private boolean accept(String fullname) {
             boolean accept = false;
 
@@ -538,6 +570,31 @@ public class FilesetImpl implements Fileset, FileMonitor, ServicePropertySupplie
         for (FilesetChangeListener listener : copy) {
             if (listener != null)
                 listener.filesetNotification(pid, this);
+        }
+    }
+
+    @Override
+    @FFDCIgnore(Exception.class)
+    public String toString() {
+        try {
+
+            StringBuilder sb = new StringBuilder();
+
+            sb.append("FileSet for directory: " + basedir);
+            sb.append(System.lineSeparator());
+
+            if (filter.hasFilters()) {
+                sb.append(filter.getHumanReadableSummary()); //provides its own line break
+            }
+
+            String files = fileset.stream().map(File::getPath).collect(Collectors.joining(", "));
+            sb.append("Which found the following files: " + files);
+
+            return sb.toString();
+
+        } catch (Exception e) {
+            String originalToString = super.toString();
+            return "Caught an exception calling to String on " + originalToString + " exception was: " + e.toString();
         }
     }
 
