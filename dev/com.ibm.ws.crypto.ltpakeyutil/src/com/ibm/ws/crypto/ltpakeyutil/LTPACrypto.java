@@ -52,8 +52,6 @@ final class LTPACrypto {
 
     private static final String signatureAlgorithm = CryptoUtils.getSignatureAlgorithm();
 
-    private static final String encryptAlgorithm = CryptoUtils.getEncryptionAlgorithm();
-
     private static int MAX_CACHE = 500;
     private static IvParameterSpec ivs8 = null;
     private static IvParameterSpec ivs16 = null;
@@ -601,8 +599,8 @@ final class LTPACrypto {
             DESedeKeySpec kSpec = new DESedeKeySpec(key);
             SecretKeyFactory kFact = null;
 
-            kFact = (provider == null) ? SecretKeyFactory.getInstance(encryptAlgorithm)
-                    : SecretKeyFactory.getInstance(encryptAlgorithm, provider);
+            kFact = (provider == null) ? SecretKeyFactory.getInstance(CryptoUtils.ENCRYPT_ALGORITHM_DESEDE)
+                    : SecretKeyFactory.getInstance(CryptoUtils.ENCRYPT_ALGORITHM_DESEDE, provider);
 
             sKey = kFact.generateSecret(kSpec);
         }
@@ -1037,11 +1035,8 @@ final class LTPACrypto {
 
     @Trivial
     static final byte[] generateSharedKey() {
-        byte[] rndSeed = null;
-        int len = (fipsEnabled) ? CryptoUtils.AES_256_KEY_LENGTH_BYTES : CryptoUtils.DESEDE_KEY_LENGTH_BYTES;
-        rndSeed = new byte[len];
-        random(rndSeed, 0, len);
-        return rndSeed;
+        return (fipsEnabled) ? CryptoUtils.generateRandomBytes(CryptoUtils.AES_256_KEY_LENGTH_BYTES)
+                : CryptoUtils.generateRandomBytes(CryptoUtils.DESEDE_KEY_LENGTH_BYTES);
     }
 
     @Trivial

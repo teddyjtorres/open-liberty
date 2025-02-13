@@ -14,6 +14,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivilegedAction;
+import java.security.SecureRandom;
 import java.security.Security;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -79,14 +80,15 @@ public class CryptoUtils {
     public static final String CRYPTO_ALGORITHM_RSA = "RSA";
 
     public static final String ENCRYPT_ALGORITHM_DESEDE = "DESede";
-    public static final String ENCRYPT_ALGORITHM_RSA = "RSA";
     public static final String ENCRYPT_ALGORITHM_AES = "AES";
 
     public static final String ENCRYPT_MODE_ECB = "ECB";
 
     public static final String AES_GCM_CIPHER = "AES/GCM/NoPadding";
-    public static final String DES_ECB_CIPHER = "DESede/ECB/PKCS5Padding"; //Audit
-    public static final String AES_CBC_CIPHER = "AES/CBC/PKCS5Padding"; //LTPA
+    /** Cipher used for LTPA Password */
+    public static final String DES_ECB_CIPHER = "DESede/ECB/PKCS5Padding";
+    /** Cipher used for LTPA tokens and audit. */
+    public static final String AES_CBC_CIPHER = "AES/CBC/PKCS5Padding";
 
     public static final int AES_128_KEY_LENGTH_BYTES = 16;
     public static final int AES_256_KEY_LENGTH_BYTES = 32;
@@ -95,6 +97,9 @@ public class CryptoUtils {
 
     private static boolean fips140_3Enabled = isFips140_3Enabled();
     private static boolean fipsEnabled = fips140_3Enabled;
+
+    /** Algorithm used for encryption in LTPA and audit. */
+    public static final String ENCRYPT_ALGORITHM = ENCRYPT_ALGORITHM_AES;
 
     private static Map<String, String> secureAlternative = new HashMap<>();
     static {
@@ -132,25 +137,7 @@ public class CryptoUtils {
             return SIGNATURE_ALGORITHM_SHA1WITHRSA;
     }
 
-    public static String getEncryptionAlgorithm() {
-        if (fipsEnabled && (isOpenJCEPlusFIPSAvailable() || isIBMJCEPlusFIPSAvailable()))
-            return ENCRYPT_ALGORITHM_RSA;
-        else
-            return ENCRYPT_ALGORITHM_DESEDE;
-    }
-
-    public static String getEncryptionAlgorithmForAudit() {
-        if (fipsEnabled && (isOpenJCEPlusFIPSAvailable() || isIBMJCEPlusFIPSAvailable()))
-            return ENCRYPT_ALGORITHM_AES;
-        else
-            return ENCRYPT_ALGORITHM_DESEDE;
-    }
-
     public static String getCipher() {
-        return fipsEnabled ? AES_CBC_CIPHER : DES_ECB_CIPHER;
-    }
-
-    public static String getCipherForAudit() {
         return fipsEnabled ? AES_CBC_CIPHER : DES_ECB_CIPHER;
     }
 
@@ -424,5 +411,21 @@ public class CryptoUtils {
             }
             return true;
         }
+    }
+
+    /** generate random bytes using SecureRandom */
+    public static byte[] generateRandomBytes(int length) {
+        byte[] seed = null;
+        SecureRandom rand = new SecureRandom();
+
+        // TODO: Investigate hardware Crypto
+        //String hardwareCryptoProvider = "IBMJCECCA";
+        //Provider provider = rand.getProvider();
+        //if (hardwareCryptoProvider.equals(provider.getName())) {
+        //    seed = new byte[length];
+        //    rand.nextBytes(seed);
+        //} else {
+        seed = rand.generateSeed(length);
+        return seed;
     }
 }
