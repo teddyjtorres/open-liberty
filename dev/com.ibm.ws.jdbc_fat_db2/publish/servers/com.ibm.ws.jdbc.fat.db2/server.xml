@@ -160,5 +160,6 @@
   </dataSource>
 
   <javaPermission codebase="${shared.resource.dir}db2/*" className="java.security.AllPermission"/>
+  <javaPermission codebase="${server.config.dir}/apps/db2fat.war" className="java.lang.reflect.ReflectPermission" name="suppressAccessChecks"/>
   <javaPermission className="java.lang.RuntimePermission" name="getClassLoader"/>
 </server>
