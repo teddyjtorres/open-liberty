@@ -670,6 +670,7 @@ public class JSF22MiscellaneousTests {
     public void testXMLValidationGoodCase() throws Exception {
 
         jsf22MiscellaneousServer.setMarkToEndOfLog();
+        jsf22MiscellaneousServer.setTraceMarkToEndOfDefaultTrace();
 
         ShrinkHelper.defaultDropinApp(jsf22MiscellaneousServer, APP_NAME_XML_VALIDATION_GOOD + ".war");
 
@@ -692,6 +693,7 @@ public class JSF22MiscellaneousTests {
     public void testXMLValidationBadCase() throws Exception {
 
         jsf22MiscellaneousServer.setMarkToEndOfLog();
+        jsf22MiscellaneousServer.setTraceMarkToEndOfDefaultTrace();
 
         ShrinkHelper.defaultDropinApp(jsf22MiscellaneousServer, APP_NAME_XML_VALIDATION_BAD + ".war");
 
@@ -703,4 +705,5 @@ public class JSF22MiscellaneousTests {
         jsf22MiscellaneousServer.removeAndStopDropinsApplications(APP_NAME_XML_VALIDATION_BAD + ".war");
 
     }
+
 }
