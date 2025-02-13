@@ -27,7 +27,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 
 import org.osgi.framework.Constants;
 import org.osgi.framework.ServiceRegistration;
@@ -354,33 +353,19 @@ public class FilesetImpl implements Fileset, FileMonitor, ServicePropertySupplie
         }
 
         @Trivial
-        public boolean hasFilters() {
-            return !includes.isEmpty() && excludes.isEmpty();
-        }
-
-        @Trivial
-        public String getHumanReadableSummary() {
-            StringBuilder sb = new StringBuilder();
+        private void getHumanReadableSummary(StringBuilder sb) {
 
             if (!includes.isEmpty()) {
                 sb.append("With include filters: ");
-                for (Pattern p : includes) {
-                    sb.append(System.lineSeparator());
-                    sb.append(p.toString());
-                }
+                includes.forEach(p -> sb.append(System.lineSeparator()).append("\t").append(p));
                 sb.append(System.lineSeparator());
             }
 
             if (!excludes.isEmpty()) {
                 sb.append("With exclude filters: ");
-                for (Pattern p : excludes) {
-                    sb.append(System.lineSeparator());
-                    sb.append(p.toString());
-                }
+                excludes.forEach(p -> sb.append(System.lineSeparator()).append("\t").append(p));
                 sb.append(System.lineSeparator());
             }
-
-            return sb.toString();
         }
 
         private boolean accept(String fullname) {
@@ -576,26 +561,25 @@ public class FilesetImpl implements Fileset, FileMonitor, ServicePropertySupplie
     @Override
     @FFDCIgnore(Exception.class)
     public String toString() {
+        StringBuilder sb = new StringBuilder();
+
         try {
-
-            StringBuilder sb = new StringBuilder();
-
             sb.append("FileSet for directory: " + basedir);
             sb.append(System.lineSeparator());
 
-            if (filter.hasFilters()) {
-                sb.append(filter.getHumanReadableSummary()); //provides its own line break
-            }
+            filter.getHumanReadableSummary(sb); //provides its own line break
 
-            String files = fileset.stream().map(File::getPath).collect(Collectors.joining(", "));
-            sb.append("Which found the following files: " + files);
-
-            return sb.toString();
+            // append first element
+            fileset.stream().limit(1).map(File::getPath).forEach(sb::append);
+            // append subsequent elements with delimiters
+            fileset.stream().skip(1).map(File::getPath).forEach(p -> sb.append(", ").append(p));
 
         } catch (Exception e) {
             String originalToString = super.toString();
-            return "Caught an exception calling to String on " + originalToString + " exception was: " + e.toString();
+            sb.append(System.lineSeparator());
+            sb.append("Caught an exception calling to String on " + originalToString + " exception was: " + e);
         }
-    }
 
+        return sb.toString();
+    }
 }
