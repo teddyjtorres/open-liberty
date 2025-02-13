@@ -13,6 +13,7 @@
 package concurrent.cdi.web;
 
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionStage;
 
 import jakarta.enterprise.concurrent.Asynchronous;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -29,6 +30,15 @@ public class TestBean {
      * We want to test that a CDI extension can do it.
      */
     public CompletableFuture<Thread> asyncByExtension() {
+        return Asynchronous.Result.complete(Thread.currentThread());
+    }
+
+    /**
+     * Do not put @Asynchronous on this method.
+     * We want to test that it is inherited from @MyAsync.
+     */
+    @MyAsync
+    public CompletionStage<Thread> inheritAsync() {
         return Asynchronous.Result.complete(Thread.currentThread());
     }
 }

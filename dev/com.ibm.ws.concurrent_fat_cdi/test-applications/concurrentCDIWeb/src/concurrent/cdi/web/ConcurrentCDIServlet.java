@@ -369,6 +369,22 @@ public class ConcurrentCDIServlet extends HttpServlet {
     }
 
     /**
+     * Test that an application-defined interceptor can be annotated with
+     * Asynchronous, causing the interceptor binding annotation to make
+     * methods into asynchronous methods.
+     */
+    public void testInheritAsynchronous() throws Exception {
+        // Use separate completable future to avoid causing the asynchronous
+        // method to complete inline on the requester thread.
+        CompletableFuture<Thread> cf = new CompletableFuture<>();
+
+        testBean.inheritAsync().thenAccept(cf::complete);
+
+        Thread thread = cf.get(TIMEOUT_NS, TimeUnit.NANOSECONDS);
+        assertNotSame(Thread.currentThread(), thread);
+    }
+
+    /**
      * Inject default instance of ContextService and use it.
      */
     public void testInjectContextServiceDefaultInstance() throws Exception {
