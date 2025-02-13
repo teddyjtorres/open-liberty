@@ -41,7 +41,7 @@ public enum DatabaseContainerType {
     DB2("jcc.jar", //
         Db2Container.class.getCanonicalName(), //
         Properties_db2_jcc.class, //
-        DockerImageName.parse("icr.io/db2_community/db2:11.5.9.0")//
+        DockerImageName.parse("icr.io/db2_community/db2:12.1.1.0")//
                         .asCompatibleSubstituteFor("icr.io/db2_community/db2")),
     Derby("derby.jar", //
           DerbyNoopContainer.class.getCanonicalName(), //

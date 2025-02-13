@@ -6,8 +6,7 @@ elastic/logstash:7.16.3
 fbicodex/spnego-kdc-server:1.0
 ghcr.io/gvenzl/oracle-free:23.5-full-faststart
 ghcr.io/gvenzl/oracle-free:23.5-slim-faststart
-icr.io/db2_community/db2:11.5.9.0
-icr.io/db2_community/db2:12.1.0.0
+icr.io/db2_community/db2:12.1.1.0
 infinispan/server:10.0.1.Final
 infinispan/server:13.0.10.Final
 jaegertracing/all-in-one:1.54
