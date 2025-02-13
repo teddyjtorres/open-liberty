@@ -560,6 +560,7 @@ public class FilesetImpl implements Fileset, FileMonitor, ServicePropertySupplie
 
     @Override
     @FFDCIgnore(Exception.class)
+    @Trivial
     public String toString() {
         StringBuilder sb = new StringBuilder();
 
