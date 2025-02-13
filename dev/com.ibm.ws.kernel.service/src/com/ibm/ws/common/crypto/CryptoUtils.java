@@ -73,15 +73,24 @@ public class CryptoUtils {
 
     public static final String SIGNATURE_ALGORITHM_SHA1WITHRSA = "SHA1withRSA";
     public static final String SIGNATURE_ALGORITHM_SHA256WITHRSA = "SHA256withRSA";
+    public static final String SIGNATURE_ALGORITHM_SHA512WITHRSA = "SHA512withRSA";
 
     public static final String CRYPTO_ALGORITHM_RSA = "RSA";
 
     public static final String ENCRYPT_ALGORITHM_DESEDE = "DESede";
     public static final String ENCRYPT_ALGORITHM_RSA = "RSA";
+    public static final String ENCRYPT_ALGORITHM_AES = "AES";
+
+    public static final String ENCRYPT_MODE_ECB = "ECB";
 
     public static final String AES_GCM_CIPHER = "AES/GCM/NoPadding";
     public static final String DES_ECB_CIPHER = "DESede/ECB/PKCS5Padding"; //Audit
     public static final String AES_CBC_CIPHER = "AES/CBC/PKCS5Padding"; //LTPA
+
+    public static final int AES_128_KEY_LENGTH_BYTES = 16;
+    public static final int AES_256_KEY_LENGTH_BYTES = 32;
+
+    public static final int DESEDE_KEY_LENGTH_BYTES = 24;
 
     private static boolean fipsEnabled = isFIPSEnabled();
 
@@ -116,7 +125,7 @@ public class CryptoUtils {
 
     public static String getSignatureAlgorithm() {
         if (fipsEnabled && (isOpenJCEPlusFIPSAvailable() || isIBMJCEPlusFIPSAvailable()))
-            return SIGNATURE_ALGORITHM_SHA256WITHRSA;
+            return SIGNATURE_ALGORITHM_SHA512WITHRSA;
         else
             return SIGNATURE_ALGORITHM_SHA1WITHRSA;
     }
@@ -124,6 +133,13 @@ public class CryptoUtils {
     public static String getEncryptionAlgorithm() {
         if (fipsEnabled && (isOpenJCEPlusFIPSAvailable() || isIBMJCEPlusFIPSAvailable()))
             return ENCRYPT_ALGORITHM_RSA;
+        else
+            return ENCRYPT_ALGORITHM_DESEDE;
+    }
+
+    public static String getEncryptionAlgorithmForAudit() {
+        if (fipsEnabled && (isOpenJCEPlusFIPSAvailable() || isIBMJCEPlusFIPSAvailable()))
+            return ENCRYPT_ALGORITHM_AES;
         else
             return ENCRYPT_ALGORITHM_DESEDE;
     }
@@ -140,7 +156,7 @@ public class CryptoUtils {
         // TODO remove beta check
         // TODO disabling CRYPTO_INSECURE warnings until full FIPS 140-3 support on Semeru is complete
         if (false && isRunningBetaMode()) {
-            Tr.warning(tc, "CRYPTO_INSECURE", configProperty, insecureAlgorithm);
+            Tr.warning(tc, "CRYPTO_INSECURE", configProperty, insecureAlgorithm, getSecureAlternative(insecureAlgorithm));
         }
     }
 
@@ -316,10 +332,10 @@ public class CryptoUtils {
         try {
             if (fipsEnabled) {
                 if (isSemeruFips()) {
-                    md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
+                    md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA512,
                                                     OPENJCE_PLUS_FIPS_NAME);
                 } else {
-                    md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA256,
+                    md1 = MessageDigest.getInstance(MESSAGE_DIGEST_ALGORITHM_SHA512,
                                                     IBMJCE_PLUS_FIPS_NAME);
                 }
             } else if (CryptoUtils.isIBMJCEAvailable()) {
