@@ -466,6 +466,7 @@
          // If there were no properties or only a partial set of properties provided to fill in information need to hash
          // the data then fill in the missing information with the defaults.
  
+         // LATEST_DEFAULT_ALGORITHM will be used for generating new hashed passwords
          if (algorithm == null) {
              algorithm = PasswordHashGenerator.LATEST_DEFAULT_ALGORITHM;
          }
