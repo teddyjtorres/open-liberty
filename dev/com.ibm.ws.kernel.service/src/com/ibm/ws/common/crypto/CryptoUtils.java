@@ -47,6 +47,7 @@ public class CryptoUtils {
 
     public static boolean unitTest = false;
     public static boolean fipsChecked = false;
+    public static boolean fips140_3Checked = false;
 
     public static boolean javaVersionChecked = false;
     public static boolean isJava11orHigher = false;
@@ -92,7 +93,8 @@ public class CryptoUtils {
 
     public static final int DESEDE_KEY_LENGTH_BYTES = 24;
 
-    private static boolean fipsEnabled = isFIPSEnabled();
+    private static boolean fips140_3Enabled = isFips140_3Enabled();
+    private static boolean fipsEnabled = fips140_3Enabled;
 
     private static Map<String, String> secureAlternative = new HashMap<>();
     static {
@@ -181,6 +183,9 @@ public class CryptoUtils {
             return ibmJCEAvailable;
         } else {
             ibmJCEAvailable = JavaInfo.isSystemClassAvailable(IBMJCE_PROVIDER);
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                Tr.debug(tc, "ibmJCEAvailable: " + ibmJCEAvailable);
+            }
             ibmJCEProviderChecked = true;
             return ibmJCEAvailable;
         }
@@ -190,22 +195,9 @@ public class CryptoUtils {
         if (ibmJCEPlusFIPSProviderChecked) {
             return ibmJCEPlusFIPSAvailable;
         } else {
-            boolean ibmJCEPlusFIPSProviderAvailable = JavaInfo.isSystemClassAvailable(IBMJCE_PLUS_FIPS_PROVIDER);
+            ibmJCEPlusFIPSAvailable = JavaInfo.isSystemClassAvailable(IBMJCE_PLUS_FIPS_PROVIDER);
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                Tr.debug(tc, "ibmJCEPlusFIPSProvider: " + IBMJCE_PLUS_FIPS_PROVIDER);
-                Tr.debug(tc, "ibmJCEPlusFIPSProviderAvailable: " + ibmJCEPlusFIPSProviderAvailable);
-            }
-
-            if (ibmJCEPlusFIPSProviderAvailable) {
-                if (!fipsEnabled) {
-                    ibmJCEPlusFIPSProviderAvailable = false;
-                } else {
-                    ibmJCEPlusFIPSAvailable = true;
-                }
-            } else {
-                if (fipsEnabled && !isSemeruFips()) {
-                    Tr.debug(tc, "FIPS is enabled but the " + IBMJCE_PLUS_FIPS_PROVIDER + " provider is not available.");
-                }
+                Tr.debug(tc, "ibmJCEPlusFIPSAvailable: " + ibmJCEPlusFIPSAvailable);
             }
             ibmJCEPlusFIPSProviderChecked = true;
             return ibmJCEPlusFIPSAvailable;
@@ -217,6 +209,9 @@ public class CryptoUtils {
             return openJCEPlusAvailable;
         } else {
             openJCEPlusAvailable = JavaInfo.isSystemClassAvailable(OPENJCE_PLUS_PROVIDER);
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                Tr.debug(tc, "openJCEPlusAvailable: " + openJCEPlusAvailable);
+            }
             openJCEPlusProviderChecked = true;
             return openJCEPlusAvailable;
         }
@@ -226,22 +221,9 @@ public class CryptoUtils {
         if (openJCEPlusFIPSProviderChecked) {
             return openJCEPlusFIPSAvailable;
         } else {
-            boolean openJCEPlusFIPSProviderAvailable = JavaInfo.isSystemClassAvailable(OPENJCE_PLUS_FIPS_PROVIDER);
+            openJCEPlusFIPSAvailable = JavaInfo.isSystemClassAvailable(OPENJCE_PLUS_FIPS_PROVIDER);
             if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                Tr.debug(tc, "openJCEPlusFIPSProvider: " + OPENJCE_PLUS_FIPS_PROVIDER);
-                Tr.debug(tc, "openJCEPlusFIPSAvailable: " + openJCEPlusFIPSProviderAvailable);
-            }
-
-            if (openJCEPlusFIPSProviderAvailable) {
-                if (!fipsEnabled || !isSemeruFips()) {
-                    openJCEPlusFIPSProviderAvailable = false;
-                } else {
-                    openJCEPlusFIPSAvailable = true;
-                }
-            } else {
-                if (fipsEnabled && isSemeruFips()) {
-                    Tr.debug(tc, "Semeru FIPS is enabled but the " + OPENJCE_PLUS_FIPS_PROVIDER + " provider is not available.");
-                }
+                Tr.debug(tc, "openJCEPlusFIPSAvailable: " + openJCEPlusFIPSAvailable);
             }
             openJCEPlusFIPSProviderChecked = true;
             return openJCEPlusFIPSAvailable;
@@ -375,13 +357,34 @@ public class CryptoUtils {
     }
 
     public static boolean isFips140_3Enabled() {
+        if (fips140_3Checked)
+            return fips140_3Enabled;
+        else {
+            boolean enabled = ("140-3".equals(FIPSLevel) || "true".equals(getPropertyLowerCase("global.fips_140-3", "false")) || isSemeruFips())
+                              && isRunningBetaMode();
+            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                Tr.debug(tc, "isFips140_3Enabled: " + enabled);
+            }
 
-        boolean result = ("140-3".equals(FIPSLevel) || "true".equals(getPropertyLowerCase("global.fips_140-3", "false")) || isSemeruFips())
-                         && isRunningBetaMode();
-        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-            Tr.debug(tc, "isFips140_3Enabled: " + result);
+            if (enabled) { // Check for FIPS 140-3 available
+                if (isIBMJCEPlusFIPSAvailable() || isOpenJCEPlusFIPSAvailable() || isFIPSProviderAvailable()) {
+                    fips140_3Enabled = true;
+                    Tr.info(tc, "FIPS_140_3ENABLED", (ibmJCEPlusFIPSAvailable ? IBMJCE_PLUS_FIPS_NAME : OPENJCE_PLUS_FIPS_NAME));
+                } else {
+                    Tr.error(tc, "FIPS_140_3ENABLED_ERROR");
+                }
+            }
+            fips140_3Checked = true;
+            return fips140_3Enabled;
         }
-        return result;
+    }
+
+    /**
+     * Check the provider names exist instead of the provider class for securityUtility command.
+     *
+     */
+    private static boolean isFIPSProviderAvailable() {
+        return (Security.getProvider(IBMJCE_PLUS_FIPS_NAME) != null || Security.getProvider(OPENJCE_PLUS_FIPS_NAME) != null);
     }
 
     public static boolean isFips140_2Enabled() {
