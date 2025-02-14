@@ -333,8 +333,12 @@ task autoFVT {
 
     // Copy LTPA FIPS keys if enabled
     if (bnd.get('ltpa.fips.enabled', 'false').toBoolean()) {
-      def publishBaseDir = new File(autoFvtDir, 'publish') // Correctly passes a File object
+      def publishBaseDir = new File(autoFvtDir, 'publish') 
+      def libBaseDir = new File(autoFvtDir, 'lib')
+      def filesBaseDir = new File(autoFvtDir, 'files')
       defaultCopyLTPAFIPSKeys(publishBaseDir)
+      defaultCopyLTPAFIPSKeys(libBaseDir)
+      defaultCopyLTPAFIPSKeys(filesBaseDir)
     }
 
     // Copy the logging libraries over for use while running FATs
@@ -697,10 +701,11 @@ task buildFatAndRelease {
 // Helper function to process entities in a directory
 def processEntities(baseDir, keysFile, action) {
     if (baseDir.exists() && baseDir.isDirectory()) {
+        // Process nested directories
         baseDir.listFiles()
             .findAll { it.isDirectory() } // Only process directories
             .each { entityDir ->
-                ["resources/security", "serverLTPAKeys", "engineLTPAKeys"].each { subPath ->
+                ["resources/security", "serverLTPAKeys", "engineLTPAKeys", ""].each { subPath ->
                     def targetDir = new File(entityDir, subPath)
                     def ltpaFile = new File(targetDir, "ltpa.keys")
 
@@ -719,7 +724,7 @@ def processEntities(baseDir, keysFile, action) {
             }
 
         // Directly check for subpaths under the base directory itself
-        ["resources/security", "serverLTPAKeys", "engineLTPAKeys"].each { subPath ->
+        ["resources/security", "serverLTPAKeys", "engineLTPAKeys", ""].each { subPath ->
             def targetDir = new File(baseDir, subPath)
             def ltpaFile = new File(targetDir, "ltpa.keys")
 
@@ -749,7 +754,7 @@ ext.copyLTPAKeys = { publishBaseDir, destinationDir, keysFileName ->
 
     // Check if publishBaseDir is a valid directory
     if (publishBaseDir?.exists() && publishBaseDir.isDirectory()) {
-        ["servers", "clients", "files"].each { subDir ->
+        ["servers", "clients", "files", "serverLTPAKeys", "LibertyFATTestFiles"].each { subDir ->
             def baseDir = new File(publishBaseDir, subDir)
             processEntities(baseDir, keysFile, "copy")
         }
