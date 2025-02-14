@@ -124,9 +124,8 @@
       <Object ocdref="com.ibm.ws.classloading.sharedlibrary.file"/>
   </Designate>
 
-  <OCD name="internal" description="internal use only"
-       id="com.ibm.ws.classloading.sharedlibrary.path"
-       ibm:beta="true">
+  <OCD name="%path" description="%path.desc"
+       id="com.ibm.ws.classloading.sharedlibrary.path">
        
      <AD name="%path.name" description="%path.name.desc"
         id="name"
