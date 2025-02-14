@@ -68,6 +68,10 @@ public class TelemetryAuditTest extends FATServletClient {
 
     private static final String ZERO_SPAN_TRACE_ID = "00000000000000000000000000000000 0000000000000000";
 
+    // Explicitly set the log search time out to 15 secs, instead of the default 4 mins set by the fattest.simplicity.LibertyServer.LOG_SEARCH_TIMEOUT,
+    // which causes the tests to wait 4 mins each run, where with repeated tests, it adds up to 2+ hours of waiting.
+    private static final int LOG_SEARCH_TIMEOUT = 15 * 1000; // in milliseconds.
+
     @BeforeClass
     public static void initialSetup() throws Exception {
         ShrinkHelper.defaultApp(server, APP_NAME, new DeployOptions[] { DeployOptions.SERVER_ONLY },
@@ -182,7 +186,7 @@ public class TelemetryAuditTest extends FATServletClient {
         TestUtils.runApp(server, "logServlet");
 
         // Ensure audit log is NOT bridged over, that is generated from an app.
-        String auditLine = server.waitForStringInLog("liberty_audit", consoleLogFile);
+        String auditLine = server.waitForStringInLog("liberty_audit", LOG_SEARCH_TIMEOUT, consoleLogFile);
         assertNull("Audit logs could be found.", auditLine);
 
         // Configure <mpTelemetry source="audit"/>
@@ -232,7 +236,7 @@ public class TelemetryAuditTest extends FATServletClient {
         TestUtils.runApp(server, "logServlet");
 
         // Ensure audit log is NOT bridged over, that is generated from an app.
-        auditLine = server.waitForStringInLog("liberty_audit", consoleLogFile);
+        auditLine = server.waitForStringInLog("liberty_audit", LOG_SEARCH_TIMEOUT, consoleLogFile);
         assertNull("Audit logs could be found.", auditLine);
     }
 
@@ -253,7 +257,7 @@ public class TelemetryAuditTest extends FATServletClient {
         TestUtils.runApp(server, "logServlet");
 
         // Ensure audit log is NOT bridged over, that is generated from an app.
-        String auditLine = server.waitForStringInLog("liberty_audit", consoleLogFile);
+        String auditLine = server.waitForStringInLog("liberty_audit", LOG_SEARCH_TIMEOUT, consoleLogFile);
         assertNull("Audit logs could be found.", auditLine);
 
         // Configure audit feature
@@ -308,7 +312,7 @@ public class TelemetryAuditTest extends FATServletClient {
         TestUtils.runApp(server, "logServlet");
 
         // Ensure audit log is NOT bridged over, that is generated from an app.
-        auditLine = server.waitForStringInLog("liberty_audit", consoleLogFile);
+        auditLine = server.waitForStringInLog("liberty_audit", LOG_SEARCH_TIMEOUT, consoleLogFile);
         assertNull("Audit logs could be found.", auditLine);
     }
 
@@ -346,7 +350,7 @@ public class TelemetryAuditTest extends FATServletClient {
         TestUtils.runApp(server, "logServlet");
 
         // Ensure audit logs is NOT bridged over, that is generated from an app.
-        auditLine = server.waitForStringInLog("liberty_audit", consoleLogFile);
+        auditLine = server.waitForStringInLog("liberty_audit", LOG_SEARCH_TIMEOUT, consoleLogFile);
         assertNull("Audit logs could be found.", auditLine);
     }
 
@@ -366,8 +370,8 @@ public class TelemetryAuditTest extends FATServletClient {
         String auditSrvReadyLine = server.waitForStringInLog("CWWKS5851I", messageLogFile);
         assertNotNull("Audit service ready message was NOT found.", auditSrvReadyLine);
 
-        // Audit events should not be bridged over to OpenTelemetry
-        String auditLine = server.waitForStringInLog("liberty_audit", consoleLogFile);
+        // Audit events should NOT be bridged over to OpenTelemetry
+        String auditLine = server.waitForStringInLog("liberty_audit", LOG_SEARCH_TIMEOUT, consoleLogFile);
         assertNull("Audit events were bridged to OpenTelemetry.", auditLine);
 
         // Check if the warning message is logged
