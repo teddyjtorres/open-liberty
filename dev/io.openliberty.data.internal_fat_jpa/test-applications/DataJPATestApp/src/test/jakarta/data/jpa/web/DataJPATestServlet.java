@@ -2082,9 +2082,17 @@ public class DataJPATestServlet extends FATServlet {
         assertEquals(Integer.valueOf(1983), camry.getYearIntroduced());
         assertEquals("Toyota", camry.getManufacturer().getName());
 
-        corolla = models.findById(corollaId).orElseThrow();
-
-        assertEquals("Corolla", corolla.getName());
+        // TODO enable once EclipseLink bug #28813 is fixed
+        //Instant corollaLastMod;
+        Long corollaLastMod;
+        corollaLastMod = models.lastModified(corollaId).orElseThrow();
+        List<Model> found = models.modifiedAt(corollaLastMod);
+        assertEquals(false, found.isEmpty());
+        corolla = null;
+        for (Model model : found)
+            if ("Corolla".equals(model.getName()))
+                corolla = model;
+        assertNotNull(corolla);
         assertEquals(Integer.valueOf(1966), corolla.getYearIntroduced());
         assertEquals("Toyota", corolla.getManufacturer().getName());
 
@@ -4334,9 +4342,7 @@ public class DataJPATestServlet extends FATServlet {
         }
 
         // Update the version/LocalDateTime and retry:
-        Long lastUpdate;
-        // TODO switch to the following once EclipseLink bug #30534 is fixed
-        //LocalDateTime lastUpdate;
+        LocalDateTime lastUpdate;
         lastUpdate = dodge.lastUpdated = counties.findLastUpdatedByName("Dodge");
         dodge.population = 20981;
 
