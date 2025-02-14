@@ -1502,12 +1502,12 @@ public class DataTestServlet extends FATServlet {
                              houses.findKitchenLengthAndKitchenWidthAndGarageAreaAndAreaByAreaLessThan(2000)
                                              .map(Arrays::toString)
                                              .collect(Collectors.toList()));
-        
+
         /*
          * Update embeddable attributes
          * TODO enable once #30789 is fixed
          */
-        
+
         //assertEquals(true, houses.updateByParcelIdSetGarageAddAreaAddKitchenLengthSetNumBedrooms("TestEmbeddable-304-3655-30", null, 180, 2, 4));
 
         //h = houses.findById("TestEmbeddable-304-3655-30");
@@ -1520,7 +1520,7 @@ public class DataTestServlet extends FATServlet {
         // SQL:  UPDATE WLPHouse SET NUMBEDROOMS = 4, AREA = (AREA + 180), GARAGEAREA = NULL, KITCHENLENGTH = (KITCHENLENGTH + 2) WHERE (PARCELID = 'TestEmbeddable-304-3655-30')
         // This causes the following assertion to fail:
         // assertEquals(null, h.garage);
-        // TODO re-enable the above if fixed
+        // TODO re-enable the above if EclipseLink bug #24926 is fixed
         //assertNotNull(h.kitchen);
         //assertEquals(16, h.kitchen.length);
         //assertEquals(12, h.kitchen.width);
@@ -1529,7 +1529,7 @@ public class DataTestServlet extends FATServlet {
         //assertEquals(153000f, h.purchasePrice, 0.001f);
         //assertEquals(Year.of(2018), h.sold);
 
-        //assertEquals(2, houses.dropAll());
+        assertEquals(2, houses.dropAll());
     }
 
     /**

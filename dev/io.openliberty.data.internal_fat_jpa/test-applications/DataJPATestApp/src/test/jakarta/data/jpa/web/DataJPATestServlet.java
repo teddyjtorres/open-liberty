@@ -270,6 +270,8 @@ public class DataJPATestServlet extends FATServlet {
 
         // TODO remove this workaround for intermittent issue triggered by test ordering once 28078 is fixed
         testLiteralDouble();
+        // To quickly try reproducing the issue, remove the above line and add the following line to tearDown,
+        // runTest(server, "DataJPATestApp", "testLiteralDouble");
     }
 
     /**
