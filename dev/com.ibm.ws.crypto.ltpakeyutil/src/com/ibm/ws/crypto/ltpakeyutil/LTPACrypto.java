@@ -629,14 +629,10 @@ final class LTPACrypto {
 
         if (cipher.indexOf(CryptoUtils.ENCRYPT_MODE_ECB) == -1) {
             if (cipher.indexOf(CryptoUtils.ENCRYPT_ALGORITHM_AES) != -1) {
-                if (ivs16 == null) {
-                    setIVS16(key);
-                }
+                setIVS16(key);
                 ci.init(cipherMode, sKey, ivs16);
             } else {
-                if (ivs8 == null) {
-                    setIVS8(key);
-                }
+                setIVS8(key);
                 ci.init(cipherMode, sKey, ivs8);
             }
         } else {
@@ -692,13 +688,11 @@ final class LTPACrypto {
      */
     @Trivial
     private static final synchronized void setIVS8(byte[] key) {
-        if (ivs8 == null) {
-            byte[] iv8 = new byte[8];
-            for (int i = 0; i < 8; i++) {
-                iv8[i] = key[i];
-            }
-            ivs8 = new IvParameterSpec(iv8);
+        byte[] iv8 = new byte[8];
+        for (int i = 0; i < 8; i++) {
+            iv8[i] = key[i];
         }
+        ivs8 = new IvParameterSpec(iv8);
     }
 
     /*
@@ -708,13 +702,11 @@ final class LTPACrypto {
      */
     @Trivial
     private static final synchronized void setIVS16(byte[] key) {
-        if (ivs16 == null) {
-            byte[] iv16 = new byte[16];
-            for (int i = 0; i < 16; i++) {
-                iv16[i] = key[i];
-            }
-            ivs16 = new IvParameterSpec(iv16);
+        byte[] iv16 = new byte[16];
+        for (int i = 0; i < 16; i++) {
+            iv16[i] = key[i];
         }
+        ivs16 = new IvParameterSpec(iv16);
     }
 
     @Trivial
