@@ -52,7 +52,7 @@ import io.openliberty.checkpoint.spi.CheckpointPhase;
 public class DB2Test extends FATServletClient {
 
     //TODO Start using ImageBuilder
-//  private static final RemoteDockerImage DB2_SSL = ImageBuilder.build("db2-ssl:11.5.9.0").get();
+//  private static final RemoteDockerImage DB2_SSL = ImageBuilder.build("db2-ssl:12.1.1.0").get();
 
     // Updated docker image to use TLS1.2 for secure communication
     static final DockerImageName db2Image = DockerImageName.parse("kyleaure/db2-ssl:3.0")

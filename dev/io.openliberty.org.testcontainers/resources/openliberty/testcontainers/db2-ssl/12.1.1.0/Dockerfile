@@ -27,3 +27,4 @@ ENV ARCHIVE_LOGS=false
 # Expose new port
 EXPOSE 50001
 
+# Passing locally 02/14/2024

@@ -2,12 +2,13 @@
 
 # This is an enablement script we want to run during image creation
 
+source ${SETUPDIR?}/include/db2_constants
+
 #Directories
 CERTS=/certs/
-DB2=/opt/ibm/db2/V11.5
-GSKIT_BINARY=$DB2/gskit
-GSKIT_LIBRARY=$DB2/lib64/gskit_db2
-JAVA_HOME=$DB2/java/jdk64/
+GSKIT_BINARY=${DB2DIR?}/gskit
+GSKIT_LIBRARY=${DB2DIR?}/lib64/gskit_db2
+JAVA_HOME=${DB2DIR?}/java/jdk64/
 
 #Key database
 KEY_DB=$CERTS/server.kdb
@@ -19,7 +20,7 @@ SSLPASSWORD="db2test"
 DN="CN=testcompany"
 
 #Path variables
-export PATH=$PATH:$GSKIT_BINARY/bin:$DB2/bin:$JAVA_HOME/bin
+export PATH=$PATH:$GSKIT_BINARY/bin:${DB2DIR?}/bin:$JAVA_HOME/bin
 export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$GSKIT_LIBRARY
 ldconfig
 

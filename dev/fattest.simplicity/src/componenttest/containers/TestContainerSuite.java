@@ -26,6 +26,7 @@ import org.testcontainers.dockerclient.EnvironmentAndSystemPropertyClientProvide
 import com.ibm.websphere.simplicity.log.Log;
 import com.ibm.ws.fat.util.Props;
 
+import componenttest.containers.substitution.LibertyImageNameSubstitutor;
 import componenttest.custom.junit.runner.FATRunner;
 import componenttest.topology.utils.ExternalTestService;
 
@@ -180,7 +181,7 @@ public class TestContainerSuite {
         }
 
         //Always use ArtifactoryImageNameSubstitutor
-        tcProps.setProperty("image.substitutor", ArtifactoryImageNameSubstitutor.class.getCanonicalName().toString());
+        tcProps.setProperty("image.substitutor", LibertyImageNameSubstitutor.class.getCanonicalName().toString());
 
         try {
             tcProps.store(new FileOutputStream(testcontainersConfigFile), "Modified by FAT framework");

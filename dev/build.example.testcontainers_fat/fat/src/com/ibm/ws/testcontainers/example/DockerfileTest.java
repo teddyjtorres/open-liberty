@@ -70,7 +70,7 @@ public class DockerfileTest {
      * - otherwise, pull a cached instance from an internal registry (if one is configured)
      * - otherwise, build an instance at test runtime.
      */
-    private static final RemoteDockerImage POSTGRES_INIT = ImageBuilder.build("postgres-init:17.0-alpine").get();
+    private static final RemoteDockerImage POSTGRES_INIT = ImageBuilder.build("postgres-init:17.0-alpine").getFuture();
 
     @ClassRule
     public static GenericContainer<?> container = new GenericContainer<>(POSTGRES_INIT)

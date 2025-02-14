@@ -23,7 +23,7 @@ public class DatabaseContainerTypeTest {
     @Test
     public void testValueOfContainer() {
         assertEquals(DatabaseContainerType.DB2, //
-                     DatabaseContainerType.valueOf(new Db2Container(DockerImageName.parse("icr.io/db2_community/db2:11.5.9.0")
+                     DatabaseContainerType.valueOf(new Db2Container(DockerImageName.parse("icr.io/db2_community/db2:12.1.1.0")
                                      .asCompatibleSubstituteFor("icr.io/db2_community/db2"))));
         assertEquals(DatabaseContainerType.Derby, //
                      DatabaseContainerType.valueOf(new DerbyNoopContainer()));

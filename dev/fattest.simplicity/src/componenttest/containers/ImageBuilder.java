@@ -20,7 +20,6 @@ import org.testcontainers.images.PullPolicy;
 import org.testcontainers.images.RemoteDockerImage;
 import org.testcontainers.images.builder.ImageFromDockerfile;
 import org.testcontainers.utility.DockerImageName;
-import org.testcontainers.utility.ImageNameSubstitutor;
 import org.testcontainers.utility.MountableFile;
 
 import com.ibm.websphere.simplicity.log.Log;
@@ -83,10 +82,30 @@ public class ImageBuilder {
      *
      * @return RemoteDockerImage that points to a cached or built image.
      */
-    public RemoteDockerImage get() {
+    public RemoteDockerImage getFuture() {
         return getCached()
                         .orElseGet(() -> pullCached()
                                         .orElseGet(() -> buildFromDockerfile()));
+    }
+
+    /**
+     * Realizes future immediately
+     *
+     * @see    #getFuture()
+     * @return
+     */
+    public String getName() {
+        return getFuture().get();
+    }
+
+    /**
+     * Realizes future immediately and parses image name into a DockerImageName object.
+     *
+     * @see    #getFuture()
+     * @return
+     */
+    public DockerImageName getDockerImageName() {
+        return DockerImageName.parse(getName());
     }
 
     /*
@@ -132,7 +151,7 @@ public class ImageBuilder {
      */
     private RemoteDockerImage buildFromDockerfile() {
         String resourcePath = constructResourcePath(image);
-        String baseImage = findBaseImageFrom(resourcePath).asCanonicalNameString();
+        String baseImage = findBaseImageFrom(resourcePath);
 
         ImageFromDockerfile builtImage = new ImageFromDockerfile(image.asCanonicalNameString(), false)
                         .withFileFromClasspath(".", resourcePath)
@@ -168,9 +187,9 @@ public class ImageBuilder {
      * and return the DockerImageName result.
      *
      * @param  resourcePath of the directory that contains a Dockerfile
-     * @return              The substituted docker image of the BASE_IMAGE argument
+     * @return              The substituted docker image name of the BASE_IMAGE argument
      */
-    private static DockerImageName findBaseImageFrom(String resourcePath) {
+    private static String findBaseImageFrom(String resourcePath) {
         final String BASE_IMAGE_PREFIX = "ARG BASE_IMAGE=\"";
 
         /*
@@ -196,7 +215,11 @@ public class ImageBuilder {
 
         String baseImageName = baseImageLine.substring(BASE_IMAGE_PREFIX.length(), baseImageLine.lastIndexOf('"'));
 
-        // NOTE: this is NOT the ImageBuilderSubstitutor
-        return ImageNameSubstitutor.instance().apply(DockerImageName.parse(baseImageName));
+        DockerImageName baseImageNameObject = DockerImageName.parse(baseImageName);
+
+        ImageVerifier.expectImage(baseImageNameObject);
+
+        // Will be substituted and then pulled if necessary
+        return new RemoteDockerImage(baseImageNameObject).get();
     }
 }
