@@ -59,7 +59,7 @@ PASSWORDUTIL_UNAVAILABLE_ENCRYPTION_ALGORITHM_EXCEPTION.useraction=Make sure tha
 PASSWORDUTIL_UNAVAILABLE_DECRYPTION_ALGORITHM_EXCEPTION=CWWKS1862E: AES password decryption failed. Check your java.security settings and add the missing algorithm.
 PASSWORDUTIL_UNAVAILABLE_DECRYPTION_ALGORITHM_EXCEPTION.explanation=An encryption algorithm is missing from your java.security file.
 PASSWORDUTIL_UNAVAILABLE_DECRYPTION_ALGORITHM_EXCEPTION.useraction=Make sure that the algorithm is added to your java.security file.
-PASSWORDUTIL_EXCEPTION_FIPS140_3_HASH_SHA1_UNAVAILABLE_ALGORITHM=CWWKS1863E: You cannot use SHA1 hash-encoded passwords when FIPS 140-3 is enabled. Regenerate the password hash encoding by using the securityUtility command.
+PASSWORDUTIL_EXCEPTION_FIPS140_3_HASH_SHA1_UNAVAILABLE_ALGORITHM=CWWKS1863E: You cannot use SHA1 hash-encoded passwords when FIPS 140-3 is enabled. Regenerate the password hash using the securityUtility command.
 PASSWORDUTIL_EXCEPTION_FIPS140_3_HASH_SHA1_UNAVAILABLE_ALGORITHM.explanation=FIPS 140-3 is enabled and does not support SHA1. Use the securityUtility encode command to generate a new SHA512 password hash.
 PASSWORDUTIL_EXCEPTION_FIPS140_3_HASH_SHA1_UNAVAILABLE_ALGORITHM.useraction=Make sure the password hash is generated with SHA512.
 
