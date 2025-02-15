@@ -139,7 +139,8 @@ public class SymbolicNameTest {
         }
         File workspaceDir = new File(System.getProperty("user.dir")).getAbsoluteFile().getParentFile();
 
-        Workspace bndWorkspace = new Workspace(workspaceDir, "com.ibm.websphere.appserver.features");
+        Workspace bndWorkspace = new Workspace(workspaceDir, "cnf");
+        bndWorkspace.setOffline(true);
         Collection<Project> projects = bndWorkspace.getAllProjects();
         for (Project project : projects) {
             Collection<String> bsns = project.getBsns();
