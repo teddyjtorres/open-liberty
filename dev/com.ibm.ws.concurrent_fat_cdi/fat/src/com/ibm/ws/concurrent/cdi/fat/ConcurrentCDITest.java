@@ -110,6 +110,11 @@ public class ConcurrentCDITest extends FATServletClient {
     }
 
     @Test
+    public void testInheritAsynchronous() throws Exception {
+        runTest(server, APP_NAME, testName);
+    }
+
+    @Test
     public void testInjectContextServiceDefaultInstance() throws Exception {
         runTest(server, APP_NAME, testName);
     }
