@@ -11,9 +11,19 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 
-package io.openliberty.checkpoint.fat.appclientsupport.view;
+package io.openliberty.checkpoint.fat.appclientsupport;
 
-public interface SimpleInjectionBeanRemote {
+import javax.ejb.Remote;
+import javax.ejb.Singleton;
 
-    public int add(int x, int y);
+import io.openliberty.checkpoint.fat.appclientsupport.view.SimpleGlobalEJBInjectionBeanRemote;
+
+@Singleton
+@Remote(SimpleGlobalEJBInjectionBeanRemote.class)
+public class SimpleGlobalEJBInjectionBean implements SimpleGlobalEJBInjectionBeanRemote {
+
+    @Override
+    public int add(int x, int y) {
+        return x + y;
+    }
 }
