@@ -56,7 +56,7 @@
         ibm:reference="com.ibm.ws.classloading.sharedlibrary.file"
     />
 
-     <AD name="%library.path.ref" description="%library.file.path.desc"
+     <AD name="%library.path.ref" description="%library.path.ref.desc"
         id="pathRef"
         required="false"
         type="String"
