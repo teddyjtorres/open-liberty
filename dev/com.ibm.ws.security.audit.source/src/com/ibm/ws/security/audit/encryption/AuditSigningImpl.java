@@ -52,8 +52,6 @@ public class AuditSigningImpl implements AuditSigning {
     private static String keyStoreName = "auditSignerKeyStore_";
     private static String certLabelPrefix = "auditcert";
 
-    private static boolean fips140_3Enabled = CryptoUtils.isFips140_3Enabled();
-
     private Signature signature = null;
     private final byte[] sigBytes = null;
     private final int signerKeyStoreIncrement = 1;
@@ -98,8 +96,7 @@ public class AuditSigningImpl implements AuditSigning {
         crypto = new AuditCrypto();
 
         try {
-            signature = fips140_3Enabled ? Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA512WITHRSA,
-                                                                 CryptoUtils.getProvider()) : Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA256WITHRSA);
+            signature = Signature.getInstance(CryptoUtils.SIGNATURE_ALGORITHM_SHA512WITHRSA);
         } catch (Exception e) {
             Tr.error(tc, "security.audit.signing.init.error", new Object[] { e });
             throw new AuditSigningException(e.getMessage());
@@ -122,11 +119,7 @@ public class AuditSigningImpl implements AuditSigning {
         javax.crypto.spec.SecretKeySpec sharedKey = null;
         try {
             if (crypto != null) {
-                if (CryptoUtils.isFips140_3Enabled())
-                    sharedKey = new javax.crypto.spec.SecretKeySpec(crypto.generateSharedKey(), 0, CryptoUtils.AES_256_KEY_LENGTH_BYTES, CryptoUtils.ENCRYPT_ALGORITHM_AES);
-                else
-                    sharedKey = new javax.crypto.spec.SecretKeySpec(crypto.generateSharedKey(), 0, CryptoUtils.DESEDE_KEY_LENGTH_BYTES, CryptoUtils.ENCRYPT_ALGORITHM_DESEDE);
-
+                sharedKey = new javax.crypto.spec.SecretKeySpec(crypto.generateSharedKey(), 0, CryptoUtils.AES_256_KEY_LENGTH_BYTES, CryptoUtils.ENCRYPT_ALGORITHM_AES);
             }
 
             if (sharedKey != null) {
@@ -439,7 +432,7 @@ public class AuditSigningImpl implements AuditSigning {
         byte[] signedData = null;
         MessageDigest md = null;
         try {
-            md = MessageDigest.getInstance(fips140_3Enabled ? CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA512 : CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA256);
+            md = MessageDigest.getInstance(CryptoUtils.MESSAGE_DIGEST_ALGORITHM_SHA512);
         } catch (java.security.NoSuchAlgorithmException e) {
             throw new AuditSigningException(e);
         }
