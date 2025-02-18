@@ -1141,6 +1141,46 @@ public class DataErrPathsTestServlet extends FATServlet {
     }
 
     /**
+     * Verify an error is raised when a repository method has an OrderBy annotation
+     * that attempts to sort by an invalid, non-existent function.
+     */
+    @Test
+    public void testOrderByInvalidFunction() {
+        try {
+            List<Voter> found = voters.sortedByEndOfAddress();
+            fail("OrderBy annotation with invalid function must cause an error." +
+                 " Instead, the repository method returned: " + found);
+        } catch (MappingException x) {
+            if (x.getMessage() != null &&
+                x.getMessage().startsWith("CWWKD1010E") &&
+                x.getMessage().contains("last5DigitsOf(address)"))
+                ; // expected
+            else
+                throw x;
+        }
+    }
+
+    /**
+     * Verify an error is raised when a repository method has an OrderBy annotation
+     * that attempts to sort by an invalid, non-existent function.
+     */
+    @Test
+    public void testOrderByUnkownEntityAttribute() {
+        try {
+            List<Voter> found = voters.sortedByZipCode();
+            fail("OrderBy annotation with invalid entity attribute must cause an" +
+                 " error. Instead, the repository method returned: " + found);
+        } catch (MappingException x) {
+            if (x.getMessage() != null &&
+                x.getMessage().startsWith("CWWKD1010E") &&
+                x.getMessage().contains("sortedByZipCode"))
+                ; // expected
+            else
+                throw x;
+        }
+    }
+
+    /**
      * Tests an error path where a paremeter-based query method attempts to place
      * the special parameters ahead of the query parameters.
      */

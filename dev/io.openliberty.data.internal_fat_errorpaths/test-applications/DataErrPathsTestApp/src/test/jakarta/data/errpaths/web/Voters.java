@@ -146,12 +146,12 @@ public interface Voters extends BasicRepository<Voter, Integer> {
     int discardSorted(@By("address") String mailingAddress, Sort<Voter> sort);
 
     /**
-     * This invalid method attempts to return a true/false exists results as int.
+     * This invalid method attempts to return a true/false exist result as int.
      */
     int existsByAddress(String homeAddress);
 
     /**
-     * This invalid method attempts to return a true/false exists results as a
+     * This invalid method attempts to return a true/false exist result as a
      * Long value within a CompletableFuture. The CompletableFuture is fine, but
      * Long does not match the true/false result type.
      */
@@ -372,6 +372,22 @@ public interface Voters extends BasicRepository<Voter, Integer> {
     CursoredPage<Voter> selectByName(@By("name") String name,
                                      PageRequest pageReq,
                                      Sort<Voter> sort);
+
+    /**
+     * Invalid method. A function that does not exist cannot be used within the
+     * sort criteria.
+     */
+    @Find
+    @OrderBy("last5DigitsOf(address)")
+    List<Voter> sortedByEndOfAddress();
+
+    /**
+     * Invalid method. The entity has no zipcode attribute upon which to sort.
+     */
+    @Find
+    @OrderBy("birthday")
+    @OrderBy("zipcode")
+    List<Voter> sortedByZipCode();
 
     /**
      * Invalid method. A method with a life cycle annotation must have exactly
