@@ -40,6 +40,7 @@ import org.osgi.service.component.annotations.Reference;
 
 import com.ibm.websphere.ras.Tr;
 import com.ibm.websphere.ras.TraceComponent;
+import com.ibm.ws.kernel.productinfo.ProductInfo;
 import com.ibm.ws.microprofile.health.internal.AppTracker;
 import com.ibm.ws.microprofile.health.services.HealthCheckBeanCallException;
 
@@ -114,21 +115,21 @@ public class HealthCheck40ServiceImpl implements HealthCheck40Service {
          * Beta-guard
          * Not really needed, but just in case.
          */
+        if (ProductInfo.getBetaEdition()) {
+            if (startedTimer != null) {
+                startedTimer.cancel();
+                startedTimer = null;
+            }
 
-        if (startedTimer != null) {
-            startedTimer.cancel();
-            startedTimer = null;
+            if (liveTimer != null) {
+                liveTimer.cancel();
+                liveTimer = null;
+            }
+            if (readyTimer != null) {
+                readyTimer.cancel();
+                readyTimer = null;
+            }
         }
-
-        if (liveTimer != null) {
-            liveTimer.cancel();
-            liveTimer = null;
-        }
-        if (readyTimer != null) {
-            readyTimer.cancel();
-            readyTimer = null;
-        }
-
     }
 
     @Reference(service = HealthCheck40Executor.class)
@@ -145,30 +146,56 @@ public class HealthCheck40ServiceImpl implements HealthCheck40Service {
 
     @Activate
     protected void activate(ComponentContext cc, Map<String, Object> properties) {
+
         /*
-         * Activation time is only time when check env var
-         * for the MP_HEALTH_FILE_UPDATE_INTERVAL only if server.xml
-         * does not exist (server.xml overrides everything once server starts).
+         * Beta guard
          */
-        String serverFileUpdateIntervalConfig;
-        if ((serverFileUpdateIntervalConfig = (String) properties.get(HealthCheckConstants.HEALTH_SERVER_CONFIG_FILE_UPDATE_INTERVAL)) != null) {
-            processUpdateIntervalConfig(serverFileUpdateIntervalConfig);
-        } else {
-            processUpdateIntervalConfig(System.getenv(HealthCheckConstants.HEALTH_ENV_CONFIG_FILE_UPDATE_INTERVAL));
-        }
-
-        if (isFileHealthCheckingEnabled()) {
-            //Validate system for File Health Checks (i.e., File I/O)
-            try {
-                isValidSystemForFileHealthCheck = HealthFileUtils.isValidSystem();
-                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                    Tr.debug(tc, "Is system valid for File health check: " + isValidSystemForFileHealthCheck);
-                }
-            } catch (IOException e) {
-                //Let FFDC handle this.
+        if (ProductInfo.getBetaEdition()) {
+            /*
+             * Activation time is only time when check env var
+             * for the MP_HEALTH_FILE_UPDATE_INTERVAL only if server.xml
+             * does not exist (server.xml overrides everything once server starts).
+             */
+            String serverFileUpdateIntervalConfig;
+            if ((serverFileUpdateIntervalConfig = (String) properties.get(HealthCheckConstants.HEALTH_SERVER_CONFIG_FILE_UPDATE_INTERVAL)) != null) {
+                processUpdateIntervalConfig(serverFileUpdateIntervalConfig);
+            } else {
+                processUpdateIntervalConfig(System.getenv(HealthCheckConstants.HEALTH_ENV_CONFIG_FILE_UPDATE_INTERVAL));
             }
-        }
 
+            if (isFileHealthCheckingEnabled()) {
+                //Validate system for File Health Checks (i.e., File I/O)
+                try {
+                    isValidSystemForFileHealthCheck = HealthFileUtils.isValidSystem();
+                    if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                        Tr.debug(tc, "Is system valid for File health check: " + isValidSystemForFileHealthCheck);
+                    }
+                } catch (IOException e) {
+                    //Let FFDC handle this.
+                }
+
+                /*
+                 * Handle special startup case(s)
+                 */
+                if (isValidSystemForFileHealthCheck) {
+
+                    /*
+                     * If there are no applications deployed.
+                     * Kick off the file health check processes.
+                     *
+                     * These will immediately create all three files
+                     * and then continually run the live and ready checks.
+                     * (which will always be UP.. forever.. and ever..).
+                     */
+                    Set<String> apps = validateApplicationSet();
+                    if (apps.size() == 0) {
+                        startFileHealthCheckProcesses();
+                    }
+                }
+
+            } // end isFileHealthCheckingEnabled
+
+        }
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(tc, "HealthCheckServiceImpl is activated");
         }
@@ -254,7 +281,10 @@ public class HealthCheck40ServiceImpl implements HealthCheck40Service {
     @Override
     public void startFileHealthCheckProcesses() {
 
-        if (isValidSystemForFileHealthCheck && isFileHealthCheckingEnabled()) {
+        /*
+         * Last flag in the if is the beta guard
+         */
+        if (isValidSystemForFileHealthCheck && isFileHealthCheckingEnabled() && ProductInfo.getBetaEdition()) {
 
             File startFile = HealthFileUtils.getStartFile();
             File readyFile = HealthFileUtils.getReadyFile();
