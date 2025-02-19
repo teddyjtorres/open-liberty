@@ -15,6 +15,11 @@ if [ -z ${ORACLE_ADMIN} ]; then
     exit 1
 fi
 
+if [ ! -d ${ORACLE_ADMIN} ]; then
+	echo "${ORACLE_ADMIN} is not a valid directory. Check if the location has changed.  Exiting..."
+	exit 1
+fi
+
 WALLET_PWD="WalletPasswd123"
 DN="CN=localhost"
 
@@ -93,9 +98,17 @@ SSL_CLIENT_AUTHENTICATION = TRUE
 
 # SQLNET Settings
 SQLNET.AUTHENTICATION_SERVICES = (TCPS, BEQ, NONE)
+
+# See https://github.com/gvenzl/oci-oracle-xe/issues/43
+DISABLE_OOB=ON
+BREAK_POLL_SKIP=1000
 EOF
 
-echo "UPDATE: $SQLNET_BACKUP >>> $SQLNET"
+# oracle-linux slim does not have diff installed. So instead just print both files
+echo "FROM: $SQLNET_BACKUP"
+cat $SQLNET_BACKUP
+
+echo "TO: $SQLNET"
 cat $SQLNET
 
 ## Overwrite to listener.ora
@@ -105,18 +118,10 @@ touch $LISTENER_BACKUP && cat $LISTENER > $LISTENER_BACKUP
 cat <<EOF > $LISTENER
 # listener.ora Network Configuration File:
 
-SID_LIST_LISTENER =
-  (SID_LIST =
-    (SID_DESC =
-      (SID_NAME = PLSExtProc)
-      (ORACLE_HOME = $ORACLE_HOME)
-      (PROGRAM = extproc)
-    )
-  )
-
 LISTENER =
   (DESCRIPTION_LIST =
     (DESCRIPTION =
+      (ADDRESS = (PROTOCOL = IPC )(KEY = EXTPROC_FOR_FREE))
       (ADDRESS = (PROTOCOL = TCP )(HOST = 0.0.0.0)(PORT = 1521))
     )
     (DESCRIPTION =
@@ -124,7 +129,7 @@ LISTENER =
     )
   )
 
-DEFAULT_SERVICE_LISTENER = (XE)
+DEFAULT_SERVICE_LISTENER = FREE
 
 WALLET_LOCATION =
   (SOURCE =
@@ -137,7 +142,11 @@ WALLET_LOCATION =
 SSL_CLIENT_AUTHENTICATION = TRUE
 EOF
 
-echo "UPDATE: $LISTENER_BACKUP >>> $LISTENER"
+# oracle-linux slim does not have diff installed. So instead just print both files
+echo "FROM: $LISTENER_BACKUP"
+cat $LISTENER_BACKUP
+
+echo "TO: $LISTENER_BACKUP"
 cat $LISTENER
 
 #Overwrite to tnsnames.ora
@@ -145,7 +154,7 @@ TNSNAMES=$ORACLE_ADMIN/tnsnames.ora
 TNSNAMES_BACKUP=$ORACLE_ADMIN/tnsnames.backup
 touch $TNSNAMES_BACKUP && cat $TNSNAMES > $TNSNAMES_BACKUP
 cat <<EOF > $TNSNAMES
-XE =
+FREE =
   (DESCRIPTION =
     (ADDRESS_LIST =
       (ADDRESS = (PROTOCOL = TCP )(HOST = 0.0.0.0)(PORT = 1521))
@@ -153,17 +162,11 @@ XE =
     )
     (CONNECT_DATA =
       (SERVER = DEDICATED)
-      (SERVICE_NAME = XE)
+      (SERVICE_NAME = FREE)
     )
   )
 
-LISTENER_XE =
-  (ADDRESS_LIST =
-    (ADDRESS = (PROTOCOL = TCP )(HOST = 0.0.0.0)(PORT = 1521))
-    (ADDRESS = (PROTOCOL = TCPS)(HOST = 0.0.0.0)(PORT = 1522))
-  )
-
-XEPDB1 =
+FREEPDB1 =
   (DESCRIPTION_LIST =
     (DESCRIPTION =
       (ADDRESS_LIST =
@@ -172,7 +175,7 @@ XEPDB1 =
       )
       (CONNECT_DATA =
         (SERVER = DEDICATED)
-        (SERVICE_NAME = XEPDB1)
+        (SERVICE_NAME = FREEPDB1)
       )
     )
   )
@@ -180,7 +183,7 @@ XEPDB1 =
 EXTPROC_CONNECTION_DATA =
   (DESCRIPTION =
      (ADDRESS_LIST =
-       (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC_FOR_XE))
+       (ADDRESS = (PROTOCOL = IPC)(KEY = EXTPROC_FOR_FREE))
      )
      (CONNECT_DATA =
        (SID = PLSExtProc)
@@ -189,7 +192,11 @@ EXTPROC_CONNECTION_DATA =
   )
 EOF
 
-echo "UPDATE: $TNSNAMES_BACKUP >>> $TNSNAMES"
+# oracle-linux slim does not have diff installed. So instead just print both files
+echo "FROM: $TNSNAMES_BACKUP"
+cat $TNSNAMES_BACKUP
+
+echo "TO: $TNSNAMES"
 cat $TNSNAMES
 
 # For some reason this oracle image does not allow user 'oracle' to run the oracle process *sigh*
