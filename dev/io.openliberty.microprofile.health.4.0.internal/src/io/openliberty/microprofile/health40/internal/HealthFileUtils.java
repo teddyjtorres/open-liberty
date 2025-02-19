@@ -102,15 +102,20 @@ public class HealthFileUtils {
         //Health Dir does not exist -> create and test write
         if (!healthDirFile.exists()) {
             if (!HealthFileUtils.createDirectory(healthDirFile)) {
-                //TODO: Create the real message ID
-                Tr.warning(tc, "Unable to create the /health directory. The mpHealth file-based health check reporting will be disabled.");
+                //TODO: Create warning message with ID
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                    Tr.debug(tc, "Unable to create the /health directory. The mpHealth file-based health check reporting will be disabled.");
+                }
+
                 return false;
             }
 
             //Testing write.
             if (!HealthFileUtils.canWriteToDirectory(healthDirFile)) {
-                //TODO: Create the real message ID
-                Tr.warning(tc, "Unable to write to the /health directory. The mpHealth file-based health check reporting will be disabled.");
+                //TODO: Create warning message with ID
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                    Tr.debug(tc, "Unable to write to the /health directory. The mpHealth file-based health check reporting will be disabled.");
+                }
                 return false;
             }
 
@@ -130,15 +135,20 @@ public class HealthFileUtils {
                     }
 
                     if (f.isDirectory()) {
-                        //TODO: Create the real message ID
-                        Tr.warning(tc,
-                                   "The MP Health runtime needs to create files with the name \"started\", \"live\" and \"ready\" in the /health directory for file-based health check reporting.\r\n"
-                                       + "However, the runtime has detected that a directory with a matching name is present in the /health directory which prevents the necessary files to be crated.The mpHealth file-based health check reporting will be disabled.");
+                        //TODO: Create warning message with ID
+                        if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                            Tr.debug(tc,
+                                     "The MP Health runtime needs to create files with the name \"started\", \"live\" and \"ready\" in the /health directory for file-based health check reporting.\r\n"
+                                         + "However, the runtime has detected that a directory with a matching name is present in the /health directory which prevents the necessary files to be crated.The mpHealth file-based health check reporting will be disabled.");
 
+                        }
                         return false;
                     } else {
                         if (!HealthFileUtils.deleteFiles(f)) {
-                            Tr.warning(tc, "Unable to delete existing file " + f.getAbsolutePath() + ". The mpHealth file-based health check reporting will be disabled.");
+                            //TODO: Create warning message with ID
+                            if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                                Tr.debug(tc, "Unable to delete existing file " + f.getAbsolutePath() + ". The mpHealth file-based health check reporting will be disabled.");
+                            }
                             return false;
                         }
                     }
@@ -147,8 +157,11 @@ public class HealthFileUtils {
 
             //Testing write.
             if (!HealthFileUtils.canWriteToDirectory(healthDirFile)) {
-                //TODO: Create the real message ID
-                Tr.warning(tc, "Unable to write to the /health directory. The mpHealth file-based health check reporting will be disabled.");
+                //TODO: Create warning message with ID
+                if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
+                    Tr.debug(tc, "Unable to write to the /health directory. The mpHealth file-based health check reporting will be disabled.");
+                }
+
                 return false;
             }
         }
@@ -159,7 +172,6 @@ public class HealthFileUtils {
     static boolean canWriteToDirectory(File parentDir) {
         Object token = ThreadIdentityManager.runAsServer();
         try {
-
             File tempFile = File.createTempFile("test", null);
             if (!tempFile.canWrite()) {
                 return false;

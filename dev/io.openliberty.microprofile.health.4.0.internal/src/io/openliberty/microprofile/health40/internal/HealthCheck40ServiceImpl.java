@@ -222,11 +222,11 @@ public class HealthCheck40ServiceImpl implements HealthCheck40Service {
                     fileUpdateIntevalMilliseconds = Integer.parseInt(configValue) * 1000;
                 }
             } else {
-                //TODO: Create real message
+                //TODO: Create warning message with ID
                 if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
-                    Tr.warning(tc, "Invalid value provided for the file update interval"
-                                   + "The value provided must consist of a number followed by an optional time unit of 'ms' or 's'."
-                                   + "Defaulting to 10 seconds.");
+                    Tr.debug(tc, "Invalid value provided for the file update interval"
+                                 + "The value provided must consist of a number followed by an optional time unit of 'ms' or 's'."
+                                 + "Defaulting to 10 seconds.");
                 }
                 //Default of 10 seconds.
                 fileUpdateIntevalMilliseconds = 10000;
@@ -321,16 +321,17 @@ public class HealthCheck40ServiceImpl implements HealthCheck40Service {
 
     @Deactivate
     protected void deactivate(ComponentContext cc, int reason) {
+
         if (TraceComponent.isAnyTracingEnabled() && tc.isDebugEnabled()) {
             Tr.debug(tc, "HealthCheckServiceImpl is deactivated");
         }
-
+        stopTimers();
     }
 
     /**
      * Resolve MP Config properties at startup and set default status.
      */
-    private void resolveDefaultStatues() {
+    private void resolveDefaultStatuses() {
         String mpConfig_defaultReadiness = ConfigProvider.getConfig().getOptionalValue(HealthCheckConstants.DEFAULT_OVERALL_READINESS_STATUS, String.class).orElse("");
         String mpConfig_defaultStartup = ConfigProvider.getConfig().getOptionalValue(HealthCheckConstants.DEFAULT_OVERALL_STARTUP_STATUS, String.class).orElse("");
 
@@ -381,7 +382,7 @@ public class HealthCheck40ServiceImpl implements HealthCheck40Service {
     @Override
     public void performHealthCheck(HttpServletRequest request, HttpServletResponse httpResponse, String healthCheckProcedure) {
 
-        resolveDefaultStatues();
+        resolveDefaultStatuses();
 
         HealthCheck30HttpResponseBuilder hcHttpResponseBuilder = new HealthCheck30HttpResponseBuilder();
         Set<String> appSet = validateApplicationSet();
@@ -399,7 +400,7 @@ public class HealthCheck40ServiceImpl implements HealthCheck40Service {
     @Override
     public Status performFileHealthCheck(File file, String healthCheckProcedure) {
 
-        resolveDefaultStatues();
+        resolveDefaultStatuses();
 
         FileHealthCheckBuilder fhc = new FileHealthCheckBuilder(file);
 
