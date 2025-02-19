@@ -47,7 +47,6 @@ final class LibraryGeneration {
 
     private volatile boolean cancelled;
     private final SharedLibraryImpl library;
-    private static boolean issuedBetaMessage = false;
 
     LibraryGeneration(SharedLibraryImpl library, String libraryId, Dictionary<String, Object> props) {
         this.library = library;
@@ -80,18 +79,7 @@ final class LibraryGeneration {
                     folderRef = (String[]) o;
                     continue;
                 case pathRef:
-                    if (!ProductInfo.getBetaEdition()) {
-                        if (!issuedBetaMessage) {
-                            Tr.info(tc, "BETA: The library config 'path' is beta and is not available.");
-                            issuedBetaMessage = true;
-                        }
-                    } else {
-                        if (!issuedBetaMessage) {
-                            Tr.info(tc, "BETA: The library config 'path' has been used.");
-                            issuedBetaMessage = true;
-                        }
-                        pathRef = (String[]) o;
-                    }
+                    pathRef = (String[]) o;
                     continue;
                 default:
                     continue;
