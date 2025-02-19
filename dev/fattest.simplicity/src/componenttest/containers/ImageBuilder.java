@@ -25,6 +25,7 @@ import org.testcontainers.utility.MountableFile;
 import com.ibm.websphere.simplicity.log.Log;
 
 import componenttest.containers.substitution.ImageBuilderSubstitutor;
+import componenttest.custom.junit.runner.FATRunner;
 
 /**
  * This builder class is an extension of {@link org.testcontainers.images.builder.ImageFromDockerfile}
@@ -45,6 +46,9 @@ public class ImageBuilder {
 
     // Image to build
     private final DockerImageName image;
+
+    // Cache image on docker host
+    private boolean deleteOnExit = true;
 
     // Constructor - builder class
     private ImageBuilder(DockerImageName image) {
@@ -69,6 +73,24 @@ public class ImageBuilder {
         Objects.requireNonNull(customImage);
 
         return new ImageBuilder(ImageBuilderSubstitutor.instance().apply(DockerImageName.parse(customImage)));
+    }
+
+    /**
+     * Set the deleteOnExit value to false to persist the image
+     * after the test has run. This should only be done during local development
+     * of images as we do not want our builds to clog the remote docker hosts with
+     * potentially buggy images.
+     *
+     * @throws IllegalStateException called during a non-local test run.
+     * @return                       this
+     */
+    public ImageBuilder withDevMode() {
+        if (!FATRunner.FAT_TEST_LOCALRUN) {
+            throw new IllegalStateException("Dev mode should not be used when running on our build systems");
+        }
+
+        deleteOnExit = false;
+        return this;
     }
 
     // Add future configuration methods here
@@ -153,7 +175,7 @@ public class ImageBuilder {
         String resourcePath = constructResourcePath(image);
         String baseImage = findBaseImageFrom(resourcePath);
 
-        ImageFromDockerfile builtImage = new ImageFromDockerfile(image.asCanonicalNameString(), false)
+        ImageFromDockerfile builtImage = new ImageFromDockerfile(image.asCanonicalNameString(), deleteOnExit)
                         .withFileFromClasspath(".", resourcePath)
                         .withBuildArg(BASE_IMAGE, baseImage);
 
