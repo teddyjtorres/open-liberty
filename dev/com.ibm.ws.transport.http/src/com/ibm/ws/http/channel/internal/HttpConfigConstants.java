@@ -454,7 +454,7 @@ public class HttpConfigConstants {
 
     public static final String PROPNAME_RESPONSE_HEADERS_SET_IF_MISSING = "headersSetIfMissingInternal";
 
-    public static final String PROPNAME_PERSIST_ON_ERROR = "persistOnError";
+    public static final String PROPNAME_IGNORE_WRITE_AFTER_COMMIT = "ignoreWriteAfterCommit";
 
     public static enum SameSite {
         LAX("Lax"),
