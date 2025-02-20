@@ -232,7 +232,7 @@ public class LoggingServletTest {
                    TestUtils.assertLogContains("testAuditEventLogs", logs, "io.openliberty.audit.reason.reason_type: Str(HTTP)"));
         assertTrue("The Audit target app name attribute can not be found.", TestUtils
                         .assertLogContains("testAuditEventLogs", logs,
-                                           "io.openliberty.audit.target.appname: Str(io.openliberty.microprofile.telemetry.logging.internal.fat.MpTelemetryLogApp.LogServlet)"));
+                                           "io.openliberty.audit.target.appname: Str(io.openliberty.microprofile.telemetry.logging.internal.container.fat.MpTelemetryLogApp.LogServlet)"));
         assertTrue("The Audit target method attribute can not be found.", TestUtils.assertLogContains("testAuditEventLogs", logs, "io.openliberty.audit.target.method: Str(GET)"));
         assertTrue("The Audit target name attribute can not be found.",
                    TestUtils.assertLogContains("testAuditEventLogs", logs, "io.openliberty.audit.target.name: Str(/MpTelemetryLogApp/LogURL)"));
