@@ -18,6 +18,10 @@
  */
 package org.apache.cxf.management.interceptor;
 
+import java.util.logging.Logger;
+
+import javax.xml.namespace.QName;
+
 import org.apache.cxf.interceptor.Fault;
 import org.apache.cxf.interceptor.MessageSenderInterceptor;
 import org.apache.cxf.message.Exchange;
@@ -29,6 +33,8 @@ import org.apache.cxf.phase.Phase;
 public class ResponseTimeMessageOutInterceptor extends AbstractMessageResponseTimeInterceptor {
     private EndingInterceptor ending = new EndingInterceptor();
 
+    Logger log = Logger.getLogger(ResponseTimeMessageOutInterceptor.class.getName());
+    
     public ResponseTimeMessageOutInterceptor() {
         super(Phase.PREPARE_SEND_ENDING);
         addBefore(MessageSenderInterceptor.MessageSenderEndingInterceptor.class.getName());
@@ -36,8 +42,11 @@ public class ResponseTimeMessageOutInterceptor extends AbstractMessageResponseTi
 
     public void handleMessage(Message message) throws Fault {
         Exchange ex = message.getExchange();
-        boolean forceDisabled = Boolean.FALSE.equals(ex.get("org.apache.cxf.management.counter.enabled"));
+        // Liberty change begin
+        boolean forceDisabled = getForceDisabled(ex);
+        
         if (!forceDisabled && isServiceCounterEnabled(ex)) {
+         // Liberty change end
             if (ex.get(Exception.class) != null) {
                 endHandlingMessage(ex);
                 return;
@@ -55,6 +64,27 @@ public class ResponseTimeMessageOutInterceptor extends AbstractMessageResponseTi
             }
         }
     }
+    
+    // Liberty change begin
+    /* 
+     * Disable counter either org.apache.cxf.management.counter.enabled property is set 
+     * or interface name contains special character causing IllegalArgumentException 
+     * according to JMX specification. Code logic below prevents FFDC creation by disabling 
+     * counter for name spaces with special characters
+     */
+    private boolean getForceDisabled(Exchange ex)  {
+        boolean forceDisabled = Boolean.FALSE.equals(ex.get("org.apache.cxf.management.counter.enabled"));
+        
+        Object object = ex.get("javax.xml.ws.wsdl.interface");
+        if(object != null && object instanceof QName)     {
+            String namespaceURI = ((QName) object).getNamespaceURI();
+            if (!namespaceURI.matches("[^a-zA-Z0-9 ]")) {
+                forceDisabled = true;
+            }
+        }
+        return forceDisabled;
+    }
+    // Liberty change end
 
     @Override
     public void handleFault(Message message) {
