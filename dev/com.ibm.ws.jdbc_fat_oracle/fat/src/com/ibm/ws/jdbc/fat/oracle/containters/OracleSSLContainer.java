@@ -34,7 +34,7 @@ public class OracleSSLContainer extends OracleXEContainer {
 
     //TODO Start using ImageBuilder
 //    private static final DockerImageName ORACLE_KRB5 = ImageBuilder
-//                    .build("oracle-ssl:23.6-full-faststart")
+//                    .build("oracle-ssl:23-full-faststart")
 //                    .getDockerImageName()
 //                    .asCompatibleSubstituteFor("gvenzl/oracle-free");
 

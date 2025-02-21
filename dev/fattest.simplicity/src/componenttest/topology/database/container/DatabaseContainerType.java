@@ -55,19 +55,19 @@ public enum DatabaseContainerType {
     Oracle("ojdbc8.jar", //
            OracleContainer.class.getCanonicalName(), //
            Properties_oracle.class, //
-           DockerImageName.parse("ghcr.io/gvenzl/oracle-free:23.5-full-faststart")//
+           DockerImageName.parse("ghcr.io/gvenzl/oracle-free:23-full-faststart")//
                            .asCompatibleSubstituteFor("gvenzl/oracle-free"), //
            "OracleDB"),
     Postgres("postgresql.jar", //
              PostgreSQLContainer.class.getCanonicalName(), //
              Properties_postgresql.class, //
-             DockerImageName.parse("public.ecr.aws/docker/library/postgres:17.0-alpine")//
+             DockerImageName.parse("public.ecr.aws/docker/library/postgres:17-alpine")//
                              .asCompatibleSubstituteFor("postgres"), //
              "Postgre", "PostgreSQL"),
     SQLServer("mssql-jdbc.jar", //
               MSSQLServerContainer.class.getCanonicalName(), //
               Properties_microsoft_sqlserver.class, //
-              DockerImageName.parse("mcr.microsoft.com/mssql/server:2019-CU28-ubuntu-20.04")//
+              DockerImageName.parse("mcr.microsoft.com/mssql/server:2022-latest")//
                               .asCompatibleSubstituteFor("mcr.microsoft.com/mssql/server"), //
               "MSSQLServer");
 

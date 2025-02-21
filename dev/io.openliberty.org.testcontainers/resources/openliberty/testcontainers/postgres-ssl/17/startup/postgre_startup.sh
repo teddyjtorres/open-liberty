@@ -24,7 +24,7 @@ DN="/CN=localhost/OU=defaultServer/O=ibm/C=us"
 PASSWORD=liberty
 
 echo "(*) Create client certificate signing request"
-openssl req -new -text -passout pass:$PASSWORD -subj $DN -out $TEMP_DIR/client.req -keyout $TEMP_DIR/privkey.pem && echo "Successful" || echo "Failure"
+openssl req -new -text -passout pass:$PASSWORD -subj $DN -out $TEMP_DIR/client.req -keyout $TEMP_DIR/privkey.pem 2>/dev/null && echo "Successful" || echo "Failure"
 
 echo "(*) Create client signing key"
 openssl rsa -in $TEMP_DIR/privkey.pem -passin pass:$PASSWORD -out $TEMP_DIR/client.key

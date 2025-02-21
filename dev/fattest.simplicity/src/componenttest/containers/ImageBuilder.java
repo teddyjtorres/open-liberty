@@ -105,9 +105,10 @@ public class ImageBuilder {
      * @return RemoteDockerImage that points to a cached or built image.
      */
     public RemoteDockerImage getFuture() {
+        String resourceDir = validateResourcePath();
         return getCached()
                         .orElseGet(() -> pullCached()
-                                        .orElseGet(() -> buildFromDockerfile()));
+                                        .orElseGet(() -> buildFromDockerfile(resourceDir)));
     }
 
     /**
@@ -128,6 +129,23 @@ public class ImageBuilder {
      */
     public DockerImageName getDockerImageName() {
         return DockerImageName.parse(getName());
+    }
+
+    /**
+     * Helper method, validates that we have source code (Dockerfile)
+     * for the image even if we end up using a cached version.
+     * Ensures developers do not make the mistake of updating a folder
+     * without updating their test.
+     *
+     * @return                       Resource directory
+     * @throws IllegalStateException f image does not exist
+     */
+    public String validateResourcePath() {
+        /*
+         * Finds the resource directory on the classpath and will extract the directory to a temporary location so we can read it.
+         * This will be done during the image build step anyway so this is just front-loading that work for our benefit.
+         */
+        return MountableFile.forClasspathResource(constructResourcePath(image)).getResolvedPath();
     }
 
     /*
@@ -171,9 +189,9 @@ public class ImageBuilder {
     /*
      * Helper method, constructs an image from a Dockerfile
      */
-    private RemoteDockerImage buildFromDockerfile() {
+    private RemoteDockerImage buildFromDockerfile(String resourceDir) {
         String resourcePath = constructResourcePath(image);
-        String baseImage = findBaseImageFrom(resourcePath);
+        String baseImage = findBaseImageFrom(resourceDir);
 
         ImageFromDockerfile builtImage = new ImageFromDockerfile(image.asCanonicalNameString(), deleteOnExit)
                         .withFileFromClasspath(".", resourcePath)
@@ -208,17 +226,11 @@ public class ImageBuilder {
      * Once found, run the BASE_IMAGE through the ImageNameSubstitutor
      * and return the DockerImageName result.
      *
-     * @param  resourcePath of the directory that contains a Dockerfile
-     * @return              The substituted docker image name of the BASE_IMAGE argument
+     * @param  resourceDir of the directory that contains a Dockerfile
+     * @return             The substituted docker image name of the BASE_IMAGE argument
      */
-    private static String findBaseImageFrom(String resourcePath) {
+    private static String findBaseImageFrom(String resourceDir) {
         final String BASE_IMAGE_PREFIX = "ARG BASE_IMAGE=\"";
-
-        /*
-         * Finds the resource directory on the classpath and will extract the directory to a temporary location so we can read it.
-         * This will be done during the image build step anyway so this is just front-loading that work for our benefit.
-         */
-        String resourceDir = MountableFile.forClasspathResource(resourcePath).getResolvedPath();
 
         Stream<String> dockerfileLines;
 

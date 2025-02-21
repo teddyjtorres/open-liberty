@@ -1,7 +1,7 @@
 # Base image used by external users is overwritten at runtime
 # by a mirrored version from Artifactory for internal users.
 
-ARG BASE_IMAGE="ghcr.io/gvenzl/oracle-free:23.5-full-faststart"
+ARG BASE_IMAGE="ghcr.io/gvenzl/oracle-free:23-full-faststart"
 
 FROM ${BASE_IMAGE}
 
@@ -13,8 +13,9 @@ RUN microdnf -y install krb5-workstation krb5-libs
 COPY setup/ /opt/oracle/scripts/setup
 COPY startup/ /container-entrypoint-startdb.d/
 
-# Oracle admin moved from /opt/oracle/oradata/dbconfig/XE/ to /opt/oracle/homes/OraDBHome21cXE/network/admin in 21c
-ENV ORACLE_ADMIN=/opt/oracle/homes/OraDBHome21cXE/network/admin
+# This variable tends to change with major updates.
+# Update this variable when updating to Oracle 25
+ENV ORACLE_ADMIN=/opt/oracle/product/23ai/dbhomeFree/network/admin
 
 ENV ORACLE_PWD=password
 ENV KRB5_REALM=EXAMPLE.COM
