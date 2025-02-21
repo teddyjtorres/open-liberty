@@ -44,7 +44,6 @@ public class ResponseTimeMessageOutInterceptor extends AbstractMessageResponseTi
         Exchange ex = message.getExchange();
         // Liberty change begin
         boolean forceDisabled = getForceDisabled(ex);
-        
         if (!forceDisabled && isServiceCounterEnabled(ex)) {
          // Liberty change end
             if (ex.get(Exception.class) != null) {
@@ -74,11 +73,11 @@ public class ResponseTimeMessageOutInterceptor extends AbstractMessageResponseTi
      */
     private boolean getForceDisabled(Exchange ex)  {
         boolean forceDisabled = Boolean.FALSE.equals(ex.get("org.apache.cxf.management.counter.enabled"));
-        
+ 
         Object object = ex.get("javax.xml.ws.wsdl.interface");
         if(object != null && object instanceof QName)     {
             String namespaceURI = ((QName) object).getNamespaceURI();
-            if (!namespaceURI.matches("[^a-zA-Z0-9 ]")) {
+            if (!namespaceURI.matches("[a-zA-Z0-9./:?]*$")) {
                 forceDisabled = true;
             }
         }
