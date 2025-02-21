@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020, 2022 IBM Corporation and others.
+ * Copyright (c) 2020, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -30,6 +30,7 @@ import org.testcontainers.DockerClientFactory;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.Network;
 import org.testcontainers.containers.wait.strategy.LogMessageWaitStrategy;
+import org.testcontainers.utility.DockerImageName;
 
 import com.github.dockerjava.api.command.InspectContainerResponse;
 import com.github.dockerjava.api.model.ExposedPort;
@@ -50,15 +51,15 @@ public class KerberosContainer extends GenericContainer<KerberosContainer> {
     public static final String KRB5_PASS = "password";
 
     //TODO Start using ImageBuilder
-//  private static final RemoteDockerImage KDC_JDBC_SERVER = ImageBuilder.build("kdc-jdbc-server:3.17").get();
+//    private static final DockerImageName KDC_JDBC_SERVER = ImageBuilder.build("kdc-jdbc-server:3.17").getDockerImageName();
 
     // NOTE: If this is ever updated, don't forget to push to docker hub, but DO NOT overwrite existing versions
-    private static final String IMAGE = "kyleaure/krb5-server:1.0";
+    private static final DockerImageName KDC_JDBC_SERVER = DockerImageName.parse("kyleaure/krb5-server:1.0");
 
     private int udp_99;
 
     public KerberosContainer(Network network) {
-        super(IMAGE);
+        super(KDC_JDBC_SERVER);
         withNetwork(network);
     }
 

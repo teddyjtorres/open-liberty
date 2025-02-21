@@ -180,7 +180,7 @@ public class TestContainerSuite {
             tcProps.remove("tinyimage.container.image");
         }
 
-        //Always use ArtifactoryImageNameSubstitutor
+        //Always use LibertyImageNameSubstitutor
         tcProps.setProperty("image.substitutor", LibertyImageNameSubstitutor.class.getCanonicalName().toString());
 
         try {
