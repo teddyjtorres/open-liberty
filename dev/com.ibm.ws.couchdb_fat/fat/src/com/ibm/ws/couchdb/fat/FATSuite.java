@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2014, 2019 IBM Corporation and others.
+ * Copyright (c) 2014, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,7 @@ import org.junit.ClassRule;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 import org.junit.runners.Suite.SuiteClasses;
+import org.testcontainers.utility.DockerImageName;
 
 import com.ibm.ws.couchdb.fat.tests.CouchDBContainer;
 import com.ibm.ws.couchdb.fat.tests.TestCouchDbWar;
@@ -28,10 +29,13 @@ import componenttest.containers.TestContainerSuite;
 public class FATSuite extends TestContainerSuite {
 
     //TODO Start using ImageBuilder
-//  private static final RemoteDockerImage COUCHDB_SSL = ImageBuilder.build("couchdb-ssl:3.2.0").get();
+//    private static final DockerImageName COUCHDB_SSL = ImageBuilder.build("couchdb-ssl:3")
+//                    .getDockerImageName();
+
+    private static final DockerImageName COUCHDB_SSL = DockerImageName.parse("kyleaure/couchdb-ssl:1.0");
 
     @ClassRule
-    public static CouchDBContainer couchdb = new CouchDBContainer("kyleaure/couchdb-ssl:1.0")
-                    .withLogConsumer(new SimpleLogConsumer(FATSuite.class, "couchdb"));
+    public static CouchDBContainer couchdb = new CouchDBContainer(COUCHDB_SSL)
+                    .withLogConsumer(new SimpleLogConsumer(FATSuite.class, "couchdb-ssl"));
 
 }

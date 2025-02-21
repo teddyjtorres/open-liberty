@@ -34,7 +34,7 @@ openzipkin/zipkin-slim:2.23
 otel/opentelemetry-collector-contrib:0.103.0
 otel/opentelemetry-collector:0.74.0
 public.ecr.aws/docker/library/alpine:3.17
-public.ecr.aws/docker/library/couchdb:3.2.0
+public.ecr.aws/docker/library/couchdb:3
 public.ecr.aws/docker/library/mongo:6.0.6
 public.ecr.aws/docker/library/postgres:17
 public.ecr.aws/docker/library/postgres:17-alpine
