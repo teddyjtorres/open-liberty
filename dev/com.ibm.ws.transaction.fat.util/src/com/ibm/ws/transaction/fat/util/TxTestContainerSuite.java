@@ -39,6 +39,8 @@ import componenttest.topology.database.container.DatabaseContainerType;
  *
  */
 public class TxTestContainerSuite extends TestContainerSuite {
+	private static final Class<?> c = TxTestContainerSuite.class;
+	
     public static final String POSTGRES_DB = "testdb";
     public static final String POSTGRES_USER = "postgresUser";
     public static final String POSTGRES_PASS = "superSecret";
