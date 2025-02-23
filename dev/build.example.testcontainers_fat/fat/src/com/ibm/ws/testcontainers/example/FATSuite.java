@@ -43,8 +43,8 @@ public class FATSuite extends TestContainerSuite {
     public static RepeatTests r = RepeatTests.with(FeatureReplacementAction.NO_REPLACEMENT().fullFATOnly())
                     .andWith(FeatureReplacementAction.EE9_FEATURES());
 
-    private static final DockerImageName PostgreSQLImage = DockerImageName.parse("public.ecr.aws/docker/library/postgres:17.0-alpine")
-                    .asCompatibleSubstituteFor("postgres:17.0-alpine");
+    private static final DockerImageName PostgreSQLImage = DockerImageName.parse("public.ecr.aws/docker/library/postgres:17-alpine")
+                    .asCompatibleSubstituteFor("postgres");
 
     /*
      * If you want to use the same container for the entire test suite you can

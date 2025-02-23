@@ -59,18 +59,18 @@ public class DockerfileTest {
      * It is possible to provide testcontainers with a Dockerfile and build a new image at runtime.
      *
      * <pre>
-     * private static final RemoteDockerImage POSTGRES_INIT = ImageBuilder.build("postgres-init:17.0-alpine").get();
+     * private static final RemoteDockerImage POSTGRES_INIT = ImageBuilder.build("postgres-init:17-alpine").get();
      * </pre>
      *
      * The ImageBuilder will depend on a Dockerfile being located in:
-     * io.openliberty.org.testcontainers/resources/openliberty/testcontainers/postgres-init/17.0-alpine/Dockerfile
+     * io.openliberty.org.testcontainers/resources/openliberty/testcontainers/postgres-init/17-alpine/Dockerfile
      *
      * The ImageBuilder will get (in this order):
      * - A cached instance of the image from the docker host (local or remote)
      * - otherwise, pull a cached instance from an internal registry (if one is configured)
      * - otherwise, build an instance at test runtime.
      */
-    private static final RemoteDockerImage POSTGRES_INIT = ImageBuilder.build("postgres-init:17.0-alpine").getFuture();
+    private static final RemoteDockerImage POSTGRES_INIT = ImageBuilder.build("postgres-init:17-alpine").getFuture();
 
     @ClassRule
     public static GenericContainer<?> container = new GenericContainer<>(POSTGRES_INIT)
