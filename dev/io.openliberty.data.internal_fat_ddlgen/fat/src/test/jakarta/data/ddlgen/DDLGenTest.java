@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2024 IBM Corporation and others.
+ * Copyright (c) 2024, 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -52,11 +52,11 @@ public class DDLGenTest extends FATServletClient {
     @BeforeClass
     public static void setUp() throws Exception {
         // Create an additional user and schema on database (matches authData id="dbuser")
-        String preamble = createUserAndSchema(FATSuite.testContainer, "dbuser", "DBuserPassw0rd");
+        String preamble = createUserAndSchema(FATSuite.testContainer, "dbuser", "DB!userPassw0rd");
 
         DatabaseContainerUtil.build(server, FATSuite.testContainer)
                         .withDriverVariable()
-                        .withAuthVariables("dbuser", "DBuserPassw0rd")
+                        .withAuthVariables("dbuser", "DB!userPassw0rd")
                         .withDatabaseProperties()
                         .modify();
 
@@ -120,6 +120,8 @@ public class DDLGenTest extends FATServletClient {
                                                               connectDBPrefix + "db2 create schema authorization " + user + ";"));
                     results.add(testContainer.execInContainer("su", "-", testContainer.getUsername(), "-c",
                                                               connectDBPrefix + "db2 grant all privileges on schema " + user + " to user " + user + ";"));
+                    results.add(testContainer.execInContainer("su", "-", testContainer.getUsername(), "-c",
+                                                              connectDBPrefix + "db2 grant use of tablespace USERSPACE1 to user " + user + ";"));
 
                     for (ExecResult result : results) {
                         assertEquals("Unexpected result from command on DB2 container, std.err: " + result.getStderr(), 0, result.getExitCode());
