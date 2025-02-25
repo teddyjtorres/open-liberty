@@ -138,7 +138,7 @@ public class DDLGenTest extends FATServletClient {
                     try (Connection con = testContainer.createConnection(""); Statement stmt = con.createStatement()) {
                         stmt.executeUpdate("alter session set \"_ORACLE_SCRIPT\"=true");
                         stmt.executeUpdate("alter user " + testContainer.getUsername() + " quota unlimited on users");
-                        stmt.executeUpdate("create user " + user + " identified by " + pass);
+                        stmt.executeUpdate("create user " + user + " identified by \"" + pass + "\"");
                         stmt.executeUpdate("grant connect, create session, create table to " + user);
                         stmt.executeUpdate("grant unlimited tablespace to " + user);
                     }
