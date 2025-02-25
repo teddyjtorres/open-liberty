@@ -77,7 +77,7 @@ public class ResponseTimeMessageOutInterceptor extends AbstractMessageResponseTi
         Object object = ex.get("javax.xml.ws.wsdl.interface");
         if(object != null && object instanceof QName)     {
             String namespaceURI = ((QName) object).getNamespaceURI();
-            if (!namespaceURI.matches("[a-zA-Z0-9./:?]*$")) {
+            if (!namespaceURI.matches("[a-zA-Z0-9./:?_]*$")) {
                 forceDisabled = true;
             }
         }
