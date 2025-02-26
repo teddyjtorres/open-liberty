@@ -23,7 +23,6 @@ import componenttest.rules.repeater.RepeatTests;
 
 public class HealthActions {
 
-    //Health 4.0 repeats should not start with "MicroProfile_xx" as RepeatTestFilter uses startsWith() which makes them indisinguishable to mpTelemetry-1.1 in tests
     public static final String MP14_MPHEALTH40_ID = EE7FeatureReplacementAction.ID + "_MPHEALTH40_MP14";
     public static final String MP41_MPHEALTH40_ID = EE8FeatureReplacementAction.ID + "_MPHEALTH40_MP41";
 
@@ -95,18 +94,6 @@ public class HealthActions {
 
     public static RepeatTests health40Repeats() {
         return mpHealth40Repeats(FeatureReplacementAction.ALL_SERVERS);
-    }
-
-    /*
-     * This returns one repeat for every released version of MPTelemetry; the latest 1.0, 1.1, etc.
-     * It also returns a repeat to cover ongoing development if that is not covered by one of the above.
-     */
-    public static RepeatTests latestTelemetryRepeats(String serverName) {
-        return repeat(serverName,
-                      MicroProfileActions.MP70_EE11,
-                      MicroProfileActions.MP70_EE10,
-                      MicroProfileActions.MP61,
-                      MicroProfileActions.MP60);
     }
 
     public static RepeatTests mp60Repeat(String serverName) {
