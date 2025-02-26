@@ -10,7 +10,7 @@
 -include= ~../cnf/resources/bnd/bundle.props
 bVersion: 1.0
 
--sub: health.4.0.javax.bnd
+-sub: *.bnd
 
 # All of the sub bundles inherit the following settings.  The gradle logic
 # currently doesn't look at sub bundles for the the following two properties
