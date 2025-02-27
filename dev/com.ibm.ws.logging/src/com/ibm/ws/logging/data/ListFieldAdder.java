@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2020, 2025 IBM Corporation and others.
+ * Copyright (c) 2025 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
  * which accompanies this distribution, and is available at
@@ -12,8 +12,12 @@
  *******************************************************************************/
 package com.ibm.ws.logging.data;
 
-public class AccessLogConfig {
-    public static String jsonAccessLogFieldsConfig = "";
-    public static String jsonAccessLogFieldsLogstashConfig = "";
-    public static String accessLogFieldsTelemetryConfig = "";
+import java.util.List;
+
+/**
+ *
+ */
+public interface ListFieldAdder {
+    void populate(List<KeyValuePair> jsonObject, AccessLogData a);
+
 }
