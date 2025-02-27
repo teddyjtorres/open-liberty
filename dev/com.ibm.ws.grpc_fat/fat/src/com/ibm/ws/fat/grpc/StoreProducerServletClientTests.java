@@ -97,7 +97,7 @@ public class StoreProducerServletClientTests extends FATServletClient {
             //wsjar:file:/.../open-liberty/dev/build.image/wlp/usr/servers/StoreServer/
             //apps/StoreApp.war!/WEB-INF/lib/serializer-2.7.2.jar or its parent.
             if (storeServer != null)
-                storeServer.stopServer("SRVE9967W");
+                storeServer.stopServer("SRVE9967W", "SRVE8055E", "SRVE8056E");
         } catch (Exception e) {
             excep = e;
             Log.error(c, "store tearDown", e);
