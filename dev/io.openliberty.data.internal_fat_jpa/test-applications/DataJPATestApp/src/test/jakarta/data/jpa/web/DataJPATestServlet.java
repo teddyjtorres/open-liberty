@@ -4299,9 +4299,20 @@ public class DataJPATestServlet extends FATServlet {
          * Without using the Eclipselink Oracle plugin the precision of Timestamp is 1 second
          * Therefore, we need to ensure 1 second has passed between queries where we expect
          * the LocalDateTime/version to be different.
+         *
+         * For Derby the timestamp field can hold a precision of nanoseconds,
+         * but the CURRENT_TIMESTAMP function returns a timestamp with millis
+         * precision and there is no configuration to change that.
+         *
+         * For SQLServer the timestamp field also defaults to millis and Eclipselink
+         * offers no alternative query to get better percision.
+         *
+         * PostgreSQL - default is nanoseconds
+         * DB2 - default is microseconds
          */
         String jdbcJarName = System.getenv().getOrDefault("DB_DRIVER", "UNKNOWN");
-        boolean secondPercision = jdbcJarName.startsWith("ojdbc");
+        boolean secondPrecision = jdbcJarName.startsWith("ojdbc");
+        boolean millisecondPrecision = jdbcJarName.startsWith("derby") || jdbcJarName.startsWith("mssql-jdbc");
 
         assertEquals(0, counties.deleteByNameIn(List.of("Dodge", "Mower")));
 
@@ -4323,8 +4334,10 @@ public class DataJPATestServlet extends FATServlet {
 
         dodge = counties.findByName("Dodge").orElseThrow();
 
-        if (secondPercision)
+        if (secondPrecision)
             Thread.sleep(Duration.ofSeconds(1).toMillis());
+        if (millisecondPrecision)
+            Thread.sleep(Duration.ofMillis(1).toMillis());
 
         dodgeZipCodes = new int[] { 55917, 55924, 55927, 55940, 55944, 55955, 55963, 55985 };
         assertEquals(true, counties.updateByNameSetZipCodes("Dodge", dodgeZipCodes));
@@ -4343,8 +4356,10 @@ public class DataJPATestServlet extends FATServlet {
         lastUpdate = dodge.lastUpdated = counties.findLastUpdatedByName("Dodge");
         dodge.population = 20981;
 
-        if (secondPercision)
+        if (secondPrecision)
             Thread.sleep(Duration.ofSeconds(1).toMillis());
+        if (millisecondPrecision)
+            Thread.sleep(Duration.ofMillis(1).toMillis());
 
         counties.save(dodge);
 
